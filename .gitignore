@@ -1,0 +1,7 @@
+build/
+out/
+*.o
+tests/
+*.c
+!tests/*.c
+gluon
