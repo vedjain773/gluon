@@ -5,29 +5,32 @@
 #include <vector>
 #include <memory>
 
+class Func;
+
 class BasicBlock {
-private:
+  private:
+    std::string name;
     Func *parent;                                      
-    std::vector<std::unique_ptr<Instruction>> instructions;
+    std::vector<std::unique_ptr<Inst>> instructions;
     std::vector<BasicBlock*> predecessors;              
     std::vector<BasicBlock*> successors;
 
-public:
-    Func *getParent() const;
+  public:
+    BasicBlock(const std::string &name, Func *parent);
+    Func *getParent();
 
-    void appendInstruction(std::unique_ptr<Instruction> inst);
-    void insertInstructionBefore(Instruction *before, std::unique_ptr<Instruction> inst);
-    void removeInstruction(Instruction *inst);
+    void appendInst(std::unique_ptr<Inst> inst);
+    void insertInst(Inst *before, std::unique_ptr<Inst> inst);
+    void removeInst(Inst *inst);
 
-    auto begin(); auto end();
-    Instruction *getFirstInst();
-    Instruction *getLastInst();
+    Inst *getFirstInst();
+    Inst *getLastInst();
 
-    Instruction *getTerminator();
+    Inst *getTerminator();
     bool hasTerminator();
 
-    const std::vector<BasicBlock*> &getPredecessors();
-    const std::vector<BasicBlock*> &getSuccessors();
+    std::vector<BasicBlock*> &getPredecessors();
+    std::vector<BasicBlock*> &getSuccessors();
     void addPredecessor(BasicBlock *bb);
 
     void print(std::ostream &os);

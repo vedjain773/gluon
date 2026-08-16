@@ -11,11 +11,13 @@ private:
     std::vector<std::unique_ptr<Func>> functions;
 
 public:
-    Func *createFunc(const std::string &name, TypeKind *returnType,
+    Module(const std::string &name = "");
+    Func *appendFunc(const std::string &name, TypeKind *returnType,
                       std::vector<TypeKind*> paramTypes);
-    Func *getFunc(const std::string &name); 
+    Func *appendFunc(std::unique_ptr<Func> func);
 
-    auto begin(); auto end();
+    Func *getFunc(const std::string &name);
+
     void print(std::ostream &os);
 };
 

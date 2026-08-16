@@ -5,6 +5,8 @@
 #include <cstdint>
 #include "utils/Scope.hpp"
 
+class Func;
+
 enum class ValueKind {
     Constant,
     Instruction,
@@ -19,9 +21,10 @@ class Value {
     unsigned id;
 
   protected:
-    void setValueKind(ValueKind valueKind);
+    Value(TypeKind *type, ValueKind vkind, unsigned id, const std::string &name);
 
   public:
+    virtual ~Value() = default;
     ValueKind getValueKind();
     TypeKind *getType();
 };
@@ -29,10 +32,18 @@ class Value {
 class ConstantInt : public Value {
   private:
     uint64_t value;
-    uint8_t bitWidth;
+  
+  public:
+    ConstantInt(TypeKind *intType, unsigned id, uint64_t value, const std::string &name);
+};
+
+class Arg: public Value {
+  private:
+    Func *func;
+    unsigned argNo;
 
   public:
-    ConstantInt(uint64_t value, uint8_t bitWidth);
+    Arg(TypeKind *type, const std::string &name, Func *F, unsigned argNo);
 };
 
 #endif

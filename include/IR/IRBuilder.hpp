@@ -1,41 +1,38 @@
 #ifndef IRBUILDER_H
 #define IRBUILDER_H
 
-#include "Module.hpp"
-#include "Func.hpp"
-#include "BasicBlock.hpp"
-#include "Inst.hpp"
-#include "Value.hpp"
+#include "IR/Module.hpp"
+#include "IR/Func.hpp"
+#include "IR/BasicBlock.hpp"
+#include "IR/Inst.hpp"
+#include "IR/Value.hpp"
 
 class IRBuilder {
-private:
+  private:
     Module *currModule;
     Func *currFunc;
     BasicBlock *currBasicBlock;
 
-public:
+  public:
     IRBuilder(Module *module);
 
     void setInsertPoint(BasicBlock *bb);
     BasicBlock *getInsertBlock();
 
-    Value *createBinOp(BinOpKind op, Value *lhs, Value *rhs, const std::string &name = "");
-    Value *createCmp(CmpKind pred, Value *lhs, Value *rhs, const std::string &name = "");
+    Value *createBinOp(OpCode op, Value *lhs, Value *rhs, const std::string &name = "");
+    Value *createCmp(OpCode pred, Value *lhs, Value *rhs, const std::string &name = "");
     Value *createNeg(Value *value, const std::string &name = "");
     Value *createNot(Value *value, const std::string &name = "");
 
-    Value *createAlloca(TypeKind *type, const std::string &name = "");
-    Value *createLoad(TypeKind *type, Value *ptr, const std::string &name = "");
-    Instruction *createStore(Value *value, Value *dest);
+    AllocaInst *createAlloca(TypeKind *type, const std::string &name = "");
+    LoadInst *createLoad(TypeKind *type, Value *ptr, const std::string &name = "");
+    StoreInst *createStore(Value *value, Value *dest);
 
-    Value *createCast(CastKind kind, Value *value, TypeKind *destType, 
-            const std::string &name = "");
-    Value *createCall(Func *callee, std::vector<Value*> args, const std::string &name = "");
+    CallInst *createCall(Func *callee, std::vector<Value*> args, const std::string &name = "");
 
-    Instruction *createRet();
-    Instruction *createRet(Value *value);
-    Instruction *createBr(BasicBlock *dest);
-    Instruction *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB);
+    ReturnInst *createRet(Value *value);
+    UnCondBrInst *createBr(BasicBlock *then);
+    CondBrInst *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB);
 
     void insertBasicBlock(std::unique_ptr<BasicBlock> bb);
     void insertFunc(std::unique_ptr<Func> func);
