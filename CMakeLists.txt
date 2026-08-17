@@ -13,6 +13,7 @@ file(GLOB SRC_FILES
     src/*.cpp
     src/frontend/scanner/*.cpp
     src/frontend/parser/*.cpp
+    src/IR/*.cpp
     src/nodes/*.cpp
     src/nodes/expression/*.cpp
     src/nodes/statement/*.cpp
