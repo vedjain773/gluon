@@ -36,7 +36,7 @@ std::string opcodeToStr(OpCode opcode) {
 //---
 
 Inst::Inst(OpCode op, TypeKind *type, std::vector<Value*> ops, const std::string &name)
-    :Value(type, ValueKind::Instruction, 0, name), opcode(op), operands(ops) {}
+    :Value(type, ValueKind::Instruction, name), opcode(op), operands(ops) {}
 
 OpCode Inst::getOpCode() { return opcode; }
 

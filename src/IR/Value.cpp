@@ -4,8 +4,8 @@
 
 //---
 
-Value::Value(TypeKind *type, ValueKind vkind, unsigned id, const std::string &name)
-    :name(name), type(type), vkind(vkind), id(id) {}
+Value::Value(TypeKind *type, ValueKind vkind, const std::string &name)
+    :name(name), type(type), vkind(vkind) {}
 
 ValueKind Value::getValueKind() { return vkind; }
 
@@ -15,13 +15,12 @@ std::string Value::getName() { return name; }
 
 //---
 
-ConstantInt::ConstantInt(TypeKind *intType, unsigned id, uint64_t value, const std::string &name)
-    : Value(intType, ValueKind::Constant, id, name), value(value) {}
+ConstantInt::ConstantInt(TypeKind *intType, uint64_t value, const std::string &name)
+    : Value(intType, ValueKind::Constant, name), value(value) {}
 
-ConstantInt *ConstantInt::Create(TypeKind *intType, unsigned id, uint64_t value,
-        const std::string &name)
+ConstantInt *ConstantInt::Create(TypeKind *intType, uint64_t value, const std::string &name)
 {
-    return new ConstantInt(intType, id, value, name);    
+    return new ConstantInt(intType, value, name);    
 }
 
 void ConstantInt::printAsOperand(std::ostream &os) {

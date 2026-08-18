@@ -19,10 +19,9 @@ class Value {
     std::string name;
     TypeKind *type;
     ValueKind vkind;
-    unsigned id;
 
   protected:
-    Value(TypeKind *type, ValueKind vkind, unsigned id, const std::string &name);
+    Value(TypeKind *type, ValueKind vkind, const std::string &name);
 
   public:
     virtual ~Value() = default;
@@ -44,8 +43,8 @@ class ConstantInt : public Value {
     uint64_t value;
   
   public:
-    ConstantInt(TypeKind *intType, unsigned id, uint64_t value, const std::string &name);
-    static ConstantInt *Create(TypeKind *intType, unsigned id, uint64_t value,
+    ConstantInt(TypeKind *intType, uint64_t value, const std::string &name);
+    static ConstantInt *Create(TypeKind *intType, uint64_t value,
             const std::string &name);
 
     void printAsOperand(std::ostream &os);

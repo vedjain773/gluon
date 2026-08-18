@@ -11,7 +11,8 @@ void IRBuilder::setInsertPoint(BasicBlock *bb) {
 BasicBlock *IRBuilder::getInsertBlock() { return currBasicBlock; }
 
 Value *IRBuilder::createBinOp(OpCode op, Value *lhs, Value *rhs, const std::string &name) {
-    std::unique_ptr<BinaryInst> inst(BinaryInst::Create(op, lhs, rhs, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<BinaryInst> inst(BinaryInst::Create(op, lhs, rhs, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -20,7 +21,8 @@ Value *IRBuilder::createBinOp(OpCode op, Value *lhs, Value *rhs, const std::stri
 }
 
 Value *IRBuilder::createCmp(OpCode pred, Value *lhs, Value *rhs, const std::string &name) {
-    std::unique_ptr<CompInst> inst(CompInst::Create(pred, lhs, rhs, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<CompInst> inst(CompInst::Create(pred, lhs, rhs, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -29,7 +31,8 @@ Value *IRBuilder::createCmp(OpCode pred, Value *lhs, Value *rhs, const std::stri
 }
 
 Value *IRBuilder::createNeg(Value *value, const std::string &name) {
-    std::unique_ptr<UnaryInst> inst(UnaryInst::Create(OpCode::NEG, value, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<UnaryInst> inst(UnaryInst::Create(OpCode::NEG, value, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -38,7 +41,8 @@ Value *IRBuilder::createNeg(Value *value, const std::string &name) {
 }
 
 Value *IRBuilder::createNot(Value *value, const std::string &name) {
-    std::unique_ptr<UnaryInst> inst(UnaryInst::Create(OpCode::NOT, value, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<UnaryInst> inst(UnaryInst::Create(OpCode::NOT, value, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -47,7 +51,8 @@ Value *IRBuilder::createNot(Value *value, const std::string &name) {
 }
 
 AllocaInst *IRBuilder::createAlloca(TypeKind *type, const std::string &name) {
-    std::unique_ptr<AllocaInst> inst(AllocaInst::Create(type, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<AllocaInst> inst(AllocaInst::Create(type, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -56,7 +61,8 @@ AllocaInst *IRBuilder::createAlloca(TypeKind *type, const std::string &name) {
 }
 
 LoadInst *IRBuilder::createLoad(TypeKind *type, Value *ptr, const std::string &name) {
-    std::unique_ptr<LoadInst> inst(LoadInst::Create(type, ptr, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<LoadInst> inst(LoadInst::Create(type, ptr, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -76,7 +82,8 @@ StoreInst *IRBuilder::createStore(Value *value, Value *dest) {
 CallInst *IRBuilder::createCall(Func *callee, std::vector<Value*> args,
         const std::string &name)
 {
-    std::unique_ptr<CallInst> inst(CallInst::Create(callee, args, name));
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<CallInst> inst(CallInst::Create(callee, args, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
@@ -84,7 +91,7 @@ CallInst *IRBuilder::createCall(Func *callee, std::vector<Value*> args,
     return instRaw;
 }
 
-ReturnInst *IRBuilder::createRet(Value *value) {
+ReturnInst *IRBuilder::createRet(Value *value) { 
     std::unique_ptr<ReturnInst> inst(ReturnInst::Create(value));
 
     auto *instRaw = inst.get();

@@ -2,8 +2,7 @@
 #include "IR/Module.hpp"
 #include <format>
 
-Func::Func(const std::string &name, Module *parent,
-        TypeKind *retType, std::vector<Arg*> args)
+Func::Func(const std::string &name, Module *parent, TypeKind *retType, std::vector<Arg*> args)
     :name(name), parent(parent), returnType(retType), args(args) {}
 
 Func *Func::Create(const std::string &name, Module *parent,
@@ -21,6 +20,16 @@ Module *Func::getParent() { return parent; }
 TypeKind *Func::getReturnType() { return returnType; }
 
 std::string Func::getName() { return name; }
+
+std::string Func::getUniqueName(const std::string &name) {
+    if (nameMap.count(name) == 0) {
+        nameMap[name] = 0;
+    } else {
+        nameMap[name] += 1;
+    }
+
+    return std::format("{}.{}", name, nameMap[name]);
+}
 
 std::vector<Arg*> &Func::getArgs() { return args; }
 
