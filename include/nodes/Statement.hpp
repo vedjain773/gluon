@@ -86,18 +86,6 @@ class WhileStmt : public Statement {
     void codegen(CodegenVis &cdgvis);
 };
 
-class ForStmt : public Statement {
-  public:
-    std::unique_ptr<Expression> condn, iter;
-    std::unique_ptr<Statement> init, body;
-
-    ForStmt(std::unique_ptr<Statement> init, std::unique_ptr<Expression> condn,
-            std::unique_ptr<Expression> iter, std::unique_ptr<Statement> body);
-    void accept(Visitor &visitor);
-
-    void codegen(CodegenVis &cdgvis);
-};
-
 class BreakStmt : public Statement {
   public:
     BreakStmt(int tline, int tcol);
@@ -135,30 +123,6 @@ class DeclStmt : public Statement {
 
     DeclStmt(TypeKind *tk, std::string varname,
              std::unique_ptr<Expression> expr, int tline, int tcol);
-    void accept(Visitor &visitor);
-
-    void codegen(CodegenVis &cdgvis);
-};
-
-class StructField {
-  public:
-    TypeKind *type;
-    std::string fName;
-    int line, column;
-
-    StructField(TypeKind *tk, std::string fieldName, int tline, int tcol);
-    void accept(Visitor &visitor);
-
-    void codegen(CodegenVis &cdgvis);
-};
-
-class StructDecl : public Statement, public ExternalDecl {
-  public:
-    std::string tag;
-    std::vector<std::unique_ptr<StructField>> fields;
-
-    StructDecl(std::string tag, int tline, int tcol);
-    void addField(std::unique_ptr<StructField> field);
     void accept(Visitor &visitor);
 
     void codegen(CodegenVis &cdgvis);

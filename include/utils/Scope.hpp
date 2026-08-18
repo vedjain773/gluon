@@ -55,11 +55,9 @@ extern std::unordered_map<std::string, std::unique_ptr<TypeKind>> typeTable;
 
 TypeKind *getType(std::string typeName);
 TypeKind *getArrType(std::string typeName, int numOfElements);
-TypeKind *createStructType(std::string tag);
 
 bool isPointerType(TypeKind *typek);
 bool isArrayType(TypeKind *typek);
-bool isStructType(TypeKind *typek);
 bool isErrorType(TypeKind *typek);
 
 int getNumElements(TypeKind *typek);

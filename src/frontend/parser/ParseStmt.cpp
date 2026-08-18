@@ -75,50 +75,6 @@ std::unique_ptr<Statement> Parser::ParseWhileStmt() {
     return std::make_unique<WhileStmt>(std::move(condn), std::move(whilebody));
 }
 
-std::unique_ptr<Statement> Parser::ParseForStmt() {
-    getNextToken();
-
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after for"))
-        return nullptr;
-
-    std::unique_ptr<Statement> init;
-
-    if (isTypeStarter(peekCurr().tokentype)) {
-        init = ParseDeclStmt();
-    } else if (peekCurr().tokentype == TokenType::SEMICOLON) {
-        init = std::make_unique<EmptyStmt>();
-        getNextToken();
-    } else {
-        init = ParseExprStmt();
-    }
-
-    std::unique_ptr<Expression> condn, iter;
-
-    if (peekCurr().tokentype == TokenType::SEMICOLON) {
-        condn = std::make_unique<EmptyExpr>();
-        getNextToken();
-    } else {
-        condn = ParseExpr();
-
-        if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-            return nullptr;
-    }
-
-    if (peekCurr().tokentype == TokenType::RIGHT_ROUND) {
-        iter = std::make_unique<EmptyExpr>();
-        getNextToken();
-    } else {
-        iter = ParseExpr();
-
-        if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-            return nullptr;
-    }
-
-    auto body = ParseStmt();
-    return std::make_unique<ForStmt>(std::move(init), std::move(condn),
-                                     std::move(iter), std::move(body));
-}
-
 std::unique_ptr<Statement> Parser::ParseReturnStmt() {
     getNextToken();
 
@@ -170,56 +126,6 @@ std::unique_ptr<Statement> Parser::ParseDeclStmt() {
                                       tcol);
 }
 
-std::unique_ptr<StructField> Parser::ParseStructField() {
-    auto [typek, fieldName, tline, tcol] = getTypeNamePair();
-
-    return std::make_unique<StructField>(typek, fieldName, tline, tcol);
-}
-
-std::unique_ptr<StructDecl> Parser::ParseStructDecl() {
-    int line = peekCurr().line;
-    int column = peekCurr().column;
-    getNextToken();
-
-    std::string tag = peekCurr().lexeme;
-
-    TypeKind *structType = createStructType(tag);
-
-    auto Result = std::make_unique<StructDecl>(tag, line, column);
-    getNextToken();
-
-    if (!expectAndConsume(TokenType::LEFT_CURLY, "Expected '{'"))
-        return nullptr;
-
-    int offset = 0;
-
-    while (peekCurr().tokentype != TokenType::RIGHT_CURLY) {
-        auto structField = ParseStructField();
-
-        int fieldAlign = structField->type->align;
-        int fieldSize = structField->type->size;
-
-        if (offset % fieldAlign != 0)
-            offset += fieldAlign - offset % fieldAlign;
-
-        offset += fieldSize;
-
-        Result->addField(std::move(structField));
-        getNextToken();
-    }
-
-    if (offset > 0)
-        structType->size = offset;
-
-    if (!expectAndConsume(TokenType::RIGHT_CURLY, "Expected '}'"))
-        return nullptr;
-
-    if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-        return nullptr;
-
-    return Result;
-}
-
 std::unique_ptr<Statement> Parser::ParseStmt() {
     switch (peekCurr().tokentype) {
         case TokenType::RIGHT_CURLY: {
@@ -242,13 +148,6 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             return ParseDeclStmt();
         } break;
 
-        case TokenType::STRUCT: {
-            if (peekAhead(2).tokentype == TokenType::LEFT_CURLY)
-                return ParseStructDecl();
-            else
-                return ParseDeclStmt();
-        } break;
-
         case TokenType::IF: {
             return ParseIfStmt();
         } break;
@@ -266,11 +165,9 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             std::unique_ptr<Statement> Result;
 
             if (peekCurr().tokentype == TokenType::BREAK) {
-                Result = std::make_unique<BreakStmt>(peekCurr().line,
-                                                     peekCurr().column);
+                Result = std::make_unique<BreakStmt>(peekCurr().line, peekCurr().column);
             } else {
-                Result = std::make_unique<ContinueStmt>(peekCurr().line,
-                                                        peekCurr().column);
+                Result = std::make_unique<ContinueStmt>(peekCurr().line, peekCurr().column);
             }
 
             // consume break/Consume

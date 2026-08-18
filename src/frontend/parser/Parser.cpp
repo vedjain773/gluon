@@ -73,12 +73,6 @@ bool isAssignOp(TokenType tokenType) {
 
 std::tuple<TypeKind *, std::string> Parser::ParseTypePrefix() {
     std::string typeName = "";
-
-    if (peekCurr().tokentype == TokenType::STRUCT) {
-        typeName += peekCurr().lexeme + " ";
-        getNextToken();
-    }
-
     typeName += peekCurr().lexeme;
 
     getNextToken();
@@ -213,14 +207,8 @@ std::unique_ptr<Program> Parser::ParseProgram() {
     auto program = std::make_unique<Program>();
 
     while (peekCurr().tokentype != TokenType::END_OF_FILE) {
-
-        if (peekAhead(2).tokentype == TokenType::LEFT_CURLY) {
-            auto edecl = ParseStructDecl();
-            program->add(std::move(edecl));
-        } else {
-            auto edecl = ParseFuncDef();
-            program->add(std::move(edecl));
-        }
+        auto edecl = ParseFuncDef();
+        program->add(std::move(edecl));
     }
 
     return program;

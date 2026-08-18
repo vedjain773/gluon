@@ -132,38 +132,6 @@ void SemanticVisitor::visitDeclStmt(DeclStmt &declstmt) {
     }
 }
 
-void SemanticVisitor::visitStructDecl(StructDecl &structdecl) {
-    std::string typeName = "struct ";
-    typeName += structdecl.tag;
-
-    if (structdecl.fields.empty())
-        return;
-
-    TypeKind *typek = getType(typeName);
-    typek->size = 0;
-
-    int offset = 0;
-
-    for (auto &structField : structdecl.fields) {
-        int fieldAlign = structField->type->align;
-        int fieldSize = structField->type->size;
-
-        if (offset % fieldAlign != 0)
-            offset += fieldAlign - offset % fieldAlign;
-
-        offset += fieldSize;
-
-        typek->fields.push_back({structField->type, structField->fName});
-    }
-
-    if (offset > 0)
-        typek->size = offset;
-}
-
-void SemanticVisitor::visitStructField(StructField &structfield) {
-    // do nothing
-}
-
 void SemanticVisitor::visitIfStmt(IfStmt &ifstmt) {
     Expression *condn = (ifstmt.condition).get();
     Statement *ifbody = (ifstmt.body).get();
@@ -189,27 +157,6 @@ void SemanticVisitor::visitElseStmt(ElseStmt &elsestmt) {
     Statement *elsebody = (elsestmt.body).get();
 
     elsebody->accept(*this);
-}
-
-void SemanticVisitor::visitForStmt(ForStmt &forstmt) {
-    Scope forScope;
-    scopeVec.push_back(forScope);
-
-    Statement *init = (forstmt.init).get();
-    Expression *condn = (forstmt.condn).get();
-    Expression *iter = (forstmt.iter).get();
-
-    Statement *forbody = (forstmt.body).get();
-
-    init->accept(*this);
-    condn->accept(*this);
-    iter->accept(*this);
-
-    insideLoop++;
-    forbody->accept(*this);
-    insideLoop--;
-
-    scopeVec.pop_back();
 }
 
 void SemanticVisitor::visitWhileStmt(WhileStmt &whilestmt) {
@@ -270,37 +217,6 @@ void SemanticVisitor::visitExprStmt(ExprStmt &exprstmt) {
     expr->accept(*this);
 }
 
-void SemanticVisitor::visitMemberAccessExpr(MemberAccessExpr &memexpr) {
-    Expression *expr = (memexpr.base).get();
-
-    expr->accept(*this);
-
-    if (!isStructType(expr->infType)) {
-        std::cout << expr->infType->name << "\n";
-        return reportError(*expr, "Base expression is not a struct");
-    }
-
-    bool found = false;
-    int index = 0;
-
-    for (size_t i = 0; i < expr->infType->fields.size(); i++) {
-        if (expr->infType->fields[i].name == memexpr.fName) {
-            found = true;
-            index = i;
-            break;
-        }
-    }
-
-    if (!found) {
-        std::string msg = "Struct has no field: ";
-        msg += memexpr.fName;
-
-        return reportError(*expr, msg);
-    }
-
-    memexpr.infType = expr->infType->fields[index].fType;
-}
-
 void SemanticVisitor::visitEmptyExpr(EmptyExpr &emptyexpr) {
     emptyexpr.infType = getType("void");
 }
@@ -334,25 +250,6 @@ void SemanticVisitor::visitAssignExpr(AssignExpr &assignexpr) {
     }
 
     assignexpr.infType = assignexpr.LHS->infType;
-}
-
-void SemanticVisitor::visitCompAssignExpr(CompAssignExpr &compassignexpr) {
-    Expression *lExpr = (compassignexpr.LHS).get();
-    Expression *rExpr = (compassignexpr.RHS).get();
-
-    lExpr->accept(*this);
-
-    rExpr->accept(*this);
-
-    if (!lExpr->isLValue()) {
-        return reportError(*lExpr, "Expression is not assignable");
-    }
-
-    if (rExpr->infType == getType("void")) {
-        return reportError(*rExpr, "Assignment operand cannot be of type void");
-    }
-
-    compassignexpr.infType = compassignexpr.LHS->infType;
 }
 
 void SemanticVisitor::visitBinaryExpr(BinaryExpr &binexpr) {

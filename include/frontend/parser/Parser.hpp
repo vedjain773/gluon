@@ -55,14 +55,9 @@ class Parser {
     std::unique_ptr<Statement> ParseIfStmt();
     std::unique_ptr<Statement> ParseElseStmt();
     std::unique_ptr<Statement> ParseWhileStmt();
-    std::unique_ptr<Statement> ParseForStmt();
     std::unique_ptr<Statement> ParseReturnStmt();
     std::unique_ptr<Statement> ParseDeclStmt();
     std::unique_ptr<Statement> ParseStmt();
-
-    // Parse Structs
-    std::unique_ptr<StructField> ParseStructField();
-    std::unique_ptr<StructDecl> ParseStructDecl();
 
     // Parse Functions
     std::unique_ptr<Parameter> ParseParameter();

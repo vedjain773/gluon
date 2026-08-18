@@ -93,25 +93,8 @@ void PrintVisitor::visitAssignExpr(AssignExpr &assignexpr) {
     depth -= 1;
 }
 
-void PrintVisitor::visitCompAssignExpr(CompAssignExpr &compassignexpr) {
-    std::cout << getIndent() << "|-CompAssign(" << getOpStr(compassignexpr.Op)
-              << ")\n";
-
-    depth += 1;
-    (compassignexpr.LHS)->accept(*this);
-    depth -= 1;
-
-    depth += 1;
-    (compassignexpr.RHS)->accept(*this);
-    depth -= 1;
-}
-
 void PrintVisitor::visitEmptyExpr(EmptyExpr &emptyexpr) {
     // ignore
-}
-
-void PrintVisitor::visitMemberAccessExpr(MemberAccessExpr &memexpr) {
-    std::cout << getIndent() << "|-MemAccess(" << memexpr.fName << ")\n";
 }
 
 void PrintVisitor::visitExprStmt(ExprStmt &exprstmt) {
@@ -206,22 +189,6 @@ void PrintVisitor::visitDeclStmt(DeclStmt &declstmt) {
     }
 
     depth -= 1;
-}
-
-void PrintVisitor::visitStructDecl(StructDecl &structdecl) {
-    std::cout << getIndent() << "|-Struct(" << structdecl.tag << ")\n";
-
-    depth += 1;
-
-    for (auto &field : structdecl.fields) {
-        field->accept(*this);
-    }
-
-    depth -= 1;
-}
-
-void PrintVisitor::visitStructField(StructField &structfield) {
-    std::cout << getIndent() << "|-Field(" << structfield.fName << ")\n";
 }
 
 void PrintVisitor::visitEmptyStmt(EmptyStmt &emptystmt) {

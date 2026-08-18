@@ -178,19 +178,6 @@ class AssignExpr : public Expression {
     Value *codegen(CodegenVis& cdgvis);
 };
 
-class CompAssignExpr : public Expression {
-  public:
-    Operators Op;
-    std::unique_ptr<Expression> LHS;
-    std::unique_ptr<Expression> RHS;
-
-    CompAssignExpr(Operators assignOp, std::unique_ptr<Expression> lhs,
-                   std::unique_ptr<Expression> rhs, int tline, int tcol);
-    void accept(Visitor &visitor);
-
-    Value *codegen(CodegenVis& cdgvis);
-};
-
 class EmptyExpr : public Expression {
   public:
     void accept(Visitor &visitor);
@@ -206,19 +193,6 @@ class CallExpr : public Expression {
     CallExpr(std::string callee_name, int tline, int tcol);
     void add(std::unique_ptr<Expression> arg);
     void accept(Visitor &visitor);
-
-    Value *codegen(CodegenVis& cdgvis);
-};
-
-class MemberAccessExpr : public Expression {
-  public:
-    std::unique_ptr<Expression> base;
-    std::string fName;
-
-    MemberAccessExpr(std::unique_ptr<Expression> baseExpr,
-                     std::string fieldName, int line, int col);
-    void accept(Visitor &visitor);
-    bool isLValue();
 
     Value *codegen(CodegenVis& cdgvis);
 };
