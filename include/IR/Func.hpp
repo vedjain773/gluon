@@ -29,6 +29,7 @@ class Func {
 
     std::string getName();
     std::string getUniqueName(const std::string &name);
+    
     Module *getParent();
     TypeKind *getReturnType();
 

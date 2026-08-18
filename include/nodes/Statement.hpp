@@ -6,6 +6,7 @@
 #include "nodes/ExternalDecl.hpp"
 #include "utils/Scope.hpp"
 #include "visitors/Visitor.hpp"
+#include "IR/CodegenVis.hpp"
 #include <vector>
 
 class Statement {
@@ -17,6 +18,8 @@ class Statement {
 
     virtual ~Statement() = default;
     virtual void accept(Visitor &visitor) = 0;
+    
+    virtual void codegen(CodegenVis &cdgvis) = 0; 
 
     virtual bool isTerminator() {
         return false;
@@ -33,6 +36,8 @@ class ExprStmt : public Statement {
 
     ExprStmt(std::unique_ptr<Expression> expr);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis); 
 };
 
 class BlockStmt : public Statement {
@@ -41,6 +46,8 @@ class BlockStmt : public Statement {
 
     void addStmt(std::unique_ptr<Statement> stmt);
     void accept(Visitor &visitor);
+ 
+    void codegen(CodegenVis &cdgvis);  
 };
 
 class IfStmt : public Statement {
@@ -53,6 +60,8 @@ class IfStmt : public Statement {
            std::unique_ptr<Statement> ifbody,
            std::unique_ptr<Statement> elsestmt);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class ElseStmt : public Statement {
@@ -61,6 +70,8 @@ class ElseStmt : public Statement {
 
     ElseStmt(std::unique_ptr<Statement> elsebody);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class WhileStmt : public Statement {
@@ -71,6 +82,8 @@ class WhileStmt : public Statement {
     WhileStmt(std::unique_ptr<Expression> condn,
               std::unique_ptr<Statement> whilebody);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class ForStmt : public Statement {
@@ -81,6 +94,8 @@ class ForStmt : public Statement {
     ForStmt(std::unique_ptr<Statement> init, std::unique_ptr<Expression> condn,
             std::unique_ptr<Expression> iter, std::unique_ptr<Statement> body);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class BreakStmt : public Statement {
@@ -88,6 +103,8 @@ class BreakStmt : public Statement {
     BreakStmt(int tline, int tcol);
     void accept(Visitor &visitor);
     bool isTerminator();
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class ContinueStmt : public Statement {
@@ -95,6 +112,8 @@ class ContinueStmt : public Statement {
     ContinueStmt(int tline, int tcol);
     void accept(Visitor &visitor);
     bool isTerminator();
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class ReturnStmt : public Statement {
@@ -104,6 +123,8 @@ class ReturnStmt : public Statement {
     ReturnStmt(std::unique_ptr<Expression> retexpr);
     void accept(Visitor &visitor);
     bool isTerminator();
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class DeclStmt : public Statement {
@@ -115,6 +136,8 @@ class DeclStmt : public Statement {
     DeclStmt(TypeKind *tk, std::string varname,
              std::unique_ptr<Expression> expr, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class StructField {
@@ -125,6 +148,8 @@ class StructField {
 
     StructField(TypeKind *tk, std::string fieldName, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 class StructDecl : public Statement, public ExternalDecl {
@@ -135,6 +160,8 @@ class StructDecl : public Statement, public ExternalDecl {
     StructDecl(std::string tag, int tline, int tcol);
     void addField(std::unique_ptr<StructField> field);
     void accept(Visitor &visitor);
+
+    void codegen(CodegenVis &cdgvis);
 };
 
 #endif

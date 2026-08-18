@@ -17,7 +17,7 @@ class BasicBlock {
 
   public:
     BasicBlock(const std::string &name, Func *parent);
-    static BasicBlock *Create(const std::string &name, Func *parent);
+    static BasicBlock *Create(const std::string &name, Func *parent = nullptr);
 
     Func *getParent();
     std::string getName();

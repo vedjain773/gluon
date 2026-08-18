@@ -25,6 +25,8 @@ class IRBuilder {
     Value *createNot(Value *value, const std::string &name = "");
 
     AllocaInst *createAlloca(TypeKind *type, const std::string &name = "");
+    AllocaInst *createEntryAlloca(TypeKind *type, const std::string &name = "");
+    
     LoadInst *createLoad(TypeKind *type, Value *ptr, const std::string &name = "");
     StoreInst *createStore(Value *value, Value *dest);
 
@@ -32,7 +34,7 @@ class IRBuilder {
 
     ReturnInst *createRet(Value *value);
     UnCondBrInst *createBr(BasicBlock *then);
-    CondBrInst *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB); 
+    CondBrInst *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB);
 };
 
 #endif

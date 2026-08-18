@@ -4,6 +4,8 @@
 #include "frontend/scanner/Token.hpp"
 #include "utils/Scope.hpp"
 #include "visitors/Visitor.hpp"
+#include "visitors/CodegenVis.hpp"
+
 #include <memory>
 #include <string>
 
@@ -54,10 +56,10 @@ class Expression {
 
     virtual void accept(Visitor &visitor) = 0;
     virtual ~Expression() = default;
-
-    virtual bool isLValue() {
-        return false;
-    }
+    
+    virtual Value *codegen(CodegenVis &cdgvis) = 0; 
+    virtual Value *emitPtr(CodegenVis &cdgvis) { return nullptr; }
+    virtual bool isLValue() { return false; }
 };
 
 class IntExpr : public Expression {
@@ -66,6 +68,8 @@ class IntExpr : public Expression {
 
     IntExpr(int value, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis); 
 };
 
 class CharExpr : public Expression {
@@ -74,6 +78,8 @@ class CharExpr : public Expression {
 
     CharExpr(char charac, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis); 
 };
 
 class VarExpr : public Expression {
@@ -83,6 +89,9 @@ class VarExpr : public Expression {
     VarExpr(std::string name, int tline, int tcol);
     void accept(Visitor &visitor);
     bool isLValue();
+
+    Value *codegen(CodegenVis &cdgvis);
+    Value *emitPtr(CodegenVis &cdgvis);
 };
 
 class DerefExpr : public Expression {
@@ -92,6 +101,9 @@ class DerefExpr : public Expression {
     DerefExpr(std::unique_ptr<Expression> expression, int tline, int tcol);
     void accept(Visitor &visitor);
     bool isLValue();
+
+    Value *codegen(CodegenVis &cdgvis);
+    Value *emitPtr(CodegenVis &cdgvis);
 };
 
 class AddressExpr : public Expression {
@@ -100,6 +112,8 @@ class AddressExpr : public Expression {
 
     AddressExpr(std::unique_ptr<Expression> expression, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis); 
 };
 
 class SizeOfExpr : public Expression {
@@ -110,6 +124,8 @@ class SizeOfExpr : public Expression {
     SizeOfExpr(std::unique_ptr<Expression> expression, int tline, int tcol);
     SizeOfExpr(TypeKind *typek, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis); 
 };
 
 class CastExpr : public Expression {
@@ -121,6 +137,8 @@ class CastExpr : public Expression {
     CastExpr(std::unique_ptr<Expression> expression, TypeKind *from_tk,
              TypeKind *to_tk);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis); 
 };
 
 class UnaryExpr : public Expression {
@@ -131,6 +149,8 @@ class UnaryExpr : public Expression {
     UnaryExpr(Operators op, std::unique_ptr<Expression> operand, int tline,
               int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis);
 };
 
 class BinaryExpr : public Expression {
@@ -142,6 +162,8 @@ class BinaryExpr : public Expression {
     BinaryExpr(Operators op, std::unique_ptr<Expression> lhs,
                std::unique_ptr<Expression> rhs, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis);
 };
 
 class AssignExpr : public Expression {
@@ -152,6 +174,8 @@ class AssignExpr : public Expression {
     AssignExpr(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs,
                int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis& cdgvis);
 };
 
 class CompAssignExpr : public Expression {
@@ -163,11 +187,15 @@ class CompAssignExpr : public Expression {
     CompAssignExpr(Operators assignOp, std::unique_ptr<Expression> lhs,
                    std::unique_ptr<Expression> rhs, int tline, int tcol);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis& cdgvis);
 };
 
 class EmptyExpr : public Expression {
   public:
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis& cdgvis);
 };
 
 class CallExpr : public Expression {
@@ -178,6 +206,8 @@ class CallExpr : public Expression {
     CallExpr(std::string callee_name, int tline, int tcol);
     void add(std::unique_ptr<Expression> arg);
     void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis& cdgvis);
 };
 
 class MemberAccessExpr : public Expression {
@@ -189,6 +219,8 @@ class MemberAccessExpr : public Expression {
                      std::string fieldName, int line, int col);
     void accept(Visitor &visitor);
     bool isLValue();
+
+    Value *codegen(CodegenVis& cdgvis);
 };
 
 #endif
