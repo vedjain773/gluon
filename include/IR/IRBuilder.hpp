@@ -32,10 +32,7 @@ class IRBuilder {
 
     ReturnInst *createRet(Value *value);
     UnCondBrInst *createBr(BasicBlock *then);
-    CondBrInst *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB);
-
-    void insertBasicBlock(std::unique_ptr<BasicBlock> bb);
-    void insertFunc(std::unique_ptr<Func> func);
+    CondBrInst *createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock *falseBB); 
 };
 
 #endif

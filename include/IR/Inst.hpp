@@ -29,6 +29,8 @@ enum class OpCode {
     CALL
 };
 
+std::string opcodeToStr(OpCode opcode);
+
 class Inst : public Value {
   private:
     OpCode opcode; 
@@ -48,17 +50,17 @@ class Inst : public Value {
     void setOperand(unsigned i, Value *v);
 
     bool isTerminator();
-
-    void print(std::ostream &os);
 };
 
 class UnaryInst: public Inst {
   private:
-    UnaryInst(OpCode opcode, Value* operand, const std::string &name);
+    UnaryInst(OpCode opcode, Value* value, const std::string &name);
   
   public:
-    static UnaryInst *Create(OpCode opcode, Value* operand, const std::string &name);
+    static UnaryInst *Create(OpCode opcode, Value* value, const std::string &name);
     Value *getUnaryOper();
+
+    void print(std::ostream &os);
 };
 
 class BinaryInst: public Inst {
@@ -69,6 +71,8 @@ class BinaryInst: public Inst {
     static BinaryInst *Create(OpCode opcode, Value* lhs, Value *rhs, const std::string &name);
     Value *getLHS();
     Value *getRHS();
+
+    void print(std::ostream &os);
 };
 
 class CompInst: public Inst {
@@ -79,6 +83,8 @@ class CompInst: public Inst {
     static CompInst *Create(OpCode opcode, Value* lhs, Value *rhs, const std::string &name);
     Value *getLHS();
     Value *getRHS();
+
+    void print(std::ostream &os);
 };
 
 class AllocaInst: public Inst {
@@ -87,6 +93,8 @@ class AllocaInst: public Inst {
   
   public:
     static AllocaInst *Create(TypeKind *type, const std::string &name);
+
+    void print(std::ostream &os);
 };
 
 class LoadInst: public Inst {
@@ -97,27 +105,33 @@ class LoadInst: public Inst {
     static LoadInst *Create(TypeKind *type, Value *value, const std::string &name);
     TypeKind *getType();
     Value *getValue();
+
+    void print(std::ostream &os);
 };
 
 class StoreInst: public Inst {
   private:
-    StoreInst(Value *val, Value *dest);
+    StoreInst(Value *value, Value *dest);
 
   public:
-    static StoreInst *Create(Value *val, Value *dest);
+    static StoreInst *Create(Value *value, Value *dest);
     Value *getSrc();
     Value *getDest();
+
+    void print(std::ostream &os);
 };
 
 class CallInst: public Inst {
   private:
     Func *callee;
-    std::vector<Arg*> args;
+    std::vector<Arg*> callArgs;
     CallInst(Func *callee, std::vector<Value*> args, const std::string &name);
 
   public:
     static CallInst *Create(Func *callee, std::vector<Value*> args, const std::string &name);
     Func *getCallee();
+
+    void print(std::ostream &os);
 };
 
 class CondBrInst: public Inst {
@@ -131,6 +145,8 @@ class CondBrInst: public Inst {
     Value *getCond();
     BasicBlock *getThenBlock();
     BasicBlock *getElseBlock();
+
+    void print(std::ostream &os);
 };
 
 class UnCondBrInst: public Inst {
@@ -141,6 +157,8 @@ class UnCondBrInst: public Inst {
   public:
     static UnCondBrInst *Create(BasicBlock *then);
     BasicBlock *getThenBlock();
+
+    void print(std::ostream &os);
 };
 
 class ReturnInst: public Inst {
@@ -149,6 +167,8 @@ class ReturnInst: public Inst {
 
   public:
     static ReturnInst *Create(Value *value);
+
+    void print(std::ostream &os);
 };
 
 #endif

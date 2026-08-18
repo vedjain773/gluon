@@ -2,9 +2,17 @@
 #include "frontend/scanner/Scanner.hpp"
 #include "nodes/Program.hpp"
 #include "utils/Error.hpp"
+#include "utils/Scope.hpp"
+
+#include "IR/Module.hpp"
+#include "IR/IRBuilder.hpp"
+#include "IR/Func.hpp"
+#include "IR/BasicBlock.hpp"
+
 #include <iostream>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { 
+
     bool printAst = false;
     bool printTokens = false;
     std::string filename = "input.c";

@@ -12,8 +12,6 @@ private:
 
 public:
     Module(const std::string &name = "");
-    Func *appendFunc(const std::string &name, TypeKind *returnType,
-                      std::vector<TypeKind*> paramTypes);
     Func *appendFunc(std::unique_ptr<Func> func);
 
     Func *getFunc(const std::string &name);

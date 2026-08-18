@@ -115,11 +115,3 @@ CondBrInst *IRBuilder::createCondBr(Value *cond, BasicBlock *trueBB, BasicBlock 
 
     return instRaw;
 }
-
-void IRBuilder::insertBasicBlock(std::unique_ptr<BasicBlock> bb) {
-    currFunc->appendBasicBlock(std::move(bb));
-}
-
-void IRBuilder::insertFunc(std::unique_ptr<Func> func) {
-    currModule->appendFunc(std::move(func));
-}

@@ -17,7 +17,10 @@ class BasicBlock {
 
   public:
     BasicBlock(const std::string &name, Func *parent);
+    static BasicBlock *Create(const std::string &name, Func *parent);
+
     Func *getParent();
+    std::string getName();
 
     void appendInst(std::unique_ptr<Inst> inst);
     void insertInst(Inst *before, std::unique_ptr<Inst> inst);

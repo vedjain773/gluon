@@ -13,13 +13,16 @@ class Func {
     std::string name;
     Module *parent;
     TypeKind *returnType;
-    std::vector<TypeKind*> paramTypes;
     std::vector<Arg*> args;
     std::vector<std::unique_ptr<BasicBlock>> basicBlocks;
-
-  public:
+ 
+  public: 
     Func(const std::string &name, Module *parent,
-            TypeKind *retType, std::vector<TypeKind*> params);
+            TypeKind *retType, std::vector<Arg*> params);
+
+    static Func *Create(const std::string &name, Module *parent,
+            TypeKind *retType, std::vector<Arg*> params);
+
     std::string getName();
     Module *getParent();
     TypeKind *getReturnType();
@@ -32,7 +35,7 @@ class Func {
 
     BasicBlock *getEntryBlock();
 
-    void print(std::ostream &os) const;
+    void print(std::ostream &os);
 };
 
 #endif

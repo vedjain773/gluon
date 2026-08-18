@@ -1,9 +1,20 @@
 #include "IR/Func.hpp"
 #include "IR/Module.hpp"
+#include <format>
 
 Func::Func(const std::string &name, Module *parent,
-        TypeKind *retType, std::vector<TypeKind*> paramTypes)
-    :name(name), parent(parent), returnType(retType), paramTypes(paramTypes) {}
+        TypeKind *retType, std::vector<Arg*> args)
+    :name(name), parent(parent), returnType(retType), args(args) {}
+
+Func *Func::Create(const std::string &name, Module *parent,
+        TypeKind *retType, std::vector<Arg*> args) 
+{
+    auto func = std::make_unique<Func>(name, parent, retType, args);
+    Func *funcRaw = func.get();
+    
+    parent->appendFunc(std::move(func));
+    return funcRaw;
+}
 
 Module *Func::getParent() { return parent; }
 
@@ -27,3 +38,12 @@ BasicBlock *Func::appendBasicBlock(std::unique_ptr<BasicBlock> bb) {
 }
 
 BasicBlock *Func::getEntryBlock() { return basicBlocks.front().get(); };
+
+void Func::print(std::ostream &os) {
+    os << std::format("define @{} ()\n", name);
+
+    for (auto &bb: basicBlocks) {
+        bb->print(os);
+        os << '\n';
+    }
+}

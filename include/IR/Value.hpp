@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <format>
 #include "utils/Scope.hpp"
 
 class Func;
@@ -27,6 +28,15 @@ class Value {
     virtual ~Value() = default;
     ValueKind getValueKind();
     TypeKind *getType();
+    std::string getName();
+
+    virtual void printAsOperand(std::ostream &os) {
+        os << std::format("{} {}", type->name, name.empty() ? "<unnamed>" : name);
+    }
+
+    virtual void print(std::ostream &os) {
+        printAsOperand(os);
+    }
 };
 
 class ConstantInt : public Value {
@@ -35,6 +45,10 @@ class ConstantInt : public Value {
   
   public:
     ConstantInt(TypeKind *intType, unsigned id, uint64_t value, const std::string &name);
+    static ConstantInt *Create(TypeKind *intType, unsigned id, uint64_t value,
+            const std::string &name);
+
+    void printAsOperand(std::ostream &os);
 };
 
 class Arg: public Value {
@@ -44,6 +58,7 @@ class Arg: public Value {
 
   public:
     Arg(TypeKind *type, const std::string &name, Func *F, unsigned argNo);
+    static Arg *Create(TypeKind *type, const std::string &name, Func *F, unsigned argNo);
 };
 
 #endif
