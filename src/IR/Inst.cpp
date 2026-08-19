@@ -22,6 +22,7 @@ std::string opcodeToStr(OpCode opcode) {
         case OpCode::NEQ: return "neq";
         case OpCode::LAND: return "land";
         case OpCode::LOR: return "lor";
+        case OpCode::ZEXT: return "zext";
         case OpCode::ALLOCA: return "alloca";
         case OpCode::LOAD: return "load";
         case OpCode::STORE: return "store";
@@ -93,6 +94,7 @@ Value *BinaryInst::getRHS() { return getOperand(1); }
 void BinaryInst::print(std::ostream &os) {
     os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()) );
     getLHS()->printAsOperand(os);
+    os << ", ";
     getRHS()->printAsOperand(os);
 }
 
@@ -112,7 +114,22 @@ Value *CompInst::getRHS() { return getOperand(1); }
 void CompInst::print(std::ostream &os) {
     os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()) );
     getLHS()->printAsOperand(os);
+    os << ", ";
     getRHS()->printAsOperand(os);
+}
+
+//---
+
+ZExtInst::ZExtInst(Value *value, TypeKind *type, const std::string &name)
+    :Inst(OpCode::ZEXT, type, {value}, name) {}
+
+ZExtInst *ZExtInst::Create(Value *value, TypeKind *type, const std::string &name) {
+    return new ZExtInst(value, type, name); 
+}
+
+void ZExtInst::print(std::ostream &os) {
+    os << std::format("{} = {} {} to {}", getName(), opcodeToStr(OpCode::ZEXT),
+            getOperand(0)->getType()->name, getType()->name);
 }
 
 //---
@@ -154,6 +171,7 @@ StoreInst *StoreInst::Create(Value *value, Value *dest) {
 void StoreInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::STORE));
     getOperand(0)->printAsOperand(os);
+    os << " -> ";
     getOperand(1)->printAsOperand(os);
 }
 
@@ -174,10 +192,10 @@ CallInst *CallInst::Create(Func *callee, std::vector<Value*> args, const std::st
 }
 
 void CallInst::print(std::ostream &os) {
-    os << std::format("call @{}", func->getName());
+    os << std::format("call @{}", callee->getName());
 
     for (auto &arg: callArgs) {
-        os << arg->print(os);
+        arg->print(os);
         os << ", ";
     }
 }

@@ -33,6 +33,10 @@ std::string Func::getUniqueName(const std::string &name) {
 
 std::vector<Arg*> &Func::getArgs() { return args; }
 
+void Func::setArgs(std::vector<Arg*> args) {
+    this->args = args; 
+}
+
 Arg *Func::getArg(unsigned i) { return args[i]; }
 
 BasicBlock *Func::appendBasicBlock(const std::string &name) {
@@ -44,6 +48,11 @@ BasicBlock *Func::appendBasicBlock(const std::string &name) {
 BasicBlock *Func::appendBasicBlock(std::unique_ptr<BasicBlock> bb) {
     basicBlocks.push_back(std::move(bb));
     return basicBlocks.back().get();
+}
+
+void Func::insertAtEnd(std::unique_ptr<BasicBlock> bb) {
+    bb->setParent(this);
+    basicBlocks.push_back(std::move(bb));
 }
 
 BasicBlock *Func::getEntryBlock() { return basicBlocks.front().get(); };

@@ -35,12 +35,7 @@ enum class Operators {
     OR,
 
     // Assignment
-    ASSIGN,
-    SUM_ASSIGN,
-    DIFF_ASSIGN,
-    PROD_ASSIGN,
-    QUOT_ASSIGN,
-    MOD_ASSIGN
+    ASSIGN, 
 };
 
 std::string getOpStr(Operators op);

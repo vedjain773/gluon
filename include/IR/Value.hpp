@@ -44,8 +44,7 @@ class ConstantInt : public Value {
   
   public:
     ConstantInt(TypeKind *intType, uint64_t value, const std::string &name);
-    static ConstantInt *Create(TypeKind *intType, uint64_t value,
-            const std::string &name);
+    static ConstantInt *Create(TypeKind *intType, uint64_t value, const std::string &name = "");
 
     void printAsOperand(std::ostream &os);
 };

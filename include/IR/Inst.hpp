@@ -16,6 +16,9 @@ enum class OpCode {
     EQ, NEQ,
     LAND, LOR,
 
+    //Cast
+    ZEXT,
+
     //Declaration
     ALLOCA,
 
@@ -84,6 +87,16 @@ class CompInst: public Inst {
     Value *getLHS();
     Value *getRHS();
 
+    void print(std::ostream &os);
+};
+
+class ZExtInst: public Inst {
+  private:
+    ZExtInst(Value *value, TypeKind *type, const std::string &name);
+
+  public:
+    static ZExtInst *Create(Value *value, TypeKind *type, const std::string &name);
+    
     void print(std::ostream &os);
 };
 

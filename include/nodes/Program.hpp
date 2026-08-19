@@ -19,6 +19,7 @@ class Program {
 
     void printAST();
     int semAnalyse();
+    void codegen();
 };
 
 #endif

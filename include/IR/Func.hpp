@@ -34,10 +34,12 @@ class Func {
     TypeKind *getReturnType();
 
     std::vector<Arg*> &getArgs();
+    void setArgs(std::vector<Arg*> args);
     Arg *getArg(unsigned i);
 
     BasicBlock *appendBasicBlock(const std::string &name);
     BasicBlock *appendBasicBlock(std::unique_ptr<BasicBlock> bb);
+    void insertAtEnd(std::unique_ptr<BasicBlock> bb);
 
     BasicBlock *getEntryBlock();
 

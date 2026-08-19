@@ -63,20 +63,6 @@ void WhileStmt::accept(Visitor &visitor) {
     visitor.visitWhileStmt(*this);
 }
 
-ForStmt::ForStmt(std::unique_ptr<Statement> init,
-                 std::unique_ptr<Expression> condn,
-                 std::unique_ptr<Expression> iter,
-                 std::unique_ptr<Statement> body)
-    : Statement(init->line, init->column),
-      condn(std::move(condn)),
-      iter(std::move(iter)),
-      init(std::move(init)),
-      body(std::move(body)) {}
-
-void ForStmt::accept(Visitor &visitor) {
-    visitor.visitForStmt(*this);
-}
-
 BreakStmt::BreakStmt(int tline, int tcol)
     : Statement(tline, tcol) {}
 
@@ -120,30 +106,4 @@ DeclStmt::DeclStmt(TypeKind *tk, std::string varname,
 
 void DeclStmt::accept(Visitor &visitor) {
     visitor.visitDeclStmt(*this);
-}
-
-StructField::StructField(TypeKind *tk, std::string fieldName, int tline,
-                         int tcol) {
-    type = tk;
-    fName = fieldName;
-    line = tline;
-    column = tcol;
-}
-
-void StructField::accept(Visitor &visitor) {
-    visitor.visitStructField(*this);
-}
-
-StructDecl::StructDecl(std::string tagName, int tline, int tcol) {
-    tag = tagName;
-    line = tline;
-    column = tcol;
-}
-
-void StructDecl::addField(std::unique_ptr<StructField> field) {
-    fields.push_back(std::move(field));
-}
-
-void StructDecl::accept(Visitor &visitor) {
-    visitor.visitStructDecl(*this);
 }

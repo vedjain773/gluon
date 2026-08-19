@@ -156,10 +156,6 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             return ParseWhileStmt();
         } break;
 
-        case TokenType::FOR: {
-            return ParseForStmt();
-        } break;
-
         case TokenType::BREAK:
         case TokenType::CONTINUE: {
             std::unique_ptr<Statement> Result;

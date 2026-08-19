@@ -110,35 +110,6 @@ std::unique_ptr<Expression> Parser::ParsePostFixExpr() {
                 Prim = std::move(Result);
             } break;
 
-            case TokenType::DOT: {
-                getNextToken();
-
-                std::string fieldName = peekCurr().lexeme;
-
-                auto Result = std::make_unique<MemberAccessExpr>(
-                    std::move(Prim), fieldName, line, column);
-
-                getNextToken();
-
-                Prim = std::move(Result);
-            } break;
-
-            case TokenType::ARROW: {
-                getNextToken();
-
-                std::string fieldName = peekCurr().lexeme;
-
-                auto deref =
-                    std::make_unique<DerefExpr>(std::move(Prim), line, column);
-
-                auto Result = std::make_unique<MemberAccessExpr>(
-                    std::move(deref), fieldName, line, column);
-
-                getNextToken();
-
-                Prim = std::move(Result);
-            } break;
-
             default: {
                 advToSyncPoint();
                 return nullptr;
@@ -258,15 +229,10 @@ std::unique_ptr<Expression> Parser::ParseAssignExpr() {
         getNextToken();
         auto rhs = ParseAssignExpr();
 
-        if (Op == Operators::ASSIGN) {
-            auto Result = std::make_unique<AssignExpr>(
+        auto Result = std::make_unique<AssignExpr>(
                 std::move(lhs), std::move(rhs), tline, tcol);
-            return Result;
-        } else {
-            auto Result = std::make_unique<CompAssignExpr>(
-                Op, std::move(lhs), std::move(rhs), tline, tcol);
-            return Result;
-        }
+        return Result;
+
     } else {
         return lhs;
     }

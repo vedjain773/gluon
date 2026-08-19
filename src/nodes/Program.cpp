@@ -21,3 +21,16 @@ int Program::semAnalyse() {
     this->accept(semvisitor);
     return semvisitor.numOfErrors;
 }
+
+void Program::codegen() {
+    CodegenVis cdgvis;
+    cdgvis.initModule(fileName);
+
+    for (size_t i = 0; i < root.size(); i++) {
+        root[i]->codegen(cdgvis);
+    }
+
+    Module *mod = (cdgvis.module).get();
+    mod->print(std::cout);
+}
+

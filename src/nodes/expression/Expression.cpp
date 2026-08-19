@@ -10,9 +10,8 @@ std::map<Operators, std::string> enumToStr = {
     {Operators::LESS, "<"},         {Operators::LESS_EQUALS, "<="},
     {Operators::EQUALS, "=="},      {Operators::NOT_EQUALS, "!="},
     {Operators::AND, "&&"},         {Operators::OR, "||"},
-    {Operators::ASSIGN, "="},       {Operators::SUM_ASSIGN, "+="},
-    {Operators::DIFF_ASSIGN, "-="}, {Operators::PROD_ASSIGN, "*="},
-    {Operators::QUOT_ASSIGN, "/="}, {Operators::MOD_ASSIGN, "%="}};
+    {Operators::ASSIGN, "="}
+};
 
 std::map<std::string, Operators> strToEnum = {
     {"!", Operators::BANG},         {"-", Operators::MINUS},
@@ -22,9 +21,8 @@ std::map<std::string, Operators> strToEnum = {
     {"<", Operators::LESS},         {"<=", Operators::LESS_EQUALS},
     {"==", Operators::EQUALS},      {"!=", Operators::NOT_EQUALS},
     {"&&", Operators::AND},         {"||", Operators::OR},
-    {"=", Operators::ASSIGN},       {"+=", Operators::SUM_ASSIGN},
-    {"-=", Operators::DIFF_ASSIGN}, {"*=", Operators::PROD_ASSIGN},
-    {"/=", Operators::QUOT_ASSIGN}, {"%=", Operators::MOD_ASSIGN}};
+    {"=", Operators::ASSIGN},       
+};
 
 std::string getOpStr(Operators op) {
     return enumToStr[op];
@@ -132,19 +130,6 @@ void AssignExpr::accept(Visitor &visitor) {
     visitor.visitAssignExpr(*this);
 }
 
-CompAssignExpr::CompAssignExpr(Operators assignOp,
-                               std::unique_ptr<Expression> lhs,
-                               std::unique_ptr<Expression> rhs, int tline,
-                               int tcol)
-    : Expression(tline, tcol),
-      Op(assignOp),
-      LHS(std::move(lhs)),
-      RHS(std::move(rhs)) {}
-
-void CompAssignExpr::accept(Visitor &visitor) {
-    visitor.visitCompAssignExpr(*this);
-}
-
 void EmptyExpr::accept(Visitor &visitor) {
     visitor.visitEmptyExpr(*this);
 }
@@ -170,18 +155,4 @@ BinaryExpr::BinaryExpr(Operators op, std::unique_ptr<Expression> lhs,
 
 void BinaryExpr::accept(Visitor &visitor) {
     visitor.visitBinaryExpr(*this);
-}
-
-MemberAccessExpr::MemberAccessExpr(std::unique_ptr<Expression> baseExpr,
-                                   std::string fieldName, int tline, int tcol)
-    : Expression(tline, tcol),
-      base(std::move(baseExpr)),
-      fName(fieldName) {}
-
-void MemberAccessExpr::accept(Visitor &visitor) {
-    visitor.visitMemberAccessExpr(*this);
-}
-
-bool MemberAccessExpr::isLValue() {
-    return true;
 }

@@ -4,11 +4,6 @@
 #include "utils/Error.hpp"
 #include "utils/Scope.hpp"
 
-#include "IR/Module.hpp"
-#include "IR/IRBuilder.hpp"
-#include "IR/Func.hpp"
-#include "IR/BasicBlock.hpp"
-
 #include <iostream>
 
 int main(int argc, char **argv) { 
@@ -65,6 +60,8 @@ int main(int argc, char **argv) {
         std::cout << "Build failed with " << totalErrors << " error(s)\n";
         return -1;
     }
+
+    prog->codegen();
 
     return 0;
 }

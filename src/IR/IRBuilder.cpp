@@ -50,12 +50,33 @@ Value *IRBuilder::createNot(Value *value, const std::string &name) {
     return instRaw;
 }
 
+Value *IRBuilder::createZExt(Value *value, TypeKind *type, const std::string &name) {
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<ZExtInst> inst(ZExtInst::Create(value, type, nname));
+
+    auto *instRaw = inst.get();
+    currBasicBlock->appendInst(std::move(inst));
+
+    return instRaw;
+}
+
 AllocaInst *IRBuilder::createAlloca(TypeKind *type, const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);
     std::unique_ptr<AllocaInst> inst(AllocaInst::Create(type, nname));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));
+
+    return instRaw;
+}
+
+AllocaInst *IRBuilder::createEntryAlloca(TypeKind *type, const std::string &name) {
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<AllocaInst> inst(AllocaInst::Create(type, nname));
+
+    auto *instRaw = inst.get();
+    BasicBlock *entry = currFunc->getEntryBlock();
+    entry->insertInst(entry->getFirstInst(), std::move(inst));
 
     return instRaw;
 }

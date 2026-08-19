@@ -30,7 +30,7 @@ void ConstantInt::printAsOperand(std::ostream &os) {
 //---
 
 Arg::Arg(TypeKind *type, const std::string &name, Func *F, unsigned argNo)
-    :Value(type, ValueKind::Argument, 0, name), func(F), argNo(argNo) {}
+    :Value(type, ValueKind::Argument, name), func(F), argNo(argNo) {}
 
 Arg *Arg::Create(TypeKind *type, const std::string &name, Func *F, unsigned argNo) {
     return new Arg(type, name, F, argNo); 

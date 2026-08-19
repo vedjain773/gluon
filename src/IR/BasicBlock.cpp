@@ -9,11 +9,23 @@ BasicBlock *BasicBlock::Create(const std::string &name, Func *parent) {
     auto bb = std::make_unique<BasicBlock>(name, parent);
     BasicBlock *bbRaw = bb.get();
 
-    parent->appendBasicBlock(std::move(bb));
+    if (parent != nullptr) {
+        parent->appendBasicBlock(std::move(bb));
+    }
+
     return bbRaw;
 }
 
+std::unique_ptr<BasicBlock> BasicBlock::CreateDetached(const std::string &name) {
+    auto bb = std::make_unique<BasicBlock>(name, nullptr);
+    return bb;
+}
+
 Func *BasicBlock::getParent() { return parent; }
+
+void BasicBlock::setParent(Func *parent) {
+    this->parent = parent;
+}
 
 std::string BasicBlock::getName() { return name; }
 
@@ -41,11 +53,21 @@ void BasicBlock::removeInst(Inst *inst) {
     instructions.erase(instructions.begin() + i);
 }
 
-Inst *BasicBlock::getFirstInst() { return instructions.front().get(); }
+Inst *BasicBlock::getFirstInst() {
+    if (instructions.size())
+        return instructions.front().get(); 
+    else 
+        return nullptr;
+}
 
 Inst *BasicBlock::getLastInst() { return instructions.back().get(); }
 
-Inst *BasicBlock::getTerminator() { return getLastInst(); }
+Inst *BasicBlock::getTerminator() { 
+    if (hasTerminator()) 
+        return getLastInst();
+    else 
+        return nullptr; 
+}
     
 bool BasicBlock::hasTerminator() { return getLastInst()->isTerminator(); }
 

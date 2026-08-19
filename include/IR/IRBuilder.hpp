@@ -24,6 +24,8 @@ class IRBuilder {
     Value *createNeg(Value *value, const std::string &name = "");
     Value *createNot(Value *value, const std::string &name = "");
 
+    Value *createZExt(Value *value, TypeKind *target, const std::string &name = "");
+
     AllocaInst *createAlloca(TypeKind *type, const std::string &name = "");
     AllocaInst *createEntryAlloca(TypeKind *type, const std::string &name = "");
     

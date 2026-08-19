@@ -18,8 +18,10 @@ class BasicBlock {
   public:
     BasicBlock(const std::string &name, Func *parent);
     static BasicBlock *Create(const std::string &name, Func *parent = nullptr);
+    static std::unique_ptr<BasicBlock> CreateDetached(const std::string &name);
 
     Func *getParent();
+    void setParent(Func *func);
     std::string getName();
 
     void appendInst(std::unique_ptr<Inst> inst);

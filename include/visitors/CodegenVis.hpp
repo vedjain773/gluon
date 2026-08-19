@@ -12,12 +12,13 @@
 #include <memory>
 
 class CodegenVis {
-  private:
-    std::unique_ptr<Module> module;
-    std::unique_ptr<IRBuilder> builder;
+  private: 
     std::unordered_map<std::string, AllocaInst *> table;
 
   public:
+    std::unique_ptr<Module> module;
+    std::unique_ptr<IRBuilder> builder;
+
     void initModule(const std::string &fileName);
     void insertName(const std::string &name, AllocaInst *alloca);
     AllocaInst *lookup(std::string name);

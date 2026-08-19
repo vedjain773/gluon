@@ -6,7 +6,7 @@
 #include "nodes/ExternalDecl.hpp"
 #include "utils/Scope.hpp"
 #include "visitors/Visitor.hpp"
-#include "IR/CodegenVis.hpp"
+#include "visitors/CodegenVis.hpp"
 #include <vector>
 
 class Statement {
