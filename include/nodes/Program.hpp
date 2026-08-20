@@ -9,17 +9,20 @@
 #include <vector>
 
 class Program {
+  private:
+    std::string name;
+
   public:
     std::vector<std::unique_ptr<ExternalDecl>> root;
     std::string fileName;
 
-    void setFileName(std::string file_name);
+    void setFileName(const std::string &fileName);
     void accept(Visitor &visitor);
     void add(std::unique_ptr<ExternalDecl> edecl);
 
     void printAST();
-    int semAnalyse();
     void codegen();
+    int semAnalyse();
 };
 
 #endif

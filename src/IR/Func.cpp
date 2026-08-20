@@ -58,7 +58,16 @@ void Func::insertAtEnd(std::unique_ptr<BasicBlock> bb) {
 BasicBlock *Func::getEntryBlock() { return basicBlocks.front().get(); };
 
 void Func::print(std::ostream &os) {
-    os << std::format("define @{} ()\n", name);
+    os << std::format("define @{} (", name);
+
+    for (auto &arg: args) {
+        arg->print(os);
+        
+        if (arg != args.back())
+            os << ", ";
+    }
+
+    os << ")\n";
 
     for (auto &bb: basicBlocks) {
         bb->print(os);

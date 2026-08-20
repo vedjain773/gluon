@@ -60,16 +60,26 @@ Inst *BasicBlock::getFirstInst() {
         return nullptr;
 }
 
-Inst *BasicBlock::getLastInst() { return instructions.back().get(); }
+Inst *BasicBlock::getLastInst() { 
+    if (instructions.size())
+        return instructions.back().get();
+    else 
+        return nullptr;
+}
 
 Inst *BasicBlock::getTerminator() { 
-    if (hasTerminator()) 
+    if (hasTerminator())
         return getLastInst();
-    else 
-        return nullptr; 
+    else
+        return nullptr;
 }
     
-bool BasicBlock::hasTerminator() { return getLastInst()->isTerminator(); }
+bool BasicBlock::hasTerminator() { 
+    if (getLastInst() == nullptr)
+        return false;
+    else 
+        return getLastInst()->isTerminator();
+}
 
 std::vector<BasicBlock*> &BasicBlock::getPredecessors() { return predecessors; }
 

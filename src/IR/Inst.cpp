@@ -168,11 +168,15 @@ StoreInst *StoreInst::Create(Value *value, Value *dest) {
     return new StoreInst(value, dest);
 } 
 
+Value *StoreInst::getValue() { return getOperand(0); }
+
+Value *StoreInst::getDest() { return getOperand(1); }
+
 void StoreInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::STORE));
-    getOperand(0)->printAsOperand(os);
+    getValue()->printAsOperand(os);
     os << " -> ";
-    getOperand(1)->printAsOperand(os);
+    getDest()->printAsOperand(os);
 }
 
 //---
@@ -192,12 +196,17 @@ CallInst *CallInst::Create(Func *callee, std::vector<Value*> args, const std::st
 }
 
 void CallInst::print(std::ostream &os) {
-    os << std::format("call @{}", callee->getName());
+    os << std::format("{} = call @{}", getName(), callee->getName());
+    os << '(';
 
     for (auto &arg: callArgs) {
         arg->print(os);
-        os << ", ";
+
+        if (arg != callArgs.back())
+            os << ", ";
     }
+
+    os << ')';
 }
 
 //---

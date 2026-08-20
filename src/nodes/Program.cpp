@@ -11,6 +11,8 @@ void Program::add(std::unique_ptr<ExternalDecl> edecl) {
     root.push_back(std::move(edecl));
 }
 
+void Program::setFileName(const std::string &fileName) { name = fileName; }
+
 void Program::printAST() {
     PrintVisitor printvisitor;
     this->accept(printvisitor);
@@ -24,7 +26,7 @@ int Program::semAnalyse() {
 
 void Program::codegen() {
     CodegenVis cdgvis;
-    cdgvis.initModule(fileName);
+    cdgvis.initModule(name);
 
     for (size_t i = 0; i < root.size(); i++) {
         root[i]->codegen(cdgvis);

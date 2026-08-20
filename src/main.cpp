@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
 
     bool printAst = false;
     bool printTokens = false;
+    bool printIR = false;
     std::string filename = "input.c";
 
     if (argc == 1) {
@@ -27,6 +28,8 @@ int main(int argc, char **argv) {
             printTokens = true;
         } else if (flag == "--past") {
             printAst = true;
+        } else if (flag == "--emit-ir") {
+            printIR = true; 
         } else {
             std::cout << "Unknown Flag: " << argv[i] << "\n";
         }
@@ -46,7 +49,8 @@ int main(int argc, char **argv) {
 
     Parser parser(tokenlist);
     auto prog = parser.ParseProgram();
-
+    prog->setFileName(filename);
+        
     int noErr = prog->semAnalyse();
 
     if (printAst) {
@@ -61,7 +65,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    prog->codegen();
+    if (printIR)
+        prog->codegen();
 
     return 0;
 }

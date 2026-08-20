@@ -128,7 +128,7 @@ class StoreInst: public Inst {
 
   public:
     static StoreInst *Create(Value *value, Value *dest);
-    Value *getSrc();
+    Value *getValue();
     Value *getDest();
 
     void print(std::ostream &os);

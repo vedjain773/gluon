@@ -18,10 +18,9 @@ Func *Module::getFunc(const std::string &name) {
 }
 
 void Module::print(std::ostream &os) {
-    os << std::format(";{}\n\n", name);
+    os << std::format(";Module: {}\n\n", name);
 
     for (auto &func: functions) {
         func->print(os);
-        os << '\n';
     }
 } 
