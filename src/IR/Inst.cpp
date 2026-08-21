@@ -137,37 +137,41 @@ void ZExtInst::print(std::ostream &os) {
 //---
 
 AllocaInst::AllocaInst(TypeKind *type, const std::string &name)
-    :Inst(OpCode::ALLOCA, type, {}, name) {}
+    :Inst(OpCode::ALLOCA, getPtrTo(type->name), {}, name), valType(type) {}
 
 AllocaInst *AllocaInst::Create(TypeKind *type, const std::string &name) {
     return new AllocaInst(type, name);
 }
 
+TypeKind *AllocaInst::getValType() { return valType; }
+
 void AllocaInst::print(std::ostream &os) {
-    os << std::format("{} = {} {}", getName(), opcodeToStr(OpCode::ALLOCA), getType()->name); 
+    os << std::format("{} = {} {}", getName(), opcodeToStr(OpCode::ALLOCA), valType->name); 
 }
 
 //---
 
-LoadInst::LoadInst(TypeKind *type, Value *value, const std::string &name)
-    :Inst(OpCode::LOAD, type, {value}, name) {}
+LoadInst::LoadInst(TypeKind *type, Value *ptr, const std::string &name)
+    :Inst(OpCode::LOAD, type, {ptr}, name) {}
 
-LoadInst *LoadInst::Create(TypeKind *type, Value *value, const std::string &name) {
-    return new LoadInst(type, value, name);
-} 
+LoadInst *LoadInst::Create(TypeKind *type, Value *ptr, const std::string &name) {
+    return new LoadInst(type, ptr, name);
+}
+
+Value *LoadInst::getValue() { return getOperand(0); }
 
 void LoadInst::print(std::ostream &os) {
-    os << std::format("{} = {} ", getName(), opcodeToStr(OpCode::LOAD));
-    getOperand(0)->printAsOperand(os);
+    os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::LOAD), getType()->name);
+    getValue()->printAsOperand(os);
 } 
 
 //---
 
-StoreInst::StoreInst(Value *value, Value *dest)
-    :Inst(OpCode::STORE, value->getType(), {value, dest}, "") {}
+StoreInst::StoreInst(Value *value, Value *ptr)
+    :Inst(OpCode::STORE, value->getType(), {value, ptr}, "") {}
 
-StoreInst *StoreInst::Create(Value *value, Value *dest) {
-    return new StoreInst(value, dest);
+StoreInst *StoreInst::Create(Value *value, Value *ptr) {
+    return new StoreInst(value, ptr);
 } 
 
 Value *StoreInst::getValue() { return getOperand(0); }

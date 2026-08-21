@@ -104,10 +104,12 @@ class ZExtInst: public Inst {
 
 class AllocaInst: public Inst {
   private:
+    TypeKind *valType;
     AllocaInst(TypeKind *type, const std::string &name);
   
   public:
     static AllocaInst *Create(TypeKind *type, const std::string &name);
+    TypeKind *getValType();
 
     void print(std::ostream &os);
 };
@@ -118,7 +120,6 @@ class LoadInst: public Inst {
 
   public:
     static LoadInst *Create(TypeKind *type, Value *value, const std::string &name);
-    TypeKind *getType();
     Value *getValue();
 
     void print(std::ostream &os);

@@ -91,8 +91,8 @@ LoadInst *IRBuilder::createLoad(TypeKind *type, Value *ptr, const std::string &n
     return instRaw;
 }
 
-StoreInst *IRBuilder::createStore(Value *value, Value *dest) {
-    std::unique_ptr<StoreInst> inst(StoreInst::Create(value, dest));
+StoreInst *IRBuilder::createStore(Value *value, Value *ptr) {
+    std::unique_ptr<StoreInst> inst(StoreInst::Create(value, ptr));
 
     auto *instRaw = inst.get();
     currBasicBlock->appendInst(std::move(inst));

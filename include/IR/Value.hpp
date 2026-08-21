@@ -31,7 +31,7 @@ class Value {
 
     virtual void printAsOperand(std::ostream &os) {
         os << std::format("{} {}", type->name, name.empty() ? "<unnamed>" : name);
-    }
+    } 
 
     virtual void print(std::ostream &os) {
         printAsOperand(os);

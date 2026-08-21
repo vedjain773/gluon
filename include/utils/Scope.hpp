@@ -54,6 +54,7 @@ TypeKind *TokToType(TokenType tk);
 extern std::unordered_map<std::string, std::unique_ptr<TypeKind>> typeTable;
 
 TypeKind *getType(std::string typeName);
+TypeKind *getPtrTo(std::string typeName);
 TypeKind *getArrType(std::string typeName, int numOfElements);
 
 bool isPointerType(TypeKind *typek);

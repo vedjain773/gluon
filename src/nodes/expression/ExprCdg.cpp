@@ -16,7 +16,7 @@ Value *VarExpr::codegen(CodegenVis &cdgvis) {
         return nullptr; 
     }
 
-    return Bldr->createLoad(alloca->getType(), alloca, Name);
+    return Bldr->createLoad(alloca->getValType(), alloca, Name);
 }
 
 Value *VarExpr::emitPtr(CodegenVis &cdgvis) {

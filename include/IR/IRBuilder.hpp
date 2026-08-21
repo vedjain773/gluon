@@ -30,7 +30,7 @@ class IRBuilder {
     AllocaInst *createEntryAlloca(TypeKind *type, const std::string &name = "");
     
     LoadInst *createLoad(TypeKind *type, Value *ptr, const std::string &name = "");
-    StoreInst *createStore(Value *value, Value *dest);
+    StoreInst *createStore(Value *value, Value *ptr);
 
     CallInst *createCall(Func *callee, std::vector<Value*> args, const std::string &name = "");
 

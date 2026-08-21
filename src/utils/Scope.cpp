@@ -1,5 +1,6 @@
 #include "utils/Scope.hpp"
 #include <iostream>
+#include <format>
 
 std::unordered_map<std::string, std::unique_ptr<TypeKind>> typeTable = [] {
     std::unordered_map<std::string, std::unique_ptr<TypeKind>> m;
@@ -63,6 +64,23 @@ TypeKind *getType(std::string typeName) {
     }
 
     return typeTable["null"].get();
+}
+
+TypeKind *getPtrTo(std::string typeName) {
+    std::string newTypeName = std::format("{}*", typeName);
+
+    if (typeTable.count(newTypeName))
+        return typeTable[newTypeName].get();
+
+    TypeKind *base = typeTable[typeName].get();
+    
+    std::unique_ptr<TypeKind> newType = std::make_unique<TypeKind>(
+            TypeKind{TypeEnum::POINTER, newTypeName, 8, 8, base});
+
+    TypeKind *newType_raw = newType.get();
+
+    typeTable[newTypeName] = std::move(newType);
+    return newType_raw;
 }
 
 TypeKind *getArrType(std::string typeName, int numOfElements) {
