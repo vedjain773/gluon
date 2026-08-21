@@ -110,43 +110,35 @@ Value *BinaryExpr::codegen(CodegenVis &cdgvis) {
         } break;
 
         case Operators::GREATER: {
-            Value *gt = Bldr->createCmp(OpCode::GT, left, right, "compSGT");
-            return Bldr->createZExt(gt, infType, "ext");
+            return Bldr->createCmp(OpCode::GT, left, right, "compSGT");
         } break;
 
         case Operators::GREATER_EQUALS: {
-            Value *ge = Bldr->createCmp(OpCode::GTE, left, right, "compSGE");
-            return Bldr->createZExt(ge, infType, "ext");
+            return Bldr->createCmp(OpCode::GTE, left, right, "compSGE");
         } break;
 
         case Operators::LESS: {
-            Value *lt = Bldr->createCmp(OpCode::LT, left, right, "compSLT");
-            return Bldr->createZExt(lt, infType, "ext");
+            return Bldr->createCmp(OpCode::LT, left, right, "compSLT");
         } break;
 
         case Operators::LESS_EQUALS: {
-            Value *le = Bldr->createCmp(OpCode::LTE, left, right, "compSLE");
-            return Bldr->createZExt(le, infType, "ext");
+            return Bldr->createCmp(OpCode::LTE, left, right, "compSLE");
         } break;
 
         case Operators::EQUALS: {
-            Value *ee = Bldr->createCmp(OpCode::EQ, left, right, "compEE");
-            return Bldr->createZExt(ee, infType, "ext");
+            return Bldr->createCmp(OpCode::EQ, left, right, "compEE");
         } break;
 
         case Operators::NOT_EQUALS: {
-            Value *ne = Bldr->createCmp(OpCode::NEQ, left, right, "compNE");
-            return Bldr->createZExt(ne, infType, "ext");
+            return Bldr->createCmp(OpCode::NEQ, left, right, "compNE");
         } break;
 
         case Operators::AND: {
-            Value *booland = Bldr->createBinOp(OpCode::LAND, left, right, "and");
-            return Bldr->createZExt(booland, infType, "ext");
+            return Bldr->createBinOp(OpCode::LAND, left, right, "and");
         } break;
 
         case Operators::OR: {
-            Value *boolor = Bldr->createBinOp(OpCode::LOR, left, right, "or");
-            return Bldr->createZExt(boolor, infType, "ext");
+            return Bldr->createBinOp(OpCode::LOR, left, right, "or");
         } break;
 
         default:

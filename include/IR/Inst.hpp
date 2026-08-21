@@ -52,6 +52,8 @@ class Inst : public Value {
     Value *getOperand(unsigned i);
     void setOperand(unsigned i, Value *v);
 
+    std::vector<Value*> &getOperands();
+
     bool isTerminator();
 };
 

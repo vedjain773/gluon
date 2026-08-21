@@ -9,6 +9,10 @@ void CodegenVis::insertName(const std::string &name, AllocaInst *alloca) {
     table.insert({name, alloca});
 }
 
+void CodegenVis::clearTable() {
+    table.clear();
+}
+
 AllocaInst *CodegenVis::lookup(std::string name) {
     return table[name];
 }

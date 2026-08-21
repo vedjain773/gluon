@@ -21,6 +21,8 @@ class CodegenVis {
 
     void initModule(const std::string &fileName);
     void insertName(const std::string &name, AllocaInst *alloca);
+
+    void clearTable();
     AllocaInst *lookup(std::string name);
 };
 

@@ -30,6 +30,7 @@ void Program::codegen() {
 
     for (size_t i = 0; i < root.size(); i++) {
         root[i]->codegen(cdgvis);
+        cdgvis.clearTable();
     }
 
     Module *mod = (cdgvis.module).get();

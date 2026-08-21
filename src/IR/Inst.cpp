@@ -51,6 +51,8 @@ Value *Inst::getOperand(unsigned i) { return operands[i]; }
 
 void Inst::setOperand(unsigned i, Value *v) { operands[i] = v; }
 
+std::vector<Value*> &Inst::getOperands() { return operands; }
+
 bool Inst::isTerminator() { 
     switch (opcode) {
         case OpCode::RET:
@@ -199,10 +201,10 @@ void CallInst::print(std::ostream &os) {
     os << std::format("{} = call @{}", getName(), callee->getName());
     os << '(';
 
-    for (auto &arg: callArgs) {
-        arg->print(os);
+    for (auto &argVal: getOperands()) {
+        argVal->printAsOperand(os);
 
-        if (arg != callArgs.back())
+        if (argVal != getOperands().back())
             os << ", ";
     }
 
@@ -225,8 +227,9 @@ BasicBlock *CondBrInst::getThenBlock() { return trueBB; }
 BasicBlock *CondBrInst::getElseBlock() { return falseBB; }
 
 void CondBrInst::print(std::ostream &os) {
-    os << std::format("{} {} {}", opcodeToStr(OpCode::BRC), 
-            trueBB->getName(), falseBB->getName()); 
+    os << std::format("{} ", opcodeToStr(OpCode::BRC));
+    getCond()->printAsOperand(os);
+    os << std::format(", {}, {}", getThenBlock()->getName(), getElseBlock()->getName());
 }
 
 //---
