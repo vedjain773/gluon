@@ -195,6 +195,7 @@ class UnCondBrInst: public Inst {
 class ReturnInst: public Inst {
   private:
     ReturnInst(Value *value);
+    ReturnInst();
 
   public:
     static ReturnInst *Create(Value *value);

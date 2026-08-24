@@ -280,13 +280,23 @@ void UnCondBrInst::print(std::ostream &os) {
 ReturnInst::ReturnInst(Value *value)
     :Inst(OpCode::RET, value->getType(), {value}, "") {}
 
-ReturnInst *ReturnInst::Create(Value *value) { 
-    return new ReturnInst(value);
+ReturnInst::ReturnInst()
+    :Inst(OpCode::RET, getVoidTy(), {}, "") {}
+
+ReturnInst *ReturnInst::Create(Value *value) {
+    if (value)
+        return new ReturnInst(value);
+    else
+        return new ReturnInst();
 } 
 
 void ReturnInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::RET));
-    getOperand(0)->printAsOperand(os);
+    
+    if (getNumOperands() > 0) 
+        getOperand(0)->printAsOperand(os);
+    else
+        os << getType()->name;
 }
 
 //---

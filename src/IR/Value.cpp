@@ -37,3 +37,5 @@ Arg *Arg::Create(TypeKind *type, const std::string &name, Func *F, unsigned argN
 }
 
 //---
+
+TypeKind *getVoidTy() { return getType("void"); }
