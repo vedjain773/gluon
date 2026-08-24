@@ -67,7 +67,7 @@ void Func::print(std::ostream &os) {
             os << ", ";
     }
 
-    os << ")\n";
+    os << std::format(") -> {}\n", getReturnType()->name);
 
     for (auto &bb: basicBlocks) {
         bb->print(os);

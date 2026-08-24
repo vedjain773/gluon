@@ -48,8 +48,6 @@ void IfStmt::codegen(CodegenVis &cdgvis) {
         Bldr->createBr(mergeRaw);
     }
 
-    thenRaw = Bldr->getInsertBlock();
-
     if (elseStmt != nullptr) {
         func->insertAtEnd(std::move(elseBB));
         Bldr->setInsertPoint(elseRaw);
@@ -60,8 +58,6 @@ void IfStmt::codegen(CodegenVis &cdgvis) {
             Bldr->createBr(mergeRaw);
         }
     }
-
-    elseRaw = Bldr->getInsertBlock();
 
     func->insertAtEnd(std::move(mergeBB));
     Bldr->setInsertPoint(mergeRaw);
@@ -102,8 +98,6 @@ void WhileStmt::codegen(CodegenVis &cdgvis) {
     Bldr->setInsertPoint(bodyRaw);
 
     body->codegen(cdgvis);
-
-    bodyRaw = Bldr->getInsertBlock();
 
     if (Bldr->getInsertBlock()->getTerminator() == nullptr) {
         Bldr->createBr(condRaw);

@@ -226,8 +226,9 @@ CallInst *CallInst::Create(Func *callee, std::vector<Value*> args, const std::st
 }
 
 void CallInst::print(std::ostream &os) {
-    os << std::format("{} = call @{}", getName(), callee->getName());
-    os << '(';
+    TypeKind *retType = callee->getReturnType();
+
+    os << std::format("{} = call {} @{} (", getName(), retType->name, callee->getName());
 
     for (auto &argVal: getOperands()) {
         argVal->printAsOperand(os);
