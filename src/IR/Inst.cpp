@@ -22,6 +22,7 @@ std::string opcodeToStr(OpCode opcode) {
         case OpCode::NEQ: return "neq";
         case OpCode::LAND: return "land";
         case OpCode::LOR: return "lor";
+        case OpCode::GEP: return "gep";
         case OpCode::ZEXT: return "zext";
         case OpCode::ALLOCA: return "alloca";
         case OpCode::LOAD: return "load";
@@ -122,6 +123,29 @@ void CompInst::print(std::ostream &os) {
 
 //---
 
+GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name)
+    :Inst(OpCode::GEP, type, {ptr}, name), idxList(idxList) {}
+
+GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
+        const std::string &name) 
+{
+    return new GEPInst(type, ptr, idxList, name);
+}
+
+void GEPInst::print(std::ostream &os) {
+    os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::GEP), getType()->name);
+    getOperand(0)->printAsOperand(os);
+    os << ", ";
+
+    for (auto &idx: idxList) {
+        idx->printAsOperand(os);
+    
+        if (idx != idxList.back())
+            os << ", ";
+    }
+}
+
+//---
 ZExtInst::ZExtInst(Value *value, TypeKind *type, const std::string &name)
     :Inst(OpCode::ZEXT, type, {value}, name) {}
 
@@ -161,7 +185,7 @@ LoadInst *LoadInst::Create(TypeKind *type, Value *ptr, const std::string &name) 
 Value *LoadInst::getValue() { return getOperand(0); }
 
 void LoadInst::print(std::ostream &os) {
-    os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::LOAD), getType()->name);
+    os << std::format("{} = {} {} <- ", getName(), opcodeToStr(OpCode::LOAD), getType()->name);
     getValue()->printAsOperand(os);
 } 
 

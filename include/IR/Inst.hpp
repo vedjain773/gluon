@@ -16,6 +16,9 @@ enum class OpCode {
     EQ, NEQ,
     LAND, LOR,
 
+    //Ptr-arith
+    GEP,
+
     //Cast
     ZEXT,
 
@@ -88,6 +91,18 @@ class CompInst: public Inst {
     static CompInst *Create(OpCode opcode, Value* lhs, Value *rhs, const std::string &name);
     Value *getLHS();
     Value *getRHS();
+
+    void print(std::ostream &os);
+};
+
+class GEPInst: public Inst {
+  private:
+    std::vector<Value*> idxList;
+    GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name);
+
+  public:
+    static GEPInst *Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
+            const std::string &name);
 
     void print(std::ostream &os);
 };

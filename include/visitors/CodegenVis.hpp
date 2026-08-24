@@ -11,6 +11,15 @@
 
 #include <memory>
 
+enum class Operators;
+
+struct OpConfig {
+    Value *lhs;
+    Value *rhs;
+    Operators op;
+    TypeKind *type;
+};
+
 class CodegenVis {
   private: 
     std::unordered_map<std::string, AllocaInst *> table;
@@ -21,6 +30,9 @@ class CodegenVis {
 
     void initModule(const std::string &fileName);
     void insertName(const std::string &name, AllocaInst *alloca);
+
+    Value *handleBinOp(const OpConfig &opconfig);
+    Value *handlePtrArith(const OpConfig &opconfig);
 
     void clearTable();
     AllocaInst *lookup(std::string name);

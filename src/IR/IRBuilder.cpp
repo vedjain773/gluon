@@ -60,6 +60,17 @@ Value *IRBuilder::createZExt(Value *value, TypeKind *type, const std::string &na
     return instRaw;
 }
 
+Value *IRBuilder::createGEP(TypeKind *type, Value *ptr, std::vector<Value*> idx,
+        const std::string &name) {
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<GEPInst> inst(GEPInst::Create(type, ptr, idx, name));
+
+    auto *instRaw = inst.get();
+    currBasicBlock->appendInst(std::move(inst));
+
+    return instRaw;
+}
+
 AllocaInst *IRBuilder::createAlloca(TypeKind *type, const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);
     std::unique_ptr<AllocaInst> inst(AllocaInst::Create(type, nname));

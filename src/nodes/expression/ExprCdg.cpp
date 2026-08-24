@@ -88,62 +88,23 @@ Value *BinaryExpr::codegen(CodegenVis &cdgvis) {
     if (!left || !right)
         return nullptr;
 
-    switch (Op) {
-        case Operators::PLUS: {
-            return Bldr->createBinOp(OpCode::ADD, left, right, "add");
-        } break;
+    if (isPointerType(LHS->infType)) 
+        return cdgvis.handlePtrArith({left, right, Op, LHS->infType->to});
 
-        case Operators::MINUS: {
-            return Bldr->createBinOp(OpCode::SUB, left, right, "sub");
-        } break;
+    return cdgvis.handleBinOp({left, right, Op, infType});
+}
 
-        case Operators::MULT: {
-            return Bldr->createBinOp(OpCode::MUL, left, right, "mul");
-        } break;
+Value *BinaryExpr::emitPtr(CodegenVis &cdgvis) {
+    IRBuilder *Bldr = (cdgvis.builder).get();
 
-        case Operators::DIVIDE: {
-            return Bldr->createBinOp(OpCode::DIV, left, right, "sdiv");
-        } break;
+    Value *left = LHS->emitPtr(cdgvis);
+    Value *right = RHS->codegen(cdgvis);
 
-        case Operators::MODULUS: {
-            return Bldr->createBinOp(OpCode::REM, left, right, "srem");
-        } break;
+    if (isArrayType(LHS->infType))
+        return Bldr->createGEP(LHS->infType, left, 
+                {ConstantInt::Create(getType("int"), 0), right}, "arroff");
 
-        case Operators::GREATER: {
-            return Bldr->createCmp(OpCode::GT, left, right, "compSGT");
-        } break;
-
-        case Operators::GREATER_EQUALS: {
-            return Bldr->createCmp(OpCode::GTE, left, right, "compSGE");
-        } break;
-
-        case Operators::LESS: {
-            return Bldr->createCmp(OpCode::LT, left, right, "compSLT");
-        } break;
-
-        case Operators::LESS_EQUALS: {
-            return Bldr->createCmp(OpCode::LTE, left, right, "compSLE");
-        } break;
-
-        case Operators::EQUALS: {
-            return Bldr->createCmp(OpCode::EQ, left, right, "compEE");
-        } break;
-
-        case Operators::NOT_EQUALS: {
-            return Bldr->createCmp(OpCode::NEQ, left, right, "compNE");
-        } break;
-
-        case Operators::AND: {
-            return Bldr->createBinOp(OpCode::LAND, left, right, "and");
-        } break;
-
-        case Operators::OR: {
-            return Bldr->createBinOp(OpCode::LOR, left, right, "or");
-        } break;
-
-        default:
-            return left;
-    }
+    return nullptr;
 }
 
 Value *AssignExpr::codegen(CodegenVis &cdgvis) {

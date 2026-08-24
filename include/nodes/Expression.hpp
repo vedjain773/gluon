@@ -159,6 +159,7 @@ class BinaryExpr : public Expression {
     void accept(Visitor &visitor);
 
     Value *codegen(CodegenVis &cdgvis);
+    Value *emitPtr(CodegenVis &cdgvis);
 };
 
 class AssignExpr : public Expression {

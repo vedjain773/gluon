@@ -45,12 +45,10 @@ void SemanticVisitor::visitParameter(Parameter &parameter) {
 void SemanticVisitor::visitPrototype(Prototype &prototype) {
 
     if (scopeVec[0].search(prototype.funcName)) {
-        Error error(prototype.line, prototype.column,
-                    prototype.funcName + " is already declared");
+        Error error(prototype.line, prototype.column, prototype.funcName + " is already declared");
         numOfErrors += 1;
     } else {
-        scopeVec[0].addRow(prototype.funcName, prototype.retType,
-                           SymbolKind::FUNCTION);
+        scopeVec[0].addRow(prototype.funcName, prototype.retType, SymbolKind::FUNCTION);
         currFuncRetType = prototype.retType;
     }
 
@@ -88,8 +86,7 @@ void SemanticVisitor::visitBlockStmt(BlockStmt &blockstmt) {
 
     for (auto &stmt : blockstmt.statements) {
         if (isTerm) {
-            Warning warning(stmt->line, stmt->column,
-                            "Statement is unreachable");
+            Warning warning(stmt->line, stmt->column, "Statement is unreachable");
         }
 
         stmt->accept(*this);
@@ -105,22 +102,31 @@ void SemanticVisitor::visitDeclStmt(DeclStmt &declstmt) {
     if (getCurrScope().search(declstmt.name)) {
         reportError(declstmt, declstmt.name + " is already declared");
     } else {
-        getCurrScope().addRow(declstmt.name, declstmt.type,
-                              SymbolKind::VARIABLE);
+        getCurrScope().addRow(declstmt.name, declstmt.type, SymbolKind::VARIABLE);
     }
 
     Expression *expr = (declstmt.expression).get();
+    TypeKind *declType = declstmt.type;
 
     if (expr != nullptr) {
         expr->accept(*this);
-
-        if (expr->infType == getType("void")) {
+        TypeKind *exprType = expr->infType;
+        
+        if (exprType == getType("void")) {
             return reportError(declstmt, "Variables cannot be of type: void");
         }
+        
+        if (exprType->type != declType->type) {
+            std::string errmsg = std::format(
+                    "Cannot assign expression of type {} to '{}' of type {}",
+                    exprType->name, declstmt.name, declType->name);
 
-        if (expr->infType != declstmt.type) {
-            auto castexpr = std::make_unique<CastExpr>(
-                std::move(declstmt.expression), expr->infType, declstmt.type);
+            return reportError(declstmt, errmsg);
+        } 
+
+        if (exprType != declType) {
+            auto castexpr = std::make_unique<CastExpr>(std::move(declstmt.expression),
+                    exprType, declType);
 
             Expression *cexpr = castexpr.get();
             cexpr->accept(*this);
@@ -128,7 +134,7 @@ void SemanticVisitor::visitDeclStmt(DeclStmt &declstmt) {
             declstmt.expression = std::move(castexpr);
         }
 
-        declstmt.expression->infType = declstmt.type;
+        declstmt.expression->infType = declType;
     }
 }
 
@@ -140,10 +146,9 @@ void SemanticVisitor::visitIfStmt(IfStmt &ifstmt) {
     condn->accept(*this);
 
     if (condn->infType != getType("int")) {
+        std::string errmsg = "Invalid (if) condition expression; Expected: int, Got: ";
         std::string typeName = condn->infType->name;
-        return reportError(
-            *condn, "Invalid (if) condition expression; Expected: int, Got: " +
-                        typeName);
+        return reportError(*condn, errmsg + typeName);
     }
 
     ifbody->accept(*this);
@@ -166,11 +171,9 @@ void SemanticVisitor::visitWhileStmt(WhileStmt &whilestmt) {
     condn->accept(*this);
 
     if (condn->infType != getType("int")) {
+        std::string errmsg = "Invalid (while) condition expression, Expected: int, Got: ";
         std::string typeName = condn->infType->name;
-        return reportError(
-            whilestmt,
-            "Invalid (while) condition expression, Expected: int, Got: " +
-                typeName);
+        return reportError(whilestmt, errmsg + typeName);
     }
 
     insideLoop++;
@@ -180,15 +183,13 @@ void SemanticVisitor::visitWhileStmt(WhileStmt &whilestmt) {
 
 void SemanticVisitor::visitBreakStmt(BreakStmt &breakstmt) {
     if (insideLoop <= 0) {
-        return reportError(breakstmt,
-                           "Break statements must be inside while loops");
+        return reportError(breakstmt, "Break statements must be inside while loops");
     }
 }
 
 void SemanticVisitor::visitContinueStmt(ContinueStmt &continuestmt) {
     if (insideLoop <= 0) {
-        return reportError(continuestmt,
-                           "Continue statements must be inside while loops");
+        return reportError(continuestmt, "Continue statements must be inside while loops");
     }
 }
 
@@ -196,18 +197,17 @@ void SemanticVisitor::visitReturnStmt(ReturnStmt &returnstmt) {
     Expression *retexpr = (returnstmt.retExpr).get();
 
     retexpr->accept(*this);
+    TypeKind *retExprType = retexpr->infType;
 
-    if (isErrorType(retexpr->infType))
+    if (isErrorType(retExprType))
         return;
 
-    if (retexpr->infType != currFuncRetType) {
-        std::string retexprTypeName = retexpr->infType->name;
-        std::string currRetTypeName = currFuncRetType->name;
+    if (retExprType != currFuncRetType) {
+        std::string msg = std::format(
+                "Return type ({}) does not match function return type ({})",
+                retExprType->name, currFuncRetType->name);
 
-        return reportError(*retexpr,
-                           "Return type (" + retexprTypeName +
-                               ") does not match function signature (" +
-                               currRetTypeName + ")");
+        return reportError(*retexpr, msg);
     }
 }
 
@@ -234,14 +234,12 @@ void SemanticVisitor::visitAssignExpr(AssignExpr &assignexpr) {
     }
 
     if (rExpr->infType == getType("void")) {
-        return reportError(assignexpr,
-                           "Assignment operand cannot be of type: void");
+        return reportError(assignexpr, "Assignment operand cannot be of type: void");
     }
 
     if (lExpr->infType != rExpr->infType) {
-        auto castexpr = std::make_unique<CastExpr>(std::move(assignexpr.RHS),
-                                                   assignexpr.RHS->infType,
-                                                   assignexpr.LHS->infType);
+        auto castexpr = std::make_unique<CastExpr>(
+            std::move(assignexpr.RHS), assignexpr.RHS->infType, assignexpr.LHS->infType);
 
         Expression *cexpr = castexpr.get();
         cexpr->accept(*this);
@@ -255,28 +253,27 @@ void SemanticVisitor::visitAssignExpr(AssignExpr &assignexpr) {
 void SemanticVisitor::visitBinaryExpr(BinaryExpr &binexpr) {
     Expression *lExpr = (binexpr.LHS).get();
     Expression *rExpr = (binexpr.RHS).get();
-
+ 
     lExpr->accept(*this);
-
     rExpr->accept(*this);
 
-    if (lExpr->infType == getType("void")) {
+    TypeKind *leftType = lExpr->infType;
+    TypeKind *rightType = rExpr->infType;
+
+    if (leftType == getType("void")) {
         return reportError(*lExpr, "Binary operand cannot be of type: void");
     }
 
-    if (rExpr->infType == getType("void")) {
+    if (rightType == getType("void")) {
         return reportError(*rExpr, "Binary operand cannot be of type: void");
     }
 
-    bool isLPointerOrArray =
-        isPointerType(lExpr->infType) || isArrayType(lExpr->infType);
-    bool isRPointerOrArray =
-        isPointerType(rExpr->infType) || isArrayType(rExpr->infType);
+    bool isLPointerOrArray = isPointerType(leftType) || isArrayType(leftType);
+    bool isRPointerOrArray = isPointerType(rightType) || isArrayType(rightType);
 
-    if (lExpr->infType != rExpr->infType) {
+    if (leftType != rightType) {
         if (!isLPointerOrArray && !isRPointerOrArray) {
-            auto castexpr = std::make_unique<CastExpr>(std::move(binexpr.RHS),
-                                                       binexpr.RHS->infType,
+            auto castexpr = std::make_unique<CastExpr>(std::move(binexpr.RHS), binexpr.RHS->infType,
                                                        binexpr.LHS->infType);
 
             Expression *cexpr = castexpr.get();
@@ -295,14 +292,11 @@ void SemanticVisitor::handlePointerArithmetic(BinaryExpr &binexpr) {
     Expression *lExpr = (binexpr.LHS).get();
     Expression *rExpr = (binexpr.RHS).get();
 
-    bool isLPointerOrArray =
-        isPointerType(lExpr->infType) || isArrayType(lExpr->infType);
-    bool isRPointerOrArray =
-        isPointerType(rExpr->infType) || isArrayType(rExpr->infType);
+    bool isLPointerOrArray = isPointerType(lExpr->infType) || isArrayType(lExpr->infType);
+    bool isRPointerOrArray = isPointerType(rExpr->infType) || isArrayType(rExpr->infType);
 
     if (isLPointerOrArray && isRPointerOrArray) {
-        return reportError(*lExpr,
-                           "Pointer-Pointer operations are not supported");
+        return reportError(*lExpr, "Pointer-Pointer operations are not supported");
     }
 
     if (isRPointerOrArray) {
@@ -365,11 +359,9 @@ void SemanticVisitor::visitAddressExpr(AddressExpr &addressexpr) {
 
 void SemanticVisitor::visitCastExpr(CastExpr &castexpr) {
     if (isArrayType(castexpr.from)) {
-        std::string message = "Cannot cast from type: ";
-        message += castexpr.from->name + " to ";
-        message += castexpr.to->name;
-
-        return reportError(castexpr, message);
+        std::string errmsg = std::format(
+                "Cannot cast from type: {} to {}", castexpr.from->name, castexpr.to->name);
+        return reportError(castexpr, errmsg);
     }
 
     castexpr.infType = castexpr.to;
@@ -382,13 +374,11 @@ void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
         if (scopeVec[i].search(callexpr.callee)) {
             flag = true;
 
-            if (scopeVec[i].getSymKind(callexpr.callee) ==
-                SymbolKind::FUNCTION) {
+            if (scopeVec[i].getSymKind(callexpr.callee) == SymbolKind::FUNCTION) {
                 callexpr.infType = scopeVec[i].getSymType(callexpr.callee);
                 break;
             } else {
-                return reportError(callexpr, callexpr.callee +
-                                                 " is not a callable function");
+                return reportError(callexpr, callexpr.callee + " is not a callable function");
             }
         }
     }
@@ -403,9 +393,8 @@ void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
         int expected = scopeVec[0].getNumParams(callexpr.callee);
         int got = callexpr.args.size();
 
-        return reportError(callexpr,
-                           "Expected " + std::to_string(expected) +
-                               " arguments, got: " + std::to_string(got));
+        std::string errmsg = std::format("Expected: {} args, got {}", expected, got);
+        return reportError(callexpr, errmsg);
     }
 
     for (auto &expr : callexpr.args) {
@@ -418,11 +407,10 @@ void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
         TypeKind *currentParamType = (callexpr.args[i])->infType;
 
         if (currentParamType != paramTypes[i]) {
-            std::string msg = "Expected argument type: ";
-            msg += paramTypes[i]->name + " got: ";
-            msg += currentParamType->name;
+            std::string errmsg = std::format(
+                    "Expected argument type: {} got: ", paramTypes[i]->name, currentParamType->name); 
 
-            return reportError(*callexpr.args[i], msg);
+            return reportError(*callexpr.args[i], errmsg);
         }
     }
 }
@@ -438,8 +426,7 @@ void SemanticVisitor::visitVarExpr(VarExpr &varexpr) {
                 varexpr.infType = scopeVec[i].getSymType(varexpr.Name);
                 break;
             } else {
-                return reportError(varexpr,
-                                   varexpr.Name + " is not a variable");
+                return reportError(varexpr, varexpr.Name + " is not a variable");
             }
 
             break;
@@ -452,7 +439,7 @@ void SemanticVisitor::visitVarExpr(VarExpr &varexpr) {
     }
 }
 
-void SemanticVisitor::visitCharExpr(CharExpr &charexpr) {
+void SemanticVisitor::visitCharExpr(CharExpr &charexpr) { 
     charexpr.infType = getType("char");
 }
 
