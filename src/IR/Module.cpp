@@ -8,6 +8,8 @@ Func *Module::appendFunc(std::unique_ptr<Func> func) {
     return functions.back().get();
 }
 
+std::string Module::getName() { return name; }
+
 Func *Module::getFunc(const std::string &name) {
     for (auto &func: functions) {
         if (func->getName() == name)

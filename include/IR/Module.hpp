@@ -13,6 +13,7 @@ private:
 public:
     Module(const std::string &name = "");
     Func *appendFunc(std::unique_ptr<Func> func);
+    std::string getName();
 
     Func *getFunc(const std::string &name);
 
