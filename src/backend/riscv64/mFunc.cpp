@@ -11,6 +11,14 @@ mModule *mFunc::getParent() { return parent; }
 
 mBlock *mFunc::appendBlock(std::unique_ptr<mBlock> bb) {
     blocks.push_back(std::move(bb));
+
+    return blocks.back().get();
 }
 
 mBlock *mFunc::getEntryBlock() { return blocks[0].get(); }
+
+void mFunc::print(std::ostream &os) {
+    os << std::format("func {} \n", name);
+
+    for (auto &bb: blocks) bb->print(os);
+}

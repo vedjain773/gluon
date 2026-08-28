@@ -19,6 +19,8 @@ Func *Module::getFunc(const std::string &name) {
     return nullptr;
 }
 
+std::vector<std::unique_ptr<Func>> &Module::getFuncs() { return functions; }
+
 void Module::print(std::ostream &os) {
     os << std::format(";Module: {}\n\n", name);
 

@@ -222,7 +222,6 @@ std::unique_ptr<Expression> Parser::ParseAssignExpr() {
     auto lhs = ParseBinExpr(LOR);
 
     if (isAssignOp(peekCurr().tokentype)) {
-        Operators Op = getOp(peekCurr().lexeme);
         int tline = peekCurr().line;
         int tcol = peekCurr().column;
 

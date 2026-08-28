@@ -6,16 +6,18 @@
 #include <memory>
 
 class Module {
-private:
+  private:
     std::string name;
     std::vector<std::unique_ptr<Func>> functions;
 
-public:
+  public:
     Module(const std::string &name = "");
     Func *appendFunc(std::unique_ptr<Func> func);
-    std::string getName();
 
+    std::string getName();
     Func *getFunc(const std::string &name);
+   
+    std::vector<std::unique_ptr<Func>> &getFuncs();
 
     void print(std::ostream &os);
 };

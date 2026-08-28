@@ -30,6 +30,7 @@ class BasicBlock {
 
     Inst *getFirstInst();
     Inst *getLastInst();
+    std::vector<std::unique_ptr<Inst>> &getInsts();
 
     Inst *getTerminator();
     bool hasTerminator();

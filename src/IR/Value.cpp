@@ -23,6 +23,8 @@ ConstantInt *ConstantInt::Create(TypeKind *intType, uint64_t value, const std::s
     return new ConstantInt(intType, value, name);    
 }
 
+uint64_t ConstantInt::getValue() { return value; }
+
 void ConstantInt::printAsOperand(std::ostream &os) {
     os << std::format("{} {}", getType()->name, value);
 }

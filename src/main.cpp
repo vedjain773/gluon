@@ -4,6 +4,8 @@
 #include "utils/Error.hpp"
 #include "utils/Scope.hpp"
 
+#include "backend/riscv64/LowerPass.hpp"
+
 #include <iostream>
 
 int main(int argc, char **argv) { 
@@ -65,8 +67,13 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    if (printIR)
-        prog->codegen();
+    prog->codegen();
+
+    if (printIR) prog->printIR();
+
+    RISCV::LowerPass lp(prog->getModule());
+    lp.lower();
+    lp.print(std::cout);
 
     return 0;
 }

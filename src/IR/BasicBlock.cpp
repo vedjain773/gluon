@@ -53,6 +53,8 @@ void BasicBlock::removeInst(Inst *inst) {
     instructions.erase(instructions.begin() + i);
 }
 
+std::vector<std::unique_ptr<Inst>> &BasicBlock::getInsts() { return instructions; }
+
 Inst *BasicBlock::getFirstInst() {
     if (instructions.size())
         return instructions.front().get(); 

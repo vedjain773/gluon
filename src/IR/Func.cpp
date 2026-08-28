@@ -39,6 +39,8 @@ void Func::setArgs(std::vector<Arg*> args) {
 
 Arg *Func::getArg(unsigned i) { return args[i]; }
 
+std::vector<std::unique_ptr<BasicBlock>> &Func::getBlocks() { return basicBlocks; }
+
 BasicBlock *Func::appendBasicBlock(const std::string &name) {
     auto bb = std::make_unique<BasicBlock>(name, this);
     basicBlocks.push_back(std::move(bb));

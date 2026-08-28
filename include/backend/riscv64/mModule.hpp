@@ -13,6 +13,8 @@ class mModule {
 
   public:
     mModule(Module &mod);
+    static mModule *Create(Module &mod);
+    
     mFunc *appendFunc(std::unique_ptr<mFunc> func);
 
     void print(std::ostream &os);

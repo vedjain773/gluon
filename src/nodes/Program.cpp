@@ -13,6 +13,8 @@ void Program::add(std::unique_ptr<ExternalDecl> edecl) {
 
 void Program::setFileName(const std::string &fileName) { name = fileName; }
 
+Module *Program::getModule() { return cdgvis.module.get(); }
+
 void Program::printAST() {
     PrintVisitor printvisitor;
     this->accept(printvisitor);
@@ -25,15 +27,14 @@ int Program::semAnalyse() {
 }
 
 void Program::codegen() {
-    CodegenVis cdgvis;
     cdgvis.initModule(name);
 
     for (size_t i = 0; i < root.size(); i++) {
         root[i]->codegen(cdgvis);
         cdgvis.clearTable();
-    }
-
-    Module *mod = (cdgvis.module).get();
-    mod->print(std::cout);
+    }    
 }
 
+void Program::printIR() {
+    cdgvis.module->print(std::cout);
+}

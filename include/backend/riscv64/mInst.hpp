@@ -1,38 +1,37 @@
 #ifndef MINST_H
 #define MINST_H
 
+#include "backend/riscv64/mOperand.hpp"
 #include <vector>
+#include <string>
 
 namespace RISCV {
 
 class mBlock;
 
-enum class OpCode {
-    // ...
-};
-
-class mOperand {
-    // ...
-};
-
 class mInst {
   private:
-    OpCode opcode;
+    Code opcode;
     mBlock* parent;
-    std::vector<mOperand> operands;
+    std::vector<mOperand*> operands;
 
   public:
-    mInst(OpCode opcode, mBlock* parent,
-          std::vector<mOperand> operands);
+    mInst(Code opcode, mBlock* parent,
+          std::vector<mOperand*> operands);
 
-    OpCode getOpCode();
+    Code getOpCode();
     mBlock* getParent();
 
     unsigned getNumOperands();
-    mOperand& getOperand(unsigned i);
+    mOperand *getOperand(unsigned i);
 
-    void setOperand(unsigned i, mOperand operand);
+    void setOperand(unsigned i, mOperand *operand);
+
+    void print(std::ostream &os);
 };
 
+std::string codeToStr(const Code &code);
+
 }
+
 #endif
