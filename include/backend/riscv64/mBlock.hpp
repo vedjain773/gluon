@@ -28,6 +28,7 @@ class mBlock {
     mFunc* getParent();
 
     void appendInst(std::unique_ptr<mInst> inst);
+    std::vector<std::unique_ptr<mInst>> &getInsts();
 
     std::vector<mBlock*>& getPreds();
     std::vector<mBlock*>& getSuccs();

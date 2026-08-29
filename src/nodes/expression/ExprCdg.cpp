@@ -81,7 +81,6 @@ Value *UnaryExpr::codegen(CodegenVis &cdgvis) {
 }
 
 Value *BinaryExpr::codegen(CodegenVis &cdgvis) {
-    IRBuilder *Bldr = (cdgvis.builder).get();
     Value *left = LHS->codegen(cdgvis);
     Value *right = RHS->codegen(cdgvis);
 

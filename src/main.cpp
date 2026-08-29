@@ -5,35 +5,57 @@
 #include "utils/Scope.hpp"
 
 #include "backend/riscv64/LowerPass.hpp"
+#include "backend/riscv64/Emitter.hpp"
 
 #include <iostream>
+#include <fstream>
 
-int main(int argc, char **argv) { 
-
-    bool printAst = false;
+struct CIConfig {
+    bool optimize = false;
+    bool printAST = false;
     bool printTokens = false;
     bool printIR = false;
-    std::string filename = "input.c";
+    bool printMIR = false;
+    bool printASM = false;
+};
 
-    if (argc == 1) {
-        std::cout << "Usage: \n";
-        std::cout << "./gluon` <src> <flag> <dest?>\n";
-        return 0;
+int main(int argc, char **argv) {
+
+    CIConfig config;
+
+    if (argc < 2) {
+        std::cerr << "Usage: quark <src> [flags] [-o <dest>]\n";
+        return 1;
     }
 
-    filename = argv[1];
+    std::string filename = argv[1];
+    std::string destname = "output.o";
 
-    for (int i = 2; i < argc; i++) {
-        std::string flag = argv[i];
+    for (int i = 2; i < argc; ++i) {
+        std::string_view arg = argv[i];
 
-        if (flag == "--pt") {
-            printTokens = true;
-        } else if (flag == "--past") {
-            printAst = true;
-        } else if (flag == "--emit-ir") {
-            printIR = true; 
+        if (arg == "--print-tokens") {
+            config.printTokens = true;
+        } else if (arg == "--print-ast") {
+            config.printAST = true;
+        } else if (arg == "--emit-llvm") {
+            config.printIR = true;
+        } else if (arg == "--optimize") {
+            config.optimize = true;
+        } else if (arg == "--printMIR") {
+            config.printMIR = true;
+        } else if (arg == "--printASM") {
+            config.printASM = true;
+        } else if (arg == "-o") {
+            if (++i >= argc) {
+                std::cerr << "error: -o requires an argument\n";
+                return 1;
+            }
+
+            destname = argv[i];
         } else {
-            std::cout << "Unknown Flag: " << argv[i] << "\n";
+            std::cerr << "error: unknown argument: " << arg << '\n';
+            return 1;
         }
     }
 
@@ -43,7 +65,7 @@ int main(int argc, char **argv) {
     scanner.scanFile();
     scanner.scanProg();
 
-    if (printTokens) {
+    if (config.printTokens) {
         scanner.printTokens();
     }
 
@@ -52,10 +74,10 @@ int main(int argc, char **argv) {
     Parser parser(tokenlist);
     auto prog = parser.ParseProgram();
     prog->setFileName(filename);
-        
+
     int noErr = prog->semAnalyse();
 
-    if (printAst) {
+    if (config.printAST) {
         prog->printAST();
         std::cout << "\n";
     }
@@ -68,12 +90,17 @@ int main(int argc, char **argv) {
     }
 
     prog->codegen();
-
-    if (printIR) prog->printIR();
+    if (config.printIR) prog->printIR();
 
     RISCV::LowerPass lp(prog->getModule());
     lp.lower();
-    lp.print(std::cout);
+    
+    if (config.printMIR) lp.print(std::cout);
+
+    std::ofstream outfile("out/prog.s");
+    RISCV::Emitter emitter(lp.getModule(), outfile);
+    
+    if (config.printASM) emitter.emit();
 
     return 0;
 }

@@ -14,6 +14,10 @@ mFunc *mModule::appendFunc(std::unique_ptr<mFunc> func) {
     return functions.back().get();
 }
 
+std::vector<std::unique_ptr<mFunc>> &mModule::getFuncs() {
+    return functions;
+}
+
 void mModule::print(std::ostream &os) {
     os << std::format(";Module: {}\n\n", name);
 

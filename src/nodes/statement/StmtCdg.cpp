@@ -122,7 +122,6 @@ void ReturnStmt::codegen(CodegenVis &cdgvis) {
 
 void DeclStmt::codegen(CodegenVis &cdgvis) {
     IRBuilder *Bldr = (cdgvis.builder).get();
-    Func *func = Bldr->getInsertBlock()->getParent();
 
     AllocaInst *alloca = Bldr->createEntryAlloca(type, name);
 

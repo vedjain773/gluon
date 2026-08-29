@@ -13,6 +13,10 @@ void mBlock::appendInst(std::unique_ptr<mInst> inst) {
     instructions.push_back(std::move(inst));
 }
 
+std::vector<std::unique_ptr<mInst>> &mBlock::getInsts() {
+    return instructions;
+}
+
 std::vector<mBlock*> &mBlock::getPreds() { return preds; }
 
 std::vector<mBlock*> &mBlock::getSuccs() { return succs; }

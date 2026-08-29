@@ -18,6 +18,7 @@ class LowerPass {
 
   public:
     LowerPass (Module *module);
+    mModule *getModule();
 
     void lower();
         

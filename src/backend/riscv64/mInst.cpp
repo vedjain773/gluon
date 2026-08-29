@@ -6,6 +6,7 @@ using namespace RISCV;
 std::string RISCV::codeToStr(const Code &code) {
     switch (code) {
         case Code::LI: return "LI";
+        case Code::RET: return "RET";
         default: return "";
     }
 }

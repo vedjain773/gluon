@@ -26,6 +26,8 @@ class mFunc {
     mBlock* appendBlock(std::unique_ptr<mBlock> bb);
     mBlock* getEntryBlock();
 
+    std::vector<std::unique_ptr<mBlock>> &getBlocks();
+
     void print(std::ostream& os);
 };
 

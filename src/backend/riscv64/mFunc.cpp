@@ -15,6 +15,10 @@ mBlock *mFunc::appendBlock(std::unique_ptr<mBlock> bb) {
     return blocks.back().get();
 }
 
+std::vector<std::unique_ptr<mBlock>> &mFunc::getBlocks() {
+    return blocks;
+}
+
 mBlock *mFunc::getEntryBlock() { return blocks[0].get(); }
 
 void mFunc::print(std::ostream &os) {

@@ -15,7 +15,8 @@ enum class OpKind {
 };
 
 enum class Code {
-    LI 
+    LI,
+    RET
 };
 
 class mOperand {

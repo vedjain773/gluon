@@ -5,6 +5,8 @@ using namespace RISCV;
 LowerPass::LowerPass(Module *module)
     :module(module), mmod(mModule::Create(*module)) {}
 
+mModule *LowerPass::getModule() { return mmod; }
+
 void LowerPass::lower() {
     for (auto &func: module->getFuncs()) lowerFunc(func.get());
 }
@@ -46,8 +48,11 @@ void LowerPass::handleRet(Value *value) {
         uint64_t value = cint->getValue();
         
         std::vector<mOperand*> opers = {PhyReg::Create(0), Immediate::Create(value)};
-        auto inst = std::make_unique<mInst>(Code::LI, currBlock, opers);
-        currBlock->appendInst(std::move(inst));
+        auto liInst = std::make_unique<mInst>(Code::LI, currBlock, opers);
+
+        auto retInst = std::make_unique<mInst>(Code::RET, currBlock);
+        currBlock->appendInst(std::move(liInst));
+        currBlock->appendInst(std::move(retInst));
     } 
 }
 

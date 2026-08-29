@@ -16,6 +16,7 @@ class mModule {
     static mModule *Create(Module &mod);
     
     mFunc *appendFunc(std::unique_ptr<mFunc> func);
+    std::vector<std::unique_ptr<mFunc>> &getFuncs();
 
     void print(std::ostream &os);
 };

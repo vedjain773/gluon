@@ -17,7 +17,7 @@ class mInst {
 
   public:
     mInst(Code opcode, mBlock* parent,
-          std::vector<mOperand*> operands);
+          std::vector<mOperand*> operands = {});
 
     Code getOpCode();
     mBlock* getParent();
