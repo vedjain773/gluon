@@ -46,25 +46,8 @@ bool isPostFixOp(TokenType tokenType) {
     switch (tokenType) {
         case TokenType::LEFT_ROUND:
         case TokenType::LEFT_SQUARE:
-        case TokenType::DOT:
-        case TokenType::ARROW:
             return true;
             break;
-
-        default:
-            return false;
-    }
-}
-
-bool isAssignOp(TokenType tokenType) {
-    switch (tokenType) {
-        case TokenType::EQUALS:
-        case TokenType::PLUS_EQUALS:
-        case TokenType::MINUS_EQUALS:
-        case TokenType::ASTERISK_EQUALS:
-        case TokenType::SLASH_EQUALS:
-        case TokenType::MODULUS_EQUALS:
-            return true;
 
         default:
             return false;
@@ -160,7 +143,6 @@ void Parser::advToSyncPoint() {
             case TokenType::RIGHT_CURLY:
             case TokenType::INT:
             case TokenType::CHAR:
-            case TokenType::STRUCT:
             case TokenType::IF:
             case TokenType::WHILE:
             case TokenType::END_OF_FILE:

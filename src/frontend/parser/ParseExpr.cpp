@@ -221,7 +221,7 @@ std::unique_ptr<Expression> Parser::ParseBinExpr(BinOpPrec level) {
 std::unique_ptr<Expression> Parser::ParseAssignExpr() {
     auto lhs = ParseBinExpr(LOR);
 
-    if (isAssignOp(peekCurr().tokentype)) {
+    if (peekCurr().tokentype == TokenType::EQUALS) {
         int tline = peekCurr().line;
         int tcol = peekCurr().column;
 

@@ -15,16 +15,10 @@ enum class TokenType {
     IF,
     ELSE,
     WHILE,
-    FOR,
     RETURN,
-    STRUCT,
     BREAK,
     CONTINUE,
     SIZEOF,
-
-    // access
-    DOT,
-    ARROW,
 
     // unary
     BANG,
@@ -32,15 +26,10 @@ enum class TokenType {
 
     // operators
     PLUS,
-    PLUS_EQUALS,
     MINUS,
-    MINUS_EQUALS,
     ASTERISK,
-    ASTERISK_EQUALS,
     SLASH,
-    SLASH_EQUALS,
     MODULUS,
-    MODULUS_EQUALS,
     EQUALS,
     LESS_THAN,
     GREATER_THAN,

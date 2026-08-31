@@ -1,29 +1,25 @@
 #include "frontend/scanner/Token.hpp"
 #include <iostream>
+#include <array>
 
 std::unordered_map<std::string, TokenType> keywords = {
     {"int", TokenType::INT},           {"uint8_t", TokenType::UINT8},
     {"uint16_t", TokenType::UINT16},   {"char", TokenType::CHAR},
     {"void", TokenType::VOID},         {"if", TokenType::IF},
     {"else", TokenType::ELSE},         {"while", TokenType::WHILE},
-    {"for", TokenType::FOR},           {"return", TokenType::RETURN},
-    {"struct", TokenType::STRUCT},     {"break", TokenType::BREAK},
+    {"return", TokenType::RETURN},     {"break", TokenType::BREAK},
     {"continue", TokenType::CONTINUE}, {"sizeof", TokenType::SIZEOF}};
 
-std::string TokenTypeNames[]{
+constexpr std::array<std::string, 41> TokenTypeNames {
     // keywords
-    "INT", "UINT8", "UINT16", "CHAR", "VOID", "IF", "ELSE", "WHILE", "FOR",
-    "RETURN", "STRUCT", "BREAK", "CONTINUE", "SIZEOF",
-
-    // access
-    "DOT", "ARROW",
+    "INT", "UINT8", "UINT16", "CHAR", "VOID", "IF", "ELSE", "WHILE",
+    "RETURN", "BREAK", "CONTINUE", "SIZEOF",
 
     // unary
     "BANG", "AMPERSAND",
 
     // operators
-    "PLUS", "PLUS_EQUALS", "MINUS", "MINUS_EQUALS", "ASTERISK",
-    "ASTERISK_EQUALS", "SLASH", "SLASH_EQUALS", "MODULUS", "MODULUS_EQUALS",
+    "PLUS", "MINUS", "ASTERISK", "SLASH", "MODULUS",
     "EQUALS", "LESS_THAN", "GREATER_THAN",
 
     "EQUALS_EQUALS", "BANG_EQUALS", "LESS_EQUALS", "GREATER_EQUALS",
@@ -37,13 +33,13 @@ std::string TokenTypeNames[]{
     // literals
     "IDENTIFIER", "INTEGER", "CHARACTER", "STRING",
 
-    "END_OF_FILE"};
+    "END_OF_FILE",
+};
 
 bool isTypeStarter(TokenType tokentype) {
     switch (tokentype) {
         case TokenType::INT:
         case TokenType::CHAR:
-        case TokenType::STRUCT:
         case TokenType::UINT8:
         case TokenType::UINT16:
         case TokenType::VOID:

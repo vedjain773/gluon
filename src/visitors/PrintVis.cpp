@@ -215,5 +215,5 @@ void PrintVisitor::visitProgram(Program &program) {
 }
 
 std::string PrintVisitor::getIndent() {
-    return std::string(" ", depth * 2);
+    return std::string(depth * 2, ' ');
 }

@@ -51,11 +51,6 @@ void Scanner::scanToken() {
             addToken(TokenType::RIGHT_SQUARE);
         } break;
 
-        case '.': {
-            getNextChar();
-            addToken(TokenType::DOT);
-        } break;
-
         case ',': {
             getNextChar();
             addToken(TokenType::COMMA);
@@ -68,45 +63,22 @@ void Scanner::scanToken() {
 
         case '+': {
             getNextChar();
-            if (peekCurr() == '=') {
-                getNextChar();
-                addToken(TokenType::PLUS_EQUALS);
-            } else {
-                addToken(TokenType::PLUS);
-            }
+            addToken(TokenType::PLUS);
         } break;
 
         case '-': {
             getNextChar();
-            if (peekCurr() == '>') {
-                getNextChar();
-                addToken(TokenType::ARROW);
-            } else if (peekCurr() == '=') {
-                getNextChar();
-                addToken(TokenType::MINUS_EQUALS);
-            } else {
-                addToken(TokenType::MINUS);
-            }
+            addToken(TokenType::MINUS);
         } break;
 
         case '*': {
             getNextChar();
-            if (peekCurr() == '=') {
-                getNextChar();
-                addToken(TokenType::ASTERISK_EQUALS);
-            } else {
-                addToken(TokenType::ASTERISK);
-            }
+            addToken(TokenType::ASTERISK);
         } break;
 
         case '%': {
             getNextChar();
-            if (peekCurr() == '=') {
-                getNextChar();
-                addToken(TokenType::MODULUS_EQUALS);
-            } else {
-                addToken(TokenType::MODULUS);
-            }
+            addToken(TokenType::MODULUS);
         } break;
 
         case '=': {
@@ -174,9 +146,6 @@ void Scanner::scanToken() {
             getNextChar();
             if (peekCurr() == '/') {
                 lookAhead('\n');
-            } else if (peekCurr() == '=') {
-                getNextChar();
-                addToken(TokenType::SLASH_EQUALS);
             } else if (peekCurr() == '*') {
                 bool asterisk = lookAhead('*');
 
