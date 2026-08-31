@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
             config.printTokens = true;
         } else if (arg == "--print-ast") {
             config.printAST = true;
-        } else if (arg == "--emit-llvm") {
+        } else if (arg == "--emit-ir") {
             config.printIR = true;
         } else if (arg == "--optimize") {
             config.optimize = true;

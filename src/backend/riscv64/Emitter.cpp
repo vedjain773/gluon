@@ -54,7 +54,7 @@ void Emitter::emitOper(mOperand *oper) {
 
         case OpKind::PhysicalReg: {
             PhyReg *phy = dynamic_cast<PhyReg*>(oper);
-            os << std::format("a{}", phy->getPhyRegNo());
+            os << regToStr(phy->getReg());
         } break;
 
         default: return;

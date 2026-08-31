@@ -19,6 +19,16 @@ enum class Code {
     RET
 };
 
+enum class Reg: unsigned {
+    ZERO, RA, SP, GP, TP,
+    T0, T1, T2, SO, S1,
+    A0, A1, A2, A3, A4, A5, A6, A7,
+    S2, S3, S4, S5, S6, S7, S8, S9, S11,
+    T3, T4, T5, T6
+};
+
+std::string regToStr(Reg reg);
+
 class mOperand {
   private:
     OpKind kind;
@@ -57,12 +67,12 @@ class VirtReg: public mOperand {
 
 class PhyReg: public mOperand {
   private:
-    unsigned no;
-    PhyReg(unsigned no);
+    Reg reg; 
+    PhyReg(Reg reg);
   
   public:
-    static PhyReg *Create(unsigned no);
-    unsigned getPhyRegNo();
+    static PhyReg *Create(Reg reg);
+    Reg getReg();
 
     void print(std::ostream &os);
 };

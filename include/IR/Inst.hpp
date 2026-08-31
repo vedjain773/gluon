@@ -6,7 +6,7 @@
 class BasicBlock;
 class Func;
 
-enum class OpCode {
+enum class OpCode: unsigned {
     //Unary
     NOT, NEG,
 

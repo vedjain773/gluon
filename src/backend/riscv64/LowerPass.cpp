@@ -47,7 +47,7 @@ void LowerPass::handleRet(Value *value) {
         ConstantInt *cint = dynamic_cast<ConstantInt*>(value);
         uint64_t value = cint->getValue();
         
-        std::vector<mOperand*> opers = {PhyReg::Create(0), Immediate::Create(value)};
+        std::vector<mOperand*> opers = {PhyReg::Create(Reg::A0), Immediate::Create(value)};
         auto liInst = std::make_unique<mInst>(Code::LI, currBlock, opers);
 
         auto retInst = std::make_unique<mInst>(Code::RET, currBlock);

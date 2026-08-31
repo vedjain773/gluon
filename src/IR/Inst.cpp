@@ -2,37 +2,21 @@
 #include "IR/BasicBlock.hpp"
 #include "IR/Func.hpp"
 #include <format>
+#include <array>
 
 //---
 
+constexpr std::array<std::string, 24> opcodeNames {
+    "not", "neg", "add", "sub", "mul", "div", "rem",
+    "gt", "gte", "lt", "lte", "eq", "neq",
+    "land", "lor",
+    "gep", "zext",
+    "alloca", "load", "store",
+    "ret", "br", "br", "call"
+};
+
 std::string opcodeToStr(OpCode opcode) {
-    switch (opcode) {
-        case OpCode::NOT: return "not";
-        case OpCode::NEG: return "neg";
-        case OpCode::ADD: return "add";
-        case OpCode::SUB: return "sub";
-        case OpCode::MUL: return "mul";
-        case OpCode::DIV: return "div";
-        case OpCode::REM: return "rem";
-        case OpCode::GT: return "gt";
-        case OpCode::GTE: return "gte";
-        case OpCode::LT: return "lt";
-        case OpCode::LTE: return "lte";
-        case OpCode::EQ: return "eq";
-        case OpCode::NEQ: return "neq";
-        case OpCode::LAND: return "land";
-        case OpCode::LOR: return "lor";
-        case OpCode::GEP: return "gep";
-        case OpCode::ZEXT: return "zext";
-        case OpCode::ALLOCA: return "alloca";
-        case OpCode::LOAD: return "load";
-        case OpCode::STORE: return "store";
-        case OpCode::RET: return "ret";
-        case OpCode::BR: return "br";
-        case OpCode::BRC: return "br";
-        case OpCode::CALL: return "call";
-        default: return "";
-    }  
+    return opcodeNames[static_cast<unsigned>(opcode)]; 
 }
 
 //---
