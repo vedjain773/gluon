@@ -4,6 +4,8 @@
 #include "backend/riscv64/mModule.hpp"
 #include "IR/Module.hpp"
 
+#include <unordered_map>
+
 namespace RISCV {
 
 class LowerPass {
@@ -14,7 +16,15 @@ class LowerPass {
     mFunc *currFunc;
     mBlock *currBlock;
 
-    void handleRet(Value *value);
+    std::unordered_map<Value*, VirtReg*> virtualRegTable;
+    unsigned currentRegNo;
+
+    mOperand *insertReg(Value *value);
+    mOperand *handleValue(Value *value); 
+    mOperand *materialize(mOperand *oper);
+
+    void handleRet(Inst *inst);
+    void handleBinOp(Inst *inst, const OpCode &code);
 
   public:
     LowerPass (Module *module);
@@ -28,6 +38,8 @@ class LowerPass {
 
     void print(std::ostream &os);
 };
+
+Code getCode(const OpCode &opc);
 
 }
 

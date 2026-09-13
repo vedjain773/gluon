@@ -27,6 +27,7 @@ void mBlock::print(std::ostream &os) {
     os << std::format("{}:\n", name);
 
     for (auto &inst: instructions) {
+        os << " ";
         inst->print(os);
         os << '\n';
     }

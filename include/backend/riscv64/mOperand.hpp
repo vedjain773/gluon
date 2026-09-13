@@ -14,9 +14,12 @@ enum class OpKind {
     Immediate
 };
 
-enum class Code {
+enum class Code: unsigned {
+    ADD, SUB, MUL, DIV, REM,
+    MV,
     LI,
-    RET
+    RET,
+    NOP
 };
 
 enum class Reg: unsigned {

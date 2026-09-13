@@ -38,13 +38,13 @@ int main(int argc, char **argv) {
             config.printTokens = true;
         } else if (arg == "--print-ast") {
             config.printAST = true;
-        } else if (arg == "--emit-ir") {
+        } else if (arg == "--print-ir") {
             config.printIR = true;
         } else if (arg == "--optimize") {
             config.optimize = true;
-        } else if (arg == "--printMIR") {
+        } else if (arg == "--print-mir") {
             config.printMIR = true;
-        } else if (arg == "--printASM") {
+        } else if (arg == "--print-asm") {
             config.printASM = true;
         } else if (arg == "-o") {
             if (++i >= argc) {

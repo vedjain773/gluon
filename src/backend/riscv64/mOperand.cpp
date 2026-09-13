@@ -59,7 +59,7 @@ PhyReg *PhyReg::Create(Reg reg) {
 Reg PhyReg::getReg() { return reg; }
 
 void PhyReg::print(std::ostream &os) {
-    os << regToStr(reg);
+    os << std::format("{} ", regToStr(reg));
 }
 
 //---

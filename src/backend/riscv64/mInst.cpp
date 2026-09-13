@@ -3,12 +3,16 @@
 
 using namespace RISCV;
 
+constexpr std::array<std::string, 9> codeNames = {
+    "ADD", "SUB", "MUL", "DIV", "REM",
+    "MV",
+    "LI",
+    "RET",
+    "NOP"
+};
+
 std::string RISCV::codeToStr(const Code &code) {
-    switch (code) {
-        case Code::LI: return "LI";
-        case Code::RET: return "RET";
-        default: return "";
-    }
+    return codeNames[static_cast<unsigned>(code)]; 
 }
 
 mInst::mInst(Code opcode, mBlock *parent, std::vector<mOperand*> operands)
