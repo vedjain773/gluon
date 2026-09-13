@@ -25,6 +25,7 @@ class LowerPass {
 
     void handleRet(Inst *inst);
     void handleBinOp(Inst *inst, const OpCode &code);
+    void handleCmpOp(Inst *inst, const OpCode &code);
 
   public:
     LowerPass (Module *module);

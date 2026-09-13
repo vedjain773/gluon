@@ -37,7 +37,15 @@ void LowerPass::lowerInst(Inst *inst) {
         case OpCode::DIV:
         case OpCode::REM: handleBinOp(inst, inst->getOpCode());
         break;
-
+        
+        case OpCode::LT:
+        case OpCode::GT: 
+        case OpCode::LTE:
+        case OpCode::GTE:
+        case OpCode::EQ:
+        case OpCode::NEQ: handleCmpOp(inst, inst->getOpCode());
+        break;
+                            
         case OpCode::RET: handleRet(inst);
         break;
 
@@ -118,11 +126,58 @@ void LowerPass::handleBinOp(Inst *inst, const OpCode &code) {
 
     mOperand *result = insertReg(inst);
 
-    std::vector<mOperand*> opersAdd = {result, lhsVirtReg, rhsVirtReg};
-    auto addInst = std::make_unique<mInst>(getCode(code), currBlock, opersAdd);
+    std::vector<mOperand*> opers = {result, lhsVirtReg, rhsVirtReg};
+    auto binInst = std::make_unique<mInst>(getCode(code), currBlock, opers);
 
-    currBlock->appendInst(std::move(addInst));
+    currBlock->appendInst(std::move(binInst));
 }
+
+//---
+
+void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
+    Value *lhs = inst->getOperand(0);
+    Value *rhs = inst->getOperand(1);
+
+    if (lhs == nullptr || rhs == nullptr) return;
+
+    mOperand *lhsVirtReg = materialize(handleValue(lhs));
+    mOperand *rhsVirtReg = materialize(handleValue(rhs));
+
+    mOperand *result = insertReg(inst);
+
+    std::vector<mOperand*> opers = {result, lhsVirtReg, rhsVirtReg};
+    std::vector<mOperand*> checkOpers = {result, result};
+
+    switch (code) {
+        case OpCode::LT: 
+        case OpCode::GT: {
+            auto inst = std::make_unique<mInst>(getCode(code), currBlock, opers);
+            currBlock->appendInst(std::move(inst));
+        } break;
+
+        case OpCode::LTE: 
+        case OpCode::GTE: {
+            Code opc = code == OpCode::LTE ? Code::SGT : Code::SLT;
+            auto inst = std::make_unique<mInst>(opc, currBlock, opers);
+            auto check = std::make_unique<mInst>(Code::SEQZ, currBlock, checkOpers);
+
+            currBlock->appendInst(std::move(inst));
+            currBlock->appendInst(std::move(check));
+        } break;
+
+        case OpCode::EQ:
+        case OpCode::NEQ: {
+            Code opc = code == OpCode::EQ ? Code::SEQZ : Code::SNEZ;
+            auto inst = std::make_unique<mInst>(Code::SUB, currBlock, opers);
+            auto check = std::make_unique<mInst>(opc, currBlock, checkOpers);
+
+            currBlock->appendInst(std::move(inst));
+            currBlock->appendInst(std::move(check));
+        } break;
+
+        default: {}
+    }
+} 
 
 //---
 
@@ -133,7 +188,8 @@ Code RISCV::getCode(const OpCode &opc) {
         case OpCode::MUL: return Code::MUL;
         case OpCode::DIV: return Code::DIV;
         case OpCode::REM: return Code::REM;
-
+        case OpCode::LT: return Code::SLT;
+        case OpCode::GT: return Code::SGT;
         default: return Code::NOP;
     }
 }
