@@ -18,6 +18,7 @@ class mInst {
   public:
     mInst(Code opcode, mBlock* parent,
           std::vector<mOperand*> operands = {});
+    virtual ~mInst() = default;
 
     Code getOpCode();
     mBlock* getParent();
@@ -27,6 +28,15 @@ class mInst {
 
     void setOperand(unsigned i, mOperand *operand);
 
+    virtual void print(std::ostream &os);
+};
+
+class mBrInst: public mInst {
+  private:
+    mBlock* label;
+
+  public:
+    mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label);
     void print(std::ostream &os);
 };
 

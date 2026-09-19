@@ -18,14 +18,17 @@ void LowerPass::lowerFunc(Func *func) {
     
     mmod->appendFunc(std::move(mfunc));
 
+    for (auto &bb: func->getBlocks()) {
+        auto mblock = std::make_unique<mBlock>(*bb, currFunc);
+        blockMap.insert({bb.get(), mblock.get()});
+        currFunc->appendBlock(std::move(mblock));
+    }
+
     for (auto &bb: func->getBlocks()) lowerBlock(bb.get());
 }
 
 void LowerPass::lowerBlock(BasicBlock *bb) {
-    auto mblock = std::make_unique<mBlock>(*bb, currFunc);
-    currBlock = mblock.get();
-
-    currFunc->appendBlock(std::move(mblock));
+    currBlock = blockMap[bb];
 
     for (auto &inst: bb->getInsts()) lowerInst(inst.get());
 }
@@ -54,6 +57,12 @@ void LowerPass::lowerInst(Inst *inst) {
         break;
 
         case OpCode::STORE: handleStore(inst);
+        break;
+
+        case OpCode::BR: handleUBr(inst);
+        break;
+
+        case OpCode::BRC: handleCBr(inst);
         break;
 
         case OpCode::RET: handleRet(inst);
@@ -108,23 +117,6 @@ mOperand *LowerPass::handleValue(Value *value) {
 
         default: return nullptr;
     } 
-}
-
-//---
-
-void LowerPass::handleRet(Inst *inst) {
-    Value *value = inst->getOperand(0);
-    if (value == nullptr) return;
-
-    mOperand *operand = handleValue(value); 
-    std::vector<mOperand*> opers = {PhyReg::Create(Reg::A0), operand};
-
-    Code opc = operand->getOpkind() == OpKind::Immediate ? Code::LI : Code::MV;
-    auto liInst = std::make_unique<mInst>(opc, currBlock, opers);
-    currBlock->appendInst(std::move(liInst));
-
-    auto retInst = std::make_unique<mInst>(Code::RET, currBlock);
-    currBlock->appendInst(std::move(retInst));
 }
 
 //---
@@ -233,6 +225,50 @@ void LowerPass::handleStore(Inst *inst) {
     currBlock->appendInst(std::move(linst));
 }
 
+//---
+
+void LowerPass::handleRet(Inst *inst) {
+    Value *value = inst->getOperand(0);
+    if (value == nullptr) return;
+
+    mOperand *operand = handleValue(value); 
+    std::vector<mOperand*> opers = {PhyReg::Create(Reg::A0), operand};
+
+    Code opc = operand->getOpkind() == OpKind::Immediate ? Code::LI : Code::MV;
+    auto liInst = std::make_unique<mInst>(opc, currBlock, opers);
+    currBlock->appendInst(std::move(liInst));
+
+    auto retInst = std::make_unique<mInst>(Code::RET, currBlock);
+    currBlock->appendInst(std::move(retInst));
+}
+
+//---
+
+void LowerPass::handleUBr(Inst *inst) {
+    UnCondBrInst *brinst = dynamic_cast<UnCondBrInst*>(inst);
+    
+    mBlock *jBlock = blockMap[brinst->getThenBlock()];
+
+    auto jinst = std::make_unique<mBrInst>(Code::J, currBlock, nullptr, jBlock);
+    currBlock->appendInst(std::move(jinst));
+}
+
+void LowerPass::handleCBr(Inst *inst) {
+    CondBrInst *brinst = dynamic_cast<CondBrInst*>(inst);
+
+    Value *condVal = brinst->getCond();
+    
+    mBlock *thenBlock = blockMap[brinst->getThenBlock()];
+    mBlock *elseBlock = blockMap[brinst->getElseBlock()];
+
+    mOperand *cond = materialize(handleValue(condVal));
+
+    auto binst = std::make_unique<mBrInst>(Code::BNEZ, currBlock, cond, thenBlock);
+    currBlock->appendInst(std::move(binst));
+
+    auto jinst = std::make_unique<mBrInst>(Code::J, currBlock, nullptr, elseBlock);
+    currBlock->appendInst(std::move(jinst));
+}
 
 //---
 

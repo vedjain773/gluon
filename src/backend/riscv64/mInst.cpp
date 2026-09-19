@@ -1,15 +1,16 @@
 #include "backend/riscv64/mInst.hpp"
+#include "backend/riscv64/mBlock.hpp"
 #include <format>
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 16> codeNames = {
+constexpr std::array<std::string, 19> codeNames = {
     "ADD", "SUB", "MUL", "DIV", "REM",
     "SGT", "SLT", "SEQZ", "SNEZ",
     "MV",
     "LI", "LD",
     "SW", "SD",
-    "RET",
+    "BEQZ", "BNEZ", "RET", "J",
     "NOP"
 };
 
@@ -36,4 +37,19 @@ void mInst::print(std::ostream &os) {
     os << std::format("{} ", codeToStr(opcode));
 
     for (auto &oper: operands) oper->print(os);
+}
+
+//---
+
+mBrInst::mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label)
+    :mInst(opcode, parent, {cond}), label(label) {}
+
+void mBrInst::print(std::ostream &os) {
+    os << std::format("{} ", codeToStr(getOpCode()));
+   
+    if (getNumOperands() != 0) {
+        if (getOperand(0) != nullptr) getOperand(0)->print(os);
+    }
+
+    os << std::format(".L{}", label->getName());
 }

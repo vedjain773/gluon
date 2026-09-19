@@ -16,6 +16,8 @@ class LowerPass {
     mFunc *currFunc;
     mBlock *currBlock;
 
+    std::unordered_map<BasicBlock*, mBlock*> blockMap;
+
     std::unordered_map<Value*, VirtReg*> virtualRegTable;
     std::unordered_map<Value*, StackSlot*> stackSlotTable;
     unsigned currentRegNo;
@@ -24,13 +26,16 @@ class LowerPass {
     mOperand *handleValue(Value *value); 
     mOperand *materialize(mOperand *oper);
 
-    void handleRet(Inst *inst);
     void handleBinOp(Inst *inst, const OpCode &code);
     void handleCmpOp(Inst *inst, const OpCode &code);
 
     void handleAlloca(Inst *inst);
     void handleLoad(Inst *inst);
     void handleStore(Inst *inst);
+
+    void handleUBr(Inst *inst);
+    void handleCBr(Inst *inst);
+    void handleRet(Inst *inst);
 
   public:
     LowerPass (Module *module);

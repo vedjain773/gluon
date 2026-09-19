@@ -24,11 +24,13 @@ std::vector<mBlock*> &mBlock::getSuccs() { return succs; }
 void mBlock::addPred(mBlock *bb) { preds.push_back(bb); }
 
 void mBlock::print(std::ostream &os) {
-    os << std::format("{}:\n", name);
+    os << std::format(".L{}:\n", name);
 
     for (auto &inst: instructions) {
         os << " ";
         inst->print(os);
-        os << '\n';
+        os << "\n";
     }
+
+    os << "\n";
 }

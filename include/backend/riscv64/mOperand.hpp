@@ -21,7 +21,7 @@ enum class Code: unsigned {
     MV,
     LI, LD,
     SW, SD,
-    RET,
+    BEQZ, BNEZ, RET, J,
     NOP
 };
 
