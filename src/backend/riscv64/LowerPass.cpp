@@ -1,4 +1,5 @@
 #include "backend/riscv64/LowerPass.hpp"
+#include <iostream>
 
 using namespace RISCV;
 
@@ -45,7 +46,16 @@ void LowerPass::lowerInst(Inst *inst) {
         case OpCode::EQ:
         case OpCode::NEQ: handleCmpOp(inst, inst->getOpCode());
         break;
-                            
+
+        case OpCode::ALLOCA: handleAlloca(inst); 
+        break;
+
+        case OpCode::LOAD: handleLoad(inst);
+        break;
+
+        case OpCode::STORE: handleStore(inst);
+        break;
+
         case OpCode::RET: handleRet(inst);
         break;
 
@@ -56,7 +66,9 @@ void LowerPass::lowerInst(Inst *inst) {
 //---
 
 mOperand *LowerPass::materialize(mOperand *oper) {
-    if (oper->getOpkind() == OpKind::Immediate) {
+    OpKind opkind = oper->getOpkind();
+
+    if (opkind == OpKind::Immediate || opkind == OpKind::StackSlot) {
         mOperand *virtReg = VirtReg::Create(currentRegNo++);
         std::vector<mOperand*> opersL = {virtReg, oper};
         auto liInst = std::make_unique<mInst>(Code::LI, currBlock, opersL);
@@ -73,8 +85,10 @@ mOperand *LowerPass::materialize(mOperand *oper) {
 mOperand *LowerPass::insertReg(Value *value) {
     if (virtualRegTable.count(value)) return virtualRegTable[value];
 
-    virtualRegTable.insert({value, VirtReg::Create(currentRegNo++)});
-    return virtualRegTable[value];
+    VirtReg *virtReg = VirtReg::Create(currentRegNo++);
+    virtualRegTable.insert({value, virtReg});
+   
+    return virtReg;
 }
 
 //---
@@ -178,6 +192,47 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
         default: {}
     }
 } 
+
+//---
+
+void LowerPass::handleAlloca(Inst *inst) {
+    TypeKind *type = inst->getType();
+    unsigned id = currFunc->getNextSlotId();
+
+    StackSlot *slot = StackSlot::Create(type->size, id);
+    stackSlotTable.insert({inst, slot});
+    currFunc->insertSlot(slot); 
+}
+
+//---
+
+void LowerPass::handleLoad(Inst *inst) {
+    LoadInst *loadInst = dynamic_cast<LoadInst*>(inst);
+    insertReg(inst);
+
+    mOperand *loadTo = virtualRegTable[inst];
+    mOperand *loadFrom = stackSlotTable[loadInst->getValue()];
+
+    std::vector<mOperand*> opers = {loadTo, loadFrom};
+    auto linst = std::make_unique<mInst>(Code::LD, currBlock, opers);
+   
+    currBlock->appendInst(std::move(linst));
+}
+
+//---
+
+void LowerPass::handleStore(Inst *inst) {
+    StoreInst *storeInst = dynamic_cast<StoreInst*>(inst);
+
+    mOperand *storeFrom = materialize(handleValue(storeInst->getValue()));
+    mOperand *storeTo = stackSlotTable[storeInst->getDest()];
+
+    std::vector<mOperand*> opers = {storeFrom, storeTo};
+    auto linst = std::make_unique<mInst>(Code::SW, currBlock, opers);
+    
+    currBlock->appendInst(std::move(linst));
+}
+
 
 //---
 

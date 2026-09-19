@@ -10,6 +10,7 @@ namespace RISCV {
 
 enum class OpKind {
     VirtualReg,
+    StackSlot,
     PhysicalReg,
     Immediate
 };
@@ -18,7 +19,8 @@ enum class Code: unsigned {
     ADD, SUB, MUL, DIV, REM,
     SGT, SLT, SEQZ, SNEZ,
     MV,
-    LI,
+    LI, LD,
+    SW, SD,
     RET,
     NOP
 };
@@ -45,18 +47,6 @@ class mOperand {
     virtual ~mOperand() = default;
 };
 
-class Immediate: public mOperand {
-  private:
-    int64_t value;
-    Immediate(int64_t value);
-
-  public:
-    static Immediate *Create(int64_t value);
-    int64_t getImmValue();
-
-    void print(std::ostream &os);
-};
-
 class VirtReg: public mOperand {
   private:
     unsigned no;
@@ -69,6 +59,20 @@ class VirtReg: public mOperand {
     void print(std::ostream &os);
 };
 
+class StackSlot: public mOperand {
+  private:
+    unsigned size;
+    unsigned id;
+    StackSlot(unsigned size, unsigned id);
+
+  public:
+    static StackSlot *Create(unsigned size, unsigned id);
+    unsigned getSlotId();
+    unsigned getSlotSize();
+
+    void print(std::ostream &os);
+};
+
 class PhyReg: public mOperand {
   private:
     Reg reg; 
@@ -77,6 +81,18 @@ class PhyReg: public mOperand {
   public:
     static PhyReg *Create(Reg reg);
     Reg getReg();
+
+    void print(std::ostream &os);
+};
+
+class Immediate: public mOperand {
+  private:
+    int64_t value;
+    Immediate(int64_t value);
+
+  public:
+    static Immediate *Create(int64_t value);
+    int64_t getImmValue();
 
     void print(std::ostream &os);
 };

@@ -17,6 +17,7 @@ class LowerPass {
     mBlock *currBlock;
 
     std::unordered_map<Value*, VirtReg*> virtualRegTable;
+    std::unordered_map<Value*, StackSlot*> stackSlotTable;
     unsigned currentRegNo;
 
     mOperand *insertReg(Value *value);
@@ -26,6 +27,10 @@ class LowerPass {
     void handleRet(Inst *inst);
     void handleBinOp(Inst *inst, const OpCode &code);
     void handleCmpOp(Inst *inst, const OpCode &code);
+
+    void handleAlloca(Inst *inst);
+    void handleLoad(Inst *inst);
+    void handleStore(Inst *inst);
 
   public:
     LowerPass (Module *module);

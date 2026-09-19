@@ -9,6 +9,16 @@ std::string mFunc::getName() { return name; }
 
 mModule *mFunc::getParent() { return parent; }
 
+unsigned mFunc::getNextSlotId() {
+    unsigned id = stackSlots.empty() ? 0 : stackSlots.back()->getSlotId() + 1;
+
+    return id;
+}
+
+void mFunc::insertSlot(StackSlot *slot) {
+    stackSlots.push_back(slot); 
+}
+
 mBlock *mFunc::appendBlock(std::unique_ptr<mBlock> bb) {
     blocks.push_back(std::move(bb));
 

@@ -15,13 +15,18 @@ class mFunc {
   private:
     std::string name;
     mModule *parent;
+
     std::vector<std::unique_ptr<mBlock>> blocks;
+    std::vector<StackSlot*> stackSlots;
 
   public:
     mFunc(Func &func, mModule *parent);
 
     std::string getName();
     mModule *getParent();
+
+    unsigned getNextSlotId();
+    void insertSlot(StackSlot *slot);
 
     mBlock* appendBlock(std::unique_ptr<mBlock> bb);
     mBlock* getEntryBlock();
