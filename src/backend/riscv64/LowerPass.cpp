@@ -35,13 +35,17 @@ void LowerPass::lowerBlock(BasicBlock *bb) {
 
 void LowerPass::lowerInst(Inst *inst) {
     switch (inst->getOpCode()) {
+        case OpCode::NOT:
+        case OpCode::NEG: handleUnaryOp(inst, inst->getOpCode());
+        break;
+
         case OpCode::ADD:
         case OpCode::SUB:
         case OpCode::MUL:
         case OpCode::DIV:
         case OpCode::REM: handleBinOp(inst, inst->getOpCode());
-        break;
-        
+        break; 
+
         case OpCode::LT:
         case OpCode::GT: 
         case OpCode::LTE:
@@ -117,6 +121,21 @@ mOperand *LowerPass::handleValue(Value *value) {
 
         default: return nullptr;
     } 
+}
+
+//---
+
+void LowerPass::handleUnaryOp(Inst *inst, const OpCode &code) {
+    UnaryInst *uinst = dynamic_cast<UnaryInst*>(inst);
+
+    mOperand *oper = materialize(handleValue(uinst->getUnaryOper()));
+    mOperand *result = insertReg(inst);
+
+    std::vector<mOperand*> opers = {result, oper};
+    Code opc = code == OpCode::NEG ? Code::NEG : Code::SEQZ;
+
+    auto ninst = std::make_unique<mInst>(opc, currBlock, opers);
+    currBlock->appendInst(std::move(ninst));
 }
 
 //---

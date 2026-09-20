@@ -4,7 +4,8 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 19> codeNames = {
+constexpr std::array<std::string, 20> codeNames = {
+    "NEG",
     "ADD", "SUB", "MUL", "DIV", "REM",
     "SGT", "SLT", "SEQZ", "SNEZ",
     "MV",
