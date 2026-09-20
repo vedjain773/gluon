@@ -20,8 +20,8 @@ enum class Code: unsigned {
     ADD, SUB, MUL, DIV, REM,
     SGT, SLT, SEQZ, SNEZ,
     MV,
-    LI, LD,
-    SW, SD,
+    LI, LB, LH, LA, LW, LD,
+    SB, SH, SW, SD,
     BEQZ, BNEZ, RET, J,
     NOP
 };

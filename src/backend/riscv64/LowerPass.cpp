@@ -173,41 +173,43 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     std::vector<mOperand*> opers = {result, lhsVirtReg, rhsVirtReg};
     std::vector<mOperand*> checkOpers = {result, result};
 
+    Code codes[2];
+
     switch (code) {
         case OpCode::LT: 
-        case OpCode::GT: {
-            auto inst = std::make_unique<mInst>(getCode(code), currBlock, opers);
-            currBlock->appendInst(std::move(inst));
-        } break;
+        case OpCode::GT: codes[0] = getCode(code);
+        break;
 
         case OpCode::LTE: 
         case OpCode::GTE: {
-            Code opc = code == OpCode::LTE ? Code::SGT : Code::SLT;
-            auto inst = std::make_unique<mInst>(opc, currBlock, opers);
-            auto check = std::make_unique<mInst>(Code::SEQZ, currBlock, checkOpers);
-
-            currBlock->appendInst(std::move(inst));
-            currBlock->appendInst(std::move(check));
+            codes[0] = code == OpCode::LTE ? Code::SGT : Code::SLT;
+            codes[1] = Code::SEQZ;
         } break;
 
         case OpCode::EQ:
         case OpCode::NEQ: {
-            Code opc = code == OpCode::EQ ? Code::SEQZ : Code::SNEZ;
-            auto inst = std::make_unique<mInst>(Code::SUB, currBlock, opers);
-            auto check = std::make_unique<mInst>(opc, currBlock, checkOpers);
-
-            currBlock->appendInst(std::move(inst));
-            currBlock->appendInst(std::move(check));
+            codes[0] = Code::SUB;
+            codes[1] = code == OpCode::EQ ? Code::SEQZ : Code::SNEZ;
         } break;
 
         default: {}
     }
+
+    auto finst = std::make_unique<mInst>(codes[0], currBlock, opers);
+    currBlock->appendInst(std::move(finst));
+
+    if (code == OpCode::LT || code == OpCode::GT) return;
+
+    auto check = std::make_unique<mInst>(codes[1], currBlock, checkOpers);
+    currBlock->appendInst(std::move(check));
 } 
 
 //---
 
 void LowerPass::handleAlloca(Inst *inst) {
-    TypeKind *type = inst->getType();
+    AllocaInst *ainst = dynamic_cast<AllocaInst*>(inst);
+
+    TypeKind *type = ainst->getValType();
     unsigned id = currFunc->getNextSlotId();
 
     StackSlot *slot = StackSlot::Create(type->size, id);
@@ -224,8 +226,9 @@ void LowerPass::handleLoad(Inst *inst) {
     mOperand *loadTo = virtualRegTable[inst];
     mOperand *loadFrom = stackSlotTable[loadInst->getValue()];
 
+    Code opc = getLoadCode(loadFrom); 
     std::vector<mOperand*> opers = {loadTo, loadFrom};
-    auto linst = std::make_unique<mInst>(Code::LD, currBlock, opers);
+    auto linst = std::make_unique<mInst>(opc, currBlock, opers);
    
     currBlock->appendInst(std::move(linst));
 }
@@ -238,8 +241,9 @@ void LowerPass::handleStore(Inst *inst) {
     mOperand *storeFrom = materialize(handleValue(storeInst->getValue()));
     mOperand *storeTo = stackSlotTable[storeInst->getDest()];
 
+    Code opc = getStoreCode(storeTo);
     std::vector<mOperand*> opers = {storeFrom, storeTo};
-    auto linst = std::make_unique<mInst>(Code::SW, currBlock, opers);
+    auto linst = std::make_unique<mInst>(opc, currBlock, opers);
     
     currBlock->appendInst(std::move(linst));
 }
@@ -301,6 +305,34 @@ Code RISCV::getCode(const OpCode &opc) {
         case OpCode::LT: return Code::SLT;
         case OpCode::GT: return Code::SGT;
         default: return Code::NOP;
+    }
+}
+
+Code RISCV::getStoreCode(mOperand *oper) {
+    StackSlot *ss = dynamic_cast<StackSlot*>(oper);
+    if (ss == nullptr) return Code::SD;
+
+    unsigned size = ss->getSlotSize();
+
+    switch (size) {
+        case 1: return Code::SB;
+        case 2: return Code::SH;
+        case 4: return Code::SW;
+        default: return Code::SD;
+    }
+}
+
+Code RISCV::getLoadCode(mOperand *oper) {
+    StackSlot *ss = dynamic_cast<StackSlot*>(oper);
+    if (ss == nullptr) return Code::LD;
+
+    unsigned size = ss->getSlotSize();
+
+    switch (size) {
+        case 1: return Code::LB;
+        case 2: return Code::LH;
+        case 4: return Code::LW;
+        default: return Code::LD;
     }
 }
 
