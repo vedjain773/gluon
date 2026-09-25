@@ -123,6 +123,12 @@ mOperand *LowerPass::handleValue(Value *value) {
     } 
 }
 
+mOperand *LowerPass::handleAddr(Value *value) {
+    if (stackSlotTable.count(value) != 0) return stackSlotTable[value];
+    else if (virtualRegTable.count(value) != 0) return virtualRegTable[value];
+    else return nullptr;
+}
+
 //---
 
 void LowerPass::handleUnaryOp(Inst *inst, const OpCode &code) {
@@ -225,7 +231,7 @@ void LowerPass::handleLoad(Inst *inst) {
     insertReg(inst);
 
     mOperand *loadTo = virtualRegTable[inst];
-    mOperand *loadFrom = stackSlotTable[loadInst->getValue()];
+    mOperand *loadFrom = handleAddr(loadInst->getValue());
 
     Code opc = getLoadCode(loadFrom); 
     std::vector<mOperand*> opers = {loadTo, loadFrom};
@@ -238,12 +244,27 @@ void LowerPass::handleLoad(Inst *inst) {
 
 void LowerPass::handleStore(Inst *inst) {
     StoreInst *storeInst = dynamic_cast<StoreInst*>(inst);
+    Value *value = storeInst->getValue();
+    Value *dest = storeInst->getDest();
 
-    mOperand *storeFrom = materialize(handleValue(storeInst->getValue()));
-    mOperand *storeTo = stackSlotTable[storeInst->getDest()];
+    mOperand *storeVal = nullptr;
+
+    if (isPointerType(value->getType())) {
+        mOperand *addr = handleAddr(value);
+        storeVal = VirtReg::Create(currentRegNo++);
+
+        std::vector<mOperand*> opers = {storeVal, addr};
+
+        auto lainst = std::make_unique<mInst>(Code::P_LA, currBlock, opers);
+        currBlock->appendInst(std::move(lainst));
+    } else {
+        storeVal = materialize(handleValue(value));
+    }
+    
+    mOperand *storeTo = handleAddr(dest);
 
     Code opc = getStoreCode(storeTo);
-    std::vector<mOperand*> opers = {storeFrom, storeTo};
+    std::vector<mOperand*> opers = {storeVal, storeTo};
     auto linst = std::make_unique<mInst>(opc, currBlock, opers);
     
     currBlock->appendInst(std::move(linst));

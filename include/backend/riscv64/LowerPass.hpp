@@ -23,7 +23,8 @@ class LowerPass {
     unsigned currentRegNo;
 
     mOperand *insertReg(Value *value);
-    mOperand *handleValue(Value *value); 
+    mOperand *handleValue(Value *value);
+    mOperand *handleAddr(Value *value);
     mOperand *materialize(mOperand *oper);
 
     void handleUnaryOp(Inst *inst, const OpCode &code);

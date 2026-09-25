@@ -23,7 +23,8 @@ enum class Code: unsigned {
     LI, LB, LH, LA, LW, LD,
     SB, SH, SW, SD,
     BEQZ, BNEZ, RET, J,
-    NOP
+    NOP,
+    P_LA
 };
 
 enum class Reg: unsigned {

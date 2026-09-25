@@ -4,7 +4,7 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 26> codeNames = {
+constexpr std::array<std::string, 27> codeNames = {
     "NEG",
     "ADD", "SUB", "MUL", "DIV", "REM",
     "SGT", "SLT", "SEQZ", "SNEZ",
@@ -12,7 +12,8 @@ constexpr std::array<std::string, 26> codeNames = {
     "LI", "LB", "LH", "LA", "LW", "LD",
     "SB", "SH", "SW", "SD",
     "BEQZ", "BNEZ", "RET", "J",
-    "NOP"
+    "NOP",
+    "P_LA"
 };
 
 std::string RISCV::codeToStr(const Code &code) {
