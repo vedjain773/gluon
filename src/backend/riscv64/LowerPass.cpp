@@ -168,10 +168,11 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     mOperand *lhsVirtReg = materialize(handleValue(lhs));
     mOperand *rhsVirtReg = materialize(handleValue(rhs));
 
+    mOperand *subResult = VirtReg::Create(currentRegNo++);
     mOperand *result = insertReg(inst);
 
-    std::vector<mOperand*> opers = {result, lhsVirtReg, rhsVirtReg};
-    std::vector<mOperand*> checkOpers = {result, result};
+    std::vector<mOperand*> opers = {subResult, lhsVirtReg, rhsVirtReg};
+    std::vector<mOperand*> checkOpers = {result, subResult};
 
     Code codes[2];
 
