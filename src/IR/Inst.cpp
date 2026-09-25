@@ -108,13 +108,17 @@ void CompInst::print(std::ostream &os) {
 //---
 
 GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name)
-    :Inst(OpCode::GEP, type, {ptr}, name), idxList(idxList) {}
+    :Inst(OpCode::GEP, getPtrTo(type->to->name), {ptr}, name), idxList(idxList), srcType(type) {}
 
 GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
         const std::string &name) 
 {
     return new GEPInst(type, ptr, idxList, name);
 }
+
+TypeKind *GEPInst::getSrcType() {
+    return srcType;
+} 
 
 void GEPInst::print(std::ostream &os) {
     os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::GEP), getType()->name);

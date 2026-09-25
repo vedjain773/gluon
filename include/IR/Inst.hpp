@@ -98,12 +98,14 @@ class CompInst: public Inst {
 class GEPInst: public Inst {
   private:
     std::vector<Value*> idxList;
+    TypeKind *srcType;
     GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name);
 
   public:
     static GEPInst *Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
             const std::string &name);
 
+    TypeKind *getSrcType();
     void print(std::ostream &os);
 };
 
