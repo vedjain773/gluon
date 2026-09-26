@@ -82,7 +82,9 @@ mOperand *LowerPass::materialize(mOperand *oper) {
     OpKind opkind = oper->getOpkind();
 
     if (opkind == OpKind::Immediate || opkind == OpKind::StackSlot) {
-        mOperand *virtReg = VirtReg::Create(currentRegNo++);
+        TypeKind *type = oper->getType();
+
+        mOperand *virtReg = VirtReg::Create(currentRegNo++, type);
         std::vector<mOperand*> opersL = {virtReg, oper};
         auto liInst = std::make_unique<mInst>(Code::LI, currBlock, opersL);
 
@@ -98,7 +100,7 @@ mOperand *LowerPass::materialize(mOperand *oper) {
 mOperand *LowerPass::insertReg(Value *value) {
     if (virtualRegTable.count(value)) return virtualRegTable[value];
 
-    VirtReg *virtReg = VirtReg::Create(currentRegNo++);
+    VirtReg *virtReg = VirtReg::Create(currentRegNo++, value->getType());
     virtualRegTable.insert({value, virtReg});
    
     return virtReg;
@@ -110,9 +112,9 @@ mOperand *LowerPass::handleValue(Value *value) {
     switch (value->getValueKind()) {
         case ValueKind::Constant: {
             ConstantInt *cint = dynamic_cast<ConstantInt*>(value);
-            uint64_t value = cint->getValue();
+            uint64_t cvalue = cint->getValue();
 
-            return Immediate::Create(value);
+            return Immediate::Create(cvalue, value->getType());
         } break;
 
         case ValueKind::Instruction: {
@@ -174,7 +176,7 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     mOperand *lhsVirtReg = materialize(handleValue(lhs));
     mOperand *rhsVirtReg = materialize(handleValue(rhs));
 
-    mOperand *subResult = VirtReg::Create(currentRegNo++);
+    mOperand *subResult = VirtReg::Create(currentRegNo++, getType("int"));
     mOperand *result = insertReg(inst);
 
     std::vector<mOperand*> opers = {subResult, lhsVirtReg, rhsVirtReg};
@@ -219,7 +221,7 @@ void LowerPass::handleAlloca(Inst *inst) {
     TypeKind *type = ainst->getValType();
     unsigned id = currFunc->getNextSlotId();
 
-    StackSlot *slot = StackSlot::Create(type->size, id);
+    StackSlot *slot = StackSlot::Create(id, type);
     stackSlotTable.insert({inst, slot});
     currFunc->insertSlot(slot); 
 }
@@ -251,7 +253,7 @@ void LowerPass::handleStore(Inst *inst) {
 
     if (isPointerType(value->getType())) {
         mOperand *addr = handleAddr(value);
-        storeVal = VirtReg::Create(currentRegNo++);
+        storeVal = VirtReg::Create(currentRegNo++, value->getType());
 
         std::vector<mOperand*> opers = {storeVal, addr};
 
@@ -263,7 +265,7 @@ void LowerPass::handleStore(Inst *inst) {
     
     mOperand *storeTo = handleAddr(dest);
 
-    Code opc = getStoreCode(storeTo);
+    Code opc = getStoreCode(storeVal);
     std::vector<mOperand*> opers = {storeVal, storeTo};
     auto linst = std::make_unique<mInst>(opc, currBlock, opers);
     
@@ -331,10 +333,8 @@ Code RISCV::getCode(const OpCode &opc) {
 }
 
 Code RISCV::getStoreCode(mOperand *oper) {
-    StackSlot *ss = dynamic_cast<StackSlot*>(oper);
-    if (ss == nullptr) return Code::SD;
-
-    unsigned size = ss->getSlotSize();
+    TypeKind *type = oper->getType(); 
+    std::size_t size = type == nullptr ? 8 : type->size; 
 
     switch (size) {
         case 1: return Code::SB;
@@ -345,10 +345,8 @@ Code RISCV::getStoreCode(mOperand *oper) {
 }
 
 Code RISCV::getLoadCode(mOperand *oper) {
-    StackSlot *ss = dynamic_cast<StackSlot*>(oper);
-    if (ss == nullptr) return Code::LD;
-
-    unsigned size = ss->getSlotSize();
+    TypeKind *type = oper->getType();
+    std::size_t size = type == nullptr ? 8 : type->size; 
 
     switch (size) {
         case 1: return Code::LB;

@@ -34,13 +34,6 @@ struct TypeKind {
     bool isSigned = true;
 
     TypeKind *to = nullptr;
-
-    struct Field {
-        TypeKind *fType;
-        std::string name;
-    };
-
-    std::vector<Field> fields;
 };
 
 struct Symbol {

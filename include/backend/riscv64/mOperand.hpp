@@ -1,6 +1,7 @@
 #ifndef MOPERAND_H
 #define MOPERAND_H
 
+#include "utils/Scope.hpp"
 #include <cstdint>
 #include <format>
 
@@ -40,10 +41,14 @@ std::string regToStr(Reg reg);
 class mOperand {
   private:
     OpKind kind;
-    
+
+  protected:
+    TypeKind *opType;
+    mOperand(const OpKind &opkind, TypeKind *opType = nullptr);
+
   public:
-    mOperand(const OpKind &opkind);
     OpKind getOpkind() { return kind; }
+    TypeKind *getType() { return opType; }
    
     virtual void print(std::ostream &os) = 0; 
     virtual ~mOperand() = default;
@@ -52,10 +57,10 @@ class mOperand {
 class VirtReg: public mOperand {
   private:
     unsigned no;
-    VirtReg(unsigned no);
+    VirtReg(unsigned no, TypeKind *regType);
   
   public:
-    static VirtReg *Create(unsigned no);
+    static VirtReg *Create(unsigned no, TypeKind *regType);
     unsigned getVirtRegNo();
 
     void print(std::ostream &os);
@@ -63,12 +68,11 @@ class VirtReg: public mOperand {
 
 class StackSlot: public mOperand {
   private:
-    unsigned size;
     unsigned id;
-    StackSlot(unsigned size, unsigned id);
+    StackSlot(unsigned id, TypeKind *stype);
 
   public:
-    static StackSlot *Create(unsigned size, unsigned id);
+    static StackSlot *Create(unsigned id, TypeKind *stype);
     unsigned getSlotId();
     unsigned getSlotSize();
 
@@ -90,10 +94,10 @@ class PhyReg: public mOperand {
 class Immediate: public mOperand {
   private:
     int64_t value;
-    Immediate(int64_t value);
+    Immediate(int64_t value, TypeKind *itype);
 
   public:
-    static Immediate *Create(int64_t value);
+    static Immediate *Create(int64_t value, TypeKind *itype);
     int64_t getImmValue();
 
     void print(std::ostream &os);
