@@ -108,7 +108,16 @@ void CompInst::print(std::ostream &os) {
 //---
 
 GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name)
-    :Inst(OpCode::GEP, getPtrTo(type->to->name), {ptr}, name), idxList(idxList), srcType(type) {}
+    :Inst(OpCode::GEP, getResultType(idxList.size(), ptr->getType()), {ptr}, name),
+    idxList(idxList), srcType(type) {}
+
+TypeKind *GEPInst::getResultType(unsigned size, TypeKind *ptr) {
+    unsigned num = size;
+    TypeKind *currType = ptr;
+
+    while (num-- > 0) currType = currType->to;
+    return getPtrTo(currType->name);
+}
 
 GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
         const std::string &name) 
@@ -120,8 +129,20 @@ TypeKind *GEPInst::getSrcType() {
     return srcType;
 } 
 
+Value *GEPInst::getPointerOp() {
+    return getOperand(0);
+}
+
+unsigned GEPInst::getNumIndices() {
+    return idxList.size();
+}
+
+std::vector<Value*> &GEPInst::getIndices() {
+    return idxList;
+}
+
 void GEPInst::print(std::ostream &os) {
-    os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::GEP), getType()->name);
+    os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::GEP), srcType->name);
     getOperand(0)->printAsOperand(os);
     os << ", ";
 

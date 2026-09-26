@@ -57,6 +57,9 @@ void LowerPass::lowerInst(Inst *inst) {
         case OpCode::ALLOCA: handleAlloca(inst); 
         break;
 
+        case OpCode::GEP: handleGEP(inst);
+        break;
+
         case OpCode::LOAD: handleLoad(inst);
         break;
 
@@ -83,12 +86,9 @@ mOperand *LowerPass::materialize(mOperand *oper) {
 
     if (opkind == OpKind::Immediate || opkind == OpKind::StackSlot) {
         TypeKind *type = oper->getType();
+        mOperand *virtReg = newVirtReg(type);
+        emit(Code::LI, {virtReg, oper});
 
-        mOperand *virtReg = VirtReg::Create(currentRegNo++, type);
-        std::vector<mOperand*> opersL = {virtReg, oper};
-        auto liInst = std::make_unique<mInst>(Code::LI, currBlock, opersL);
-
-        currBlock->appendInst(std::move(liInst));
         return virtReg;
     }
 
@@ -100,7 +100,7 @@ mOperand *LowerPass::materialize(mOperand *oper) {
 mOperand *LowerPass::insertReg(Value *value) {
     if (virtualRegTable.count(value)) return virtualRegTable[value];
 
-    VirtReg *virtReg = VirtReg::Create(currentRegNo++, value->getType());
+    VirtReg *virtReg = newVirtReg(value->getType());
     virtualRegTable.insert({value, virtReg});
    
     return virtReg;
@@ -139,11 +139,8 @@ void LowerPass::handleUnaryOp(Inst *inst, const OpCode &code) {
     mOperand *oper = materialize(handleValue(uinst->getUnaryOper()));
     mOperand *result = insertReg(inst);
 
-    std::vector<mOperand*> opers = {result, oper};
     Code opc = code == OpCode::NEG ? Code::NEG : Code::SEQZ;
-
-    auto ninst = std::make_unique<mInst>(opc, currBlock, opers);
-    currBlock->appendInst(std::move(ninst));
+    emit(opc, {result, oper});
 }
 
 //---
@@ -158,11 +155,7 @@ void LowerPass::handleBinOp(Inst *inst, const OpCode &code) {
     mOperand *rhsVirtReg = materialize(handleValue(rhs));
 
     mOperand *result = insertReg(inst);
-
-    std::vector<mOperand*> opers = {result, lhsVirtReg, rhsVirtReg};
-    auto binInst = std::make_unique<mInst>(getCode(code), currBlock, opers);
-
-    currBlock->appendInst(std::move(binInst));
+    emit(getCode(code), {result, lhsVirtReg, rhsVirtReg});
 }
 
 //---
@@ -176,11 +169,8 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     mOperand *lhsVirtReg = materialize(handleValue(lhs));
     mOperand *rhsVirtReg = materialize(handleValue(rhs));
 
-    mOperand *subResult = VirtReg::Create(currentRegNo++, getType("int"));
+    mOperand *subResult = newVirtReg(getType("int"));
     mOperand *result = insertReg(inst);
-
-    std::vector<mOperand*> opers = {subResult, lhsVirtReg, rhsVirtReg};
-    std::vector<mOperand*> checkOpers = {result, subResult};
 
     Code codes[2];
 
@@ -204,13 +194,11 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
         default: {}
     }
 
-    auto finst = std::make_unique<mInst>(codes[0], currBlock, opers);
-    currBlock->appendInst(std::move(finst));
+    emit(codes[0], {subResult, lhsVirtReg, rhsVirtReg});
 
     if (code == OpCode::LT || code == OpCode::GT) return;
 
-    auto check = std::make_unique<mInst>(codes[1], currBlock, checkOpers);
-    currBlock->appendInst(std::move(check));
+    emit(codes[1], {result, subResult});
 } 
 
 //---
@@ -228,6 +216,38 @@ void LowerPass::handleAlloca(Inst *inst) {
 
 //---
 
+void LowerPass::handleGEP(Inst *inst) {
+    GEPInst *gepInst = dynamic_cast<GEPInst*>(inst);
+    TypeKind *intType = getType("int");
+
+    Value *ptr = gepInst->getPointerOp();
+    std::vector<Value*> indices = gepInst->getIndices(); 
+
+    //Get base address
+    mOperand *val = genAddr(ptr);
+
+    //Calculate offset
+    unsigned numIndices = gepInst->getNumIndices();
+    TypeKind *currType = gepInst->getSrcType();
+    mOperand *offset = PhyReg::Create(Reg::ZERO);
+
+    for (int i = 0; i < numIndices; i++) {
+        mOperand *index = materialize(handleValue(indices[i]));
+        mOperand *sizeImm = Immediate::Create(currType->size, intType); 
+        
+        mOperand *mulres = genOpInst(Code::MUL, {index, sizeImm}, intType);
+        mOperand *addres = genOpInst(Code::ADD, {offset, mulres}, intType);
+
+        offset = addres;
+        currType = currType->to;
+    }  
+
+    mOperand *newAddr = insertReg(inst);
+    emit(Code::ADD, {newAddr, val, offset});
+}
+
+//---
+
 void LowerPass::handleLoad(Inst *inst) {
     LoadInst *loadInst = dynamic_cast<LoadInst*>(inst);
     insertReg(inst);
@@ -235,12 +255,9 @@ void LowerPass::handleLoad(Inst *inst) {
     mOperand *loadTo = virtualRegTable[inst];
     mOperand *loadFrom = handleAddr(loadInst->getValue());
 
-    Code opc = getLoadCode(loadFrom); 
-    std::vector<mOperand*> opers = {loadTo, loadFrom};
-    auto linst = std::make_unique<mInst>(opc, currBlock, opers);
-   
-    currBlock->appendInst(std::move(linst));
-}
+    Code opc = getLoadCode(loadTo);
+    emit(opc, {loadTo, loadFrom});
+} 
 
 //---
 
@@ -251,25 +268,13 @@ void LowerPass::handleStore(Inst *inst) {
 
     mOperand *storeVal = nullptr;
 
-    if (isPointerType(value->getType())) {
-        mOperand *addr = handleAddr(value);
-        storeVal = VirtReg::Create(currentRegNo++, value->getType());
-
-        std::vector<mOperand*> opers = {storeVal, addr};
-
-        auto lainst = std::make_unique<mInst>(Code::P_LA, currBlock, opers);
-        currBlock->appendInst(std::move(lainst));
-    } else {
-        storeVal = materialize(handleValue(value));
-    }
+    if (isPointerType(value->getType())) storeVal = genAddr(value);
+    else storeVal = materialize(handleValue(value));
     
     mOperand *storeTo = handleAddr(dest);
 
     Code opc = getStoreCode(storeVal);
-    std::vector<mOperand*> opers = {storeVal, storeTo};
-    auto linst = std::make_unique<mInst>(opc, currBlock, opers);
-    
-    currBlock->appendInst(std::move(linst));
+    emit(opc, {storeVal, storeTo});
 }
 
 //---
@@ -279,14 +284,10 @@ void LowerPass::handleRet(Inst *inst) {
     if (value == nullptr) return;
 
     mOperand *operand = handleValue(value); 
-    std::vector<mOperand*> opers = {PhyReg::Create(Reg::A0), operand};
-
     Code opc = operand->getOpkind() == OpKind::Immediate ? Code::LI : Code::MV;
-    auto liInst = std::make_unique<mInst>(opc, currBlock, opers);
-    currBlock->appendInst(std::move(liInst));
 
-    auto retInst = std::make_unique<mInst>(Code::RET, currBlock);
-    currBlock->appendInst(std::move(retInst));
+    emit(opc, {PhyReg::Create(Reg::A0), operand});
+    emit(Code::RET, {});
 }
 
 //---
@@ -296,8 +297,7 @@ void LowerPass::handleUBr(Inst *inst) {
     
     mBlock *jBlock = blockMap[brinst->getThenBlock()];
 
-    auto jinst = std::make_unique<mBrInst>(Code::J, currBlock, nullptr, jBlock);
-    currBlock->appendInst(std::move(jinst));
+    emitBr(Code::J, nullptr, jBlock);
 }
 
 void LowerPass::handleCBr(Inst *inst) {
@@ -310,11 +310,47 @@ void LowerPass::handleCBr(Inst *inst) {
 
     mOperand *cond = materialize(handleValue(condVal));
 
-    auto binst = std::make_unique<mBrInst>(Code::BNEZ, currBlock, cond, thenBlock);
-    currBlock->appendInst(std::move(binst));
+    emitBr(Code::BNEZ, cond, thenBlock);
+    emitBr(Code::J, nullptr, elseBlock);
+}
 
-    auto jinst = std::make_unique<mBrInst>(Code::J, currBlock, nullptr, elseBlock);
-    currBlock->appendInst(std::move(jinst));
+//---
+
+mOperand *LowerPass::newVirtReg(TypeKind *type) {
+    return VirtReg::Create(currentRegNo++, type);
+}
+
+void LowerPass::emit(const Code &code, std::initializer_list<mOperand*> opers) {
+    std::vector<mOperand*> opersVec(opers);
+
+    auto inst = std::make_unique<mInst>(code, currBlock, opersVec);
+    currBlock->appendInst(std::move(inst));
+}
+
+void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
+    auto inst = std::make_unique<mBrInst>(code, currBlock, oper, block);
+    currBlock->appendInst(std::move(inst)); 
+}
+
+mOperand *LowerPass::genOpInst(const Code &code, std::initializer_list<mOperand*> opers,
+         TypeKind *type)
+{
+    mOperand *result = newVirtReg(type);
+    std::vector<mOperand*> newOpers = {result};
+    
+    newOpers.insert(newOpers.end(), opers);
+    auto inst = std::make_unique<mInst>(code, currBlock, newOpers);
+    currBlock->appendInst(std::move(inst));
+
+    return result;
+}
+
+mOperand *LowerPass::genAddr(Value *value) {
+    mOperand *addr = handleAddr(value);
+    mOperand *addrHolder = newVirtReg(value->getType());
+
+    emit(Code::P_LA, {addrHolder, addr});
+    return addrHolder;
 }
 
 //---

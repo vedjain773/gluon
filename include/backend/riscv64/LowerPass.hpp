@@ -5,6 +5,7 @@
 #include "IR/Module.hpp"
 
 #include <unordered_map>
+#include <initializer_list>
 
 namespace RISCV {
 
@@ -35,10 +36,19 @@ class LowerPass {
     void handleAlloca(Inst *inst);
     void handleLoad(Inst *inst);
     void handleStore(Inst *inst);
+    void handleGEP(Inst *inst);
 
     void handleUBr(Inst *inst);
     void handleCBr(Inst *inst);
     void handleRet(Inst *inst);
+
+    mOperand *newVirtReg(TypeKind *type);
+
+    void emit(const Code &code, std::initializer_list<mOperand*> opers);
+    void emitBr(const Code &code, mOperand *oper, mBlock *block);
+
+    mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);
+    mOperand *genAddr(Value *value);
 
   public:
     LowerPass (Module *module);

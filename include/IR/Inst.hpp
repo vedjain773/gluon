@@ -99,6 +99,8 @@ class GEPInst: public Inst {
   private:
     std::vector<Value*> idxList;
     TypeKind *srcType;
+
+    TypeKind *getResultType(unsigned size, TypeKind *ptr);
     GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name);
 
   public:
@@ -106,6 +108,11 @@ class GEPInst: public Inst {
             const std::string &name);
 
     TypeKind *getSrcType();
+    Value *getPointerOp();
+
+    unsigned getNumIndices();
+    std::vector<Value*> &getIndices();
+
     void print(std::ostream &os);
 };
 
