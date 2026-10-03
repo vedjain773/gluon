@@ -17,6 +17,8 @@ struct CIConfig {
     bool printTokens = false;
     bool printIR = false;
     bool printMIR = false;
+    bool printCMIR = false;
+    bool printITG = false;
     bool printASM = false;
 };
 
@@ -45,6 +47,10 @@ int main(int argc, char **argv) {
             config.optimize = true;
         } else if (arg == "--print-mir") {
             config.printMIR = true;
+        } else if (arg == "--print-cmir") {
+            config.printCMIR = true;
+        } else if (arg == "--print-itg") {
+            config.printITG = true;
         } else if (arg == "--print-asm") {
             config.printASM = true;
         } else if (arg == "-o") {
@@ -100,9 +106,10 @@ int main(int argc, char **argv) {
     
     RISCV::RegAlloc allocator(lp.getModule());
     allocator.allocate();
-    allocator.printITFGraph(std::cout);
+    
+    if (config.printITG) allocator.printITFGraph(std::cout);
 
-    if (config.printMIR) lp.print(std::cout);
+    if (config.printCMIR) lp.print(std::cout);
     
     std::ofstream outfile("out/prog.s");
     RISCV::Emitter emitter(lp.getModule(), outfile);

@@ -28,8 +28,12 @@ VirtReg *VirtReg::Create(unsigned no, TypeKind *regType) {
 
 unsigned VirtReg::getVirtRegNo() { return no; }
 
+std::string VirtReg::getPrintStr() {
+    return std::format("v{}", no);
+}
+
 void VirtReg::print(std::ostream &os) {
-    os << std::format("v{} ", no);
+    os << std::format("{} ", getPrintStr());
 }
 
 //---

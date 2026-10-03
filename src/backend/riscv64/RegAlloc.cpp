@@ -5,6 +5,7 @@
 #include <stack>
 
 using namespace RISCV;
+using size_t = std::size_t;
 
 void RegAlloc::allocate() {
     for (auto &mfunc: module->getFuncs()) {
@@ -123,7 +124,7 @@ void RegAlloc::performLiveAnalysis() {
 
             if (size == 0) continue;
 
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 mOperand *reg = instRaw->getOperand(i);
                 VirtReg *virtReg = dynamic_cast<VirtReg*>(reg);
 
@@ -167,9 +168,9 @@ void RegAlloc::performLiveAnalysis() {
 }
 
 void RegAlloc::colour() {
-    int k = availReg.size();
+    size_t k = availReg.size();
+    workingITG = interference;
     std::stack<VirtReg*> vregStack;
-    std::unordered_map<VirtReg*, std::set<VirtReg*>> itgCopy = interference;
 
     while (!interference.empty()) {
         VirtReg *node = nullptr;
@@ -201,7 +202,7 @@ void RegAlloc::colour() {
     
         if (regMap.contains(curr)) continue;
 
-        for (auto &neighbour: itgCopy[curr]) {
+        for (auto &neighbour: workingITG[curr]) {
             if (regMap.contains(neighbour))
                 adjRegs.insert(regMap[neighbour]);
         }
@@ -256,15 +257,20 @@ void RegAlloc::printLiveSets(std::ostream &os) {
 }
 
 void RegAlloc::printITFGraph(std::ostream &os) {
-    for (auto &[key, value]: interference) {
-        key->print(os);
-        os << " ";
+    tabulate::Table graph;
+    graph.add_row({"Node", "Edges"});
 
+    unsigned i = 1;
+    for (auto &[key, value]: workingITG) {
+        std::string edges;
+        
         for (auto &vreg: value) {
-            vreg->print(os);
-            os << " ";
+            edges += std::format("{} ", vreg->getPrintStr());
         }
-
-        os << "\n";
+            
+        graph.add_row({key->getPrintStr(), edges});
+        i++;
     }  
+
+    os << graph << "\n";
 }

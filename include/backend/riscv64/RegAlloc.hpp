@@ -31,6 +31,7 @@ class RegAlloc {
     std::set<Reg> getRegDiff(const std::set<Reg> &s1, const std::set<Reg> &s2);
 
     std::unordered_map<VirtReg*, std::set<VirtReg*>> interference;
+    std::unordered_map<VirtReg*, std::set<VirtReg*>> workingITG;
 
     std::vector<Reg> availReg;
     std::map<VirtReg*, Reg> regMap;

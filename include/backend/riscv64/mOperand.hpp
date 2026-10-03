@@ -50,7 +50,7 @@ class mOperand {
     OpKind getOpkind() { return kind; }
     TypeKind *getType() { return opType; }
    
-    virtual void print(std::ostream &os) = 0; 
+    virtual void print(std::ostream &os) = 0;
     virtual ~mOperand() = default;
 };
 
@@ -63,6 +63,7 @@ class VirtReg: public mOperand {
     static VirtReg *Create(unsigned no, TypeKind *regType);
     unsigned getVirtRegNo();
 
+    std::string getPrintStr();
     void print(std::ostream &os);
 };
 
