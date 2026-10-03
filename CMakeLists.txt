@@ -9,22 +9,16 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-file(GLOB SRC_FILES
-    src/*.cpp
-    src/frontend/scanner/*.cpp
-    src/frontend/parser/*.cpp
-    src/IR/*.cpp
-    src/backend/riscv64/*.cpp
-    src/nodes/*.cpp
-    src/nodes/expression/*.cpp
-    src/nodes/statement/*.cpp
-    src/nodes/function/*.cpp
-    src/visitors/*.cpp
-    src/passes/*.cpp
-    src/utils/*.cpp
-)
-
 add_executable(gluon ${SRC_FILES})
+
+target_sources(gluon PRIVATE src/main.cpp)
+
+add_subdirectory(src/frontend)
+add_subdirectory(src/IR)
+add_subdirectory(src/backend)
+add_subdirectory(src/nodes)
+add_subdirectory(src/utils)
+add_subdirectory(src/visitors)
 
 target_include_directories(gluon PRIVATE
     include
