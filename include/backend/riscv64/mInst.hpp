@@ -25,8 +25,10 @@ class mInst {
 
     unsigned getNumOperands();
     mOperand *getOperand(unsigned i);
-
     void setOperand(unsigned i, mOperand *operand);
+
+    bool isDef(unsigned i);
+    bool isUse(unsigned i);
 
     virtual void print(std::ostream &os);
 };

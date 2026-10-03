@@ -30,6 +30,8 @@ void LowerPass::lowerFunc(Func *func) {
 void LowerPass::lowerBlock(BasicBlock *bb) {
     currBlock = blockMap[bb];
 
+    for (auto &pred: bb->getPredecessors()) currBlock->addPred(blockMap[pred]); 
+
     for (auto &inst: bb->getInsts()) lowerInst(inst.get());
 }
 
@@ -167,10 +169,7 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     if (lhs == nullptr || rhs == nullptr) return;
 
     mOperand *lhsVirtReg = materialize(handleValue(lhs));
-    mOperand *rhsVirtReg = materialize(handleValue(rhs));
-
-    mOperand *subResult = newVirtReg(getType("int"));
-    mOperand *result = insertReg(inst);
+    mOperand *rhsVirtReg = materialize(handleValue(rhs)); 
 
     Code codes[2];
 
@@ -194,9 +193,13 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
         default: {}
     }
 
+    bool isLG = code == OpCode::LT || code == OpCode::GT;
+    mOperand *subResult = isLG ? insertReg(inst) : newVirtReg(lhs->getType());
+    mOperand *result = isLG ? nullptr : insertReg(inst);
+
     emit(codes[0], {subResult, lhsVirtReg, rhsVirtReg});
 
-    if (code == OpCode::LT || code == OpCode::GT) return;
+    if (isLG) return;
 
     emit(codes[1], {result, subResult});
 } 
@@ -316,7 +319,7 @@ void LowerPass::handleCBr(Inst *inst) {
 
 //---
 
-mOperand *LowerPass::newVirtReg(TypeKind *type) {
+VirtReg *LowerPass::newVirtReg(TypeKind *type) {
     return VirtReg::Create(currentRegNo++, type);
 }
 

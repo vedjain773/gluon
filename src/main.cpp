@@ -6,6 +6,7 @@
 
 #include "backend/riscv64/LowerPass.hpp"
 #include "backend/riscv64/Emitter.hpp"
+#include "backend/riscv64/RegAlloc.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -96,7 +97,13 @@ int main(int argc, char **argv) {
     lp.lower();
     
     if (config.printMIR) lp.print(std::cout);
+    
+    RISCV::RegAlloc allocator(lp.getModule());
+    allocator.allocate();
+    allocator.printITFGraph(std::cout);
 
+    if (config.printMIR) lp.print(std::cout);
+    
     std::ofstream outfile("out/prog.s");
     RISCV::Emitter emitter(lp.getModule(), outfile);
     

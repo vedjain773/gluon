@@ -33,7 +33,8 @@ class mBlock {
     std::vector<mBlock*>& getPreds();
     std::vector<mBlock*>& getSuccs();
 
-    void addPred(mBlock* bb);
+    void addPred(mBlock *bb);
+    void addSucc(mBlock *bb);
 
     void print(std::ostream& os);
 };

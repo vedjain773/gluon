@@ -35,6 +35,81 @@ void mInst::setOperand(unsigned i, mOperand *operand) {
     operands[i] = operand;
 }
 
+bool mInst::isDef(unsigned i) {
+    switch (opcode) {
+        case Code::ADD:
+        case Code::SUB:
+        case Code::MUL:
+        case Code::DIV:
+        case Code::REM:
+        case Code::SGT:
+        case Code::SLT:
+            return i == 0;
+
+        case Code::NEG:
+        case Code::SEQZ:
+        case Code::SNEZ:
+        case Code::MV:
+        case Code::LI:
+        case Code::LB:
+        case Code::LH:
+        case Code::LA:
+        case Code::LW:
+        case Code::LD:
+        case Code::P_LA:
+            return i == 0;
+
+        default:
+            return false;
+    }
+}
+
+bool mInst::isUse(unsigned i) {
+    switch (opcode) {
+        case Code::ADD:
+        case Code::SUB:
+        case Code::MUL:
+        case Code::DIV:
+        case Code::REM:
+        case Code::SGT:
+        case Code::SLT:
+            return i == 1 || i == 2;
+
+        case Code::NEG:
+        case Code::SEQZ:
+        case Code::SNEZ:
+        case Code::MV:
+            return i == 1;
+
+        case Code::LI:
+            return i == 1;
+
+        case Code::LB:
+        case Code::LH:
+        case Code::LA:
+        case Code::LW:
+        case Code::LD:
+        case Code::P_LA:
+            return i == 1;
+
+        case Code::SB:
+        case Code::SH:
+        case Code::SW:
+        case Code::SD:
+            return i == 0 || i == 1;
+
+        case Code::BEQZ:
+        case Code::BNEZ:
+            return i == 0;
+
+        case Code::RET:
+            return i == 0;
+
+        default:
+            return false;
+    }
+}
+
 void mInst::print(std::ostream &os) {
     os << std::format("{} ", codeToStr(opcode));
 

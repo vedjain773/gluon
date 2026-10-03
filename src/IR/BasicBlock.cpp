@@ -87,7 +87,14 @@ std::vector<BasicBlock*> &BasicBlock::getPredecessors() { return predecessors; }
 
 std::vector<BasicBlock*> &BasicBlock::getSuccessors() { return successors; }
 
-void BasicBlock::addPredecessor(BasicBlock *bb) { predecessors.push_back(bb); }
+void BasicBlock::addPredecessor(BasicBlock *bb) {
+    predecessors.push_back(bb);
+    bb->addSuccessor(this);
+}
+
+void BasicBlock::addSuccessor(BasicBlock *bb) {
+    successors.push_back(bb);
+}
 
 void BasicBlock::print(std::ostream &os) {
     os << std::format("{}: ", name);

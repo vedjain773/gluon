@@ -21,7 +21,14 @@ std::vector<mBlock*> &mBlock::getPreds() { return preds; }
 
 std::vector<mBlock*> &mBlock::getSuccs() { return succs; }
 
-void mBlock::addPred(mBlock *bb) { preds.push_back(bb); }
+void mBlock::addPred(mBlock *bb) { 
+    preds.push_back(bb);
+    bb->addSucc(this);
+}
+
+void mBlock::addSucc(mBlock *bb) {
+    succs.push_back(bb);
+}
 
 void mBlock::print(std::ostream &os) {
     os << std::format(".L{}:\n", name);

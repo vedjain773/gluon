@@ -42,7 +42,7 @@ class LowerPass {
     void handleCBr(Inst *inst);
     void handleRet(Inst *inst);
 
-    mOperand *newVirtReg(TypeKind *type);
+    VirtReg *newVirtReg(TypeKind *type);
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
