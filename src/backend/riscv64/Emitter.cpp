@@ -3,8 +3,24 @@
 
 using namespace RISCV;
 
+constexpr std::array<std::string, 28> codeNames = {
+    "neg",
+    "addi", "add", "sub", "mul", "div", "rem",
+    "sgt", "slt", "seqz", "snez",
+    "mv",
+    "li", "lb", "lh", "la", "lw", "ld",
+    "sb", "sh", "sw", "sd",
+    "beqz", "bnez", "ret", "j",
+    "nop",
+    "p_la"
+};
+
 Emitter::Emitter(mModule *module, std::ostream &os)
     :module(module), os(os) {}
+
+std::string Emitter::getInstStr(const Code &opcode) {
+    return codeNames[static_cast<unsigned>(opcode)];
+} 
 
 void Emitter::emit() {
     os << ".text\n"; 
@@ -19,37 +35,48 @@ void Emitter::emitFunc(mFunc *func) {
 }
 
 void Emitter::emitBlock(mBlock *block) {
+    os << std::format(".L{}:\n", block->getName());
+
     for (auto &inst: block->getInsts()) {
         os << "  ";
         emitInst(inst.get());
-        os << '\n';
+        os << "\n";
     }
+
+    os << '\n';
 }
 
 void Emitter::emitInst(mInst *inst) {
-    switch (inst->getOpCode()) {
-        case Code::LI: emitLI(inst->getOperand(0), inst->getOperand(1));
-        break;
+    os << std::format("{} ", getInstStr(inst->getOpCode()));
+    Code opc = inst->getOpCode();
 
-        case Code::RET: os << std::format("{}\n", "ret"); 
-        break;
+    unsigned numOpers = inst->getNumOperands();
+    for (unsigned i = 0; i < numOpers; i++) {
+        emitOper(inst->getOperand(i));
 
-        default: return;
-    } 
-}
+        if (i != numOpers - 1) os << ", ";
+    }
 
-void Emitter::emitLI(mOperand *reg, mOperand *imm) {
-    os << std::format("li ");
-    emitOper(reg);
-    os << ", ";
-    emitOper(imm);
+    mBrInst *mbrinst = dynamic_cast<mBrInst*>(inst);
+    if (mbrinst != nullptr) {
+        if (opc != Code::J) os << ", ";
+
+        os << std::format(".L{}", mbrinst->getBlock()->getName());
+    }
 }
 
 void Emitter::emitOper(mOperand *oper) {
+    if (oper == nullptr) return;
+
     switch (oper->getOpkind()) {
         case OpKind::Immediate: {
             Immediate *imm = dynamic_cast<Immediate*>(oper);
             os << imm->getImmValue();
+        } break;
+
+        case OpKind::MemOperand: {
+            MemOperand *mem = dynamic_cast<MemOperand*>(oper);
+            os << std::format("{}({})", mem->getOffset(), regToStr(mem->getBase()));
         } break;
 
         case OpKind::PhysicalReg: {

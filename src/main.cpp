@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 
     lp.print(std::cout);
     
-    std::ofstream outfile("out/prog.s");
+    std::ofstream outfile("prog.s");
     RISCV::Emitter emitter(lp.getModule(), outfile);
     
     if (config.printASM) emitter.emit();

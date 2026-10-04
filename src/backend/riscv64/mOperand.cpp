@@ -49,6 +49,10 @@ Reg MemOperand::getBase() {
     return base;
 }
 
+int MemOperand::getOffset() {
+    return offset;
+}
+
 void MemOperand::setOffset(int offset) {
     this->offset = offset;
 }

@@ -39,6 +39,7 @@ class mBrInst: public mInst {
 
   public:
     mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label);
+    mBlock *getBlock();
     void print(std::ostream &os);
 };
 

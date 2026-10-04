@@ -121,6 +121,10 @@ void mInst::print(std::ostream &os) {
 mBrInst::mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label)
     :mInst(opcode, parent, {cond}), label(label) {}
 
+mBlock *mBrInst::getBlock() {
+    return label;
+}
+
 void mBrInst::print(std::ostream &os) {
     os << std::format("{} ", codeToStr(getOpCode()));
    

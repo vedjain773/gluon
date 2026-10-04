@@ -77,7 +77,8 @@ class MemOperand: public mOperand {
     
     static MemOperand *Create(TypeKind *sType, const Reg &base, int offset = 0);
     Reg getBase();
-    
+    int getOffset();
+
     void setOffset(int offset);
     void print(std::ostream &os);
 };
