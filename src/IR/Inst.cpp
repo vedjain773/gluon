@@ -1,85 +1,104 @@
 #include "IR/Inst.hpp"
 #include "IR/BasicBlock.hpp"
 #include "IR/Func.hpp"
-#include <format>
 #include <array>
+#include <format>
 
 //---
 
-constexpr std::array<std::string, 24> opcodeNames {
-    "not", "neg", "add", "sub", "mul", "div", "rem",
-    "gt", "gte", "lt", "lte", "eq", "neq",
-    "land", "lor",
-    "gep", "zext",
-    "alloca", "load", "store",
-    "ret", "br", "br", "call"
-};
+constexpr std::array<std::string, 24> opcodeNames{
+    "not", "neg",  "add", "sub", "mul",  "div",    "rem",  "gt",    "gte", "lt", "lte", "eq",
+    "neq", "land", "lor", "gep", "zext", "alloca", "load", "store", "ret", "br", "br",  "call"};
 
 std::string opcodeToStr(OpCode opcode) {
-    return opcodeNames[static_cast<unsigned>(opcode)]; 
+    return opcodeNames[static_cast<unsigned>(opcode)];
 }
 
 //---
 
-Inst::Inst(OpCode op, TypeKind *type, std::vector<Value*> ops, const std::string &name)
-    :Value(type, ValueKind::Instruction, name), opcode(op), operands(ops) {}
+Inst::Inst(OpCode op, TypeKind *type, std::vector<Value *> ops, const std::string &name) :
+    Value(type, ValueKind::Instruction, name),
+    opcode(op),
+    operands(ops) {}
 
-OpCode Inst::getOpCode() { return opcode; }
+OpCode Inst::getOpCode() {
+    return opcode;
+}
 
-BasicBlock *Inst::getParent() { return parent; }
+BasicBlock *Inst::getParent() {
+    return parent;
+}
 
-void Inst::setParent(BasicBlock *bb) { parent = bb; }
+void Inst::setParent(BasicBlock *bb) {
+    parent = bb;
+}
 
-unsigned Inst::getNumOperands() { return operands.size(); }
+unsigned Inst::getNumOperands() {
+    return operands.size();
+}
 
-Value *Inst::getOperand(unsigned i) { return operands[i]; }
+Value *Inst::getOperand(unsigned i) {
+    return operands[i];
+}
 
-void Inst::setOperand(unsigned i, Value *v) { operands[i] = v; }
+void Inst::setOperand(unsigned i, Value *v) {
+    operands[i] = v;
+}
 
-std::vector<Value*> &Inst::getOperands() { return operands; }
+std::vector<Value *> &Inst::getOperands() {
+    return operands;
+}
 
-bool Inst::isTerminator() { 
+bool Inst::isTerminator() {
     switch (opcode) {
         case OpCode::RET:
         case OpCode::BR:
-        case OpCode::BRC: return true;
-        break;
+        case OpCode::BRC:
+            return true;
+            break;
 
-        default: return false;
+        default:
+            return false;
     }
 }
 
 //---
 
-UnaryInst::UnaryInst(OpCode opcode, Value *value, const std::string &name)
-    :Inst(opcode, value->getType(), {value}, name) {}
+UnaryInst::UnaryInst(OpCode opcode, Value *value, const std::string &name) :
+    Inst(opcode, value->getType(), {value}, name) {}
 
-UnaryInst *UnaryInst::Create(OpCode opcode, Value* value, const std::string &name) {
+UnaryInst *UnaryInst::Create(OpCode opcode, Value *value, const std::string &name) {
     return new UnaryInst(opcode, value, name);
 }
 
-Value *UnaryInst::getUnaryOper() { return getOperand(0); }
+Value *UnaryInst::getUnaryOper() {
+    return getOperand(0);
+}
 
 void UnaryInst::print(std::ostream &os) {
-    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()) );
+    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()));
     getUnaryOper()->printAsOperand(os);
 }
 
 //---
 
-BinaryInst::BinaryInst(OpCode opcode, Value *lhs, Value *rhs, const std::string &name)
-    :Inst(opcode, lhs->getType(), {lhs, rhs}, name) {}
+BinaryInst::BinaryInst(OpCode opcode, Value *lhs, Value *rhs, const std::string &name) :
+    Inst(opcode, lhs->getType(), {lhs, rhs}, name) {}
 
 BinaryInst *BinaryInst::Create(OpCode opcode, Value *lhs, Value *rhs, const std::string &name) {
     return new BinaryInst(opcode, lhs, rhs, name);
 }
 
-Value *BinaryInst::getLHS() { return getOperand(0); }
+Value *BinaryInst::getLHS() {
+    return getOperand(0);
+}
 
-Value *BinaryInst::getRHS() { return getOperand(1); }
+Value *BinaryInst::getRHS() {
+    return getOperand(1);
+}
 
 void BinaryInst::print(std::ostream &os) {
-    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()) );
+    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()));
     getLHS()->printAsOperand(os);
     os << ", ";
     getRHS()->printAsOperand(os);
@@ -87,19 +106,23 @@ void BinaryInst::print(std::ostream &os) {
 
 //---
 
-CompInst::CompInst(OpCode opcode, Value *lhs, Value *rhs, const std::string &name)
-    :Inst(opcode, lhs->getType(), {lhs, rhs}, name) {}
+CompInst::CompInst(OpCode opcode, Value *lhs, Value *rhs, const std::string &name) :
+    Inst(opcode, lhs->getType(), {lhs, rhs}, name) {}
 
 CompInst *CompInst::Create(OpCode opcode, Value *lhs, Value *rhs, const std::string &name) {
     return new CompInst(opcode, lhs, rhs, name);
 }
 
-Value *CompInst::getLHS() { return getOperand(0); }
+Value *CompInst::getLHS() {
+    return getOperand(0);
+}
 
-Value *CompInst::getRHS() { return getOperand(1); }
+Value *CompInst::getRHS() {
+    return getOperand(1);
+}
 
 void CompInst::print(std::ostream &os) {
-    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()) );
+    os << std::format("{} = {} ", getName(), opcodeToStr(getOpCode()));
     getLHS()->printAsOperand(os);
     os << ", ";
     getRHS()->printAsOperand(os);
@@ -107,27 +130,29 @@ void CompInst::print(std::ostream &os) {
 
 //---
 
-GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name)
-    :Inst(OpCode::GEP, getResultType(idxList.size(), ptr->getType()), {ptr}, name),
-    idxList(idxList), srcType(type) {}
+GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value *> idxList,
+                 const std::string &name) :
+    Inst(OpCode::GEP, getResultType(idxList.size(), ptr->getType()), {ptr}, name),
+    idxList(idxList),
+    srcType(type) {}
 
 TypeKind *GEPInst::getResultType(unsigned size, TypeKind *ptr) {
     unsigned num = size;
     TypeKind *currType = ptr;
 
-    while (num-- > 0) currType = currType->to;
+    while (num-- > 0)
+        currType = currType->to;
     return getPtrTo(currType->name);
 }
 
-GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value*> idxList,
-        const std::string &name) 
-{
+GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value *> idxList,
+                         const std::string &name) {
     return new GEPInst(type, ptr, idxList, name);
 }
 
 TypeKind *GEPInst::getSrcType() {
     return srcType;
-} 
+}
 
 Value *GEPInst::getPointerOp() {
     return getOperand(0);
@@ -137,7 +162,7 @@ unsigned GEPInst::getNumIndices() {
     return idxList.size();
 }
 
-std::vector<Value*> &GEPInst::getIndices() {
+std::vector<Value *> &GEPInst::getIndices() {
     return idxList;
 }
 
@@ -146,70 +171,78 @@ void GEPInst::print(std::ostream &os) {
     getOperand(0)->printAsOperand(os);
     os << ", ";
 
-    for (auto &idx: idxList) {
+    for (auto &idx : idxList) {
         idx->printAsOperand(os);
-    
-        if (idx != idxList.back())
-            os << ", ";
+
+        if (idx != idxList.back()) os << ", ";
     }
 }
 
 //---
-ZExtInst::ZExtInst(Value *value, TypeKind *type, const std::string &name)
-    :Inst(OpCode::ZEXT, type, {value}, name) {}
+ZExtInst::ZExtInst(Value *value, TypeKind *type, const std::string &name) :
+    Inst(OpCode::ZEXT, type, {value}, name) {}
 
 ZExtInst *ZExtInst::Create(Value *value, TypeKind *type, const std::string &name) {
-    return new ZExtInst(value, type, name); 
+    return new ZExtInst(value, type, name);
 }
 
 void ZExtInst::print(std::ostream &os) {
     os << std::format("{} = {} {} to {}", getName(), opcodeToStr(OpCode::ZEXT),
-            getOperand(0)->getType()->name, getType()->name);
+                      getOperand(0)->getType()->name, getType()->name);
 }
 
 //---
 
-AllocaInst::AllocaInst(TypeKind *type, const std::string &name)
-    :Inst(OpCode::ALLOCA, getPtrTo(type->name), {}, name), valType(type) {}
+AllocaInst::AllocaInst(TypeKind *type, const std::string &name) :
+    Inst(OpCode::ALLOCA, getPtrTo(type->name), {}, name),
+    valType(type) {}
 
 AllocaInst *AllocaInst::Create(TypeKind *type, const std::string &name) {
     return new AllocaInst(type, name);
 }
 
-TypeKind *AllocaInst::getValType() { return valType; }
+TypeKind *AllocaInst::getValType() {
+    return valType;
+}
 
 void AllocaInst::print(std::ostream &os) {
-    os << std::format("{} = {} {}", getName(), opcodeToStr(OpCode::ALLOCA), valType->name); 
+    os << std::format("{} = {} {}", getName(), opcodeToStr(OpCode::ALLOCA), valType->name);
 }
 
 //---
 
-LoadInst::LoadInst(TypeKind *type, Value *ptr, const std::string &name)
-    :Inst(OpCode::LOAD, type, {ptr}, name) {}
+LoadInst::LoadInst(TypeKind *type, Value *ptr, const std::string &name) :
+    Inst(OpCode::LOAD, type, {ptr}, name) {}
 
 LoadInst *LoadInst::Create(TypeKind *type, Value *ptr, const std::string &name) {
     return new LoadInst(type, ptr, name);
 }
 
-Value *LoadInst::getValue() { return getOperand(0); }
+Value *LoadInst::getValue() {
+    return getOperand(0);
+}
 
 void LoadInst::print(std::ostream &os) {
     os << std::format("{} = {} {} <- ", getName(), opcodeToStr(OpCode::LOAD), getType()->name);
     getValue()->printAsOperand(os);
-} 
+}
 
 //---
 
-StoreInst::StoreInst(Value *value, Value *ptr)
-    :Inst(OpCode::STORE, value->getType(), {value, ptr}, "") {}
+StoreInst::StoreInst(Value *value, Value *ptr) :
+    Inst(OpCode::STORE, value->getType(), {value, ptr}, "") {}
 
 StoreInst *StoreInst::Create(Value *value, Value *ptr) {
     return new StoreInst(value, ptr);
-} 
+}
 
-Value *StoreInst::getValue() { return getOperand(0); }
+Value *StoreInst::getValue() {
+    return getOperand(0);
+}
 
-Value *StoreInst::getDest() { return getOperand(1); }
+Value *StoreInst::getDest() {
+    return getOperand(1);
+}
 
 void StoreInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::STORE));
@@ -220,17 +253,17 @@ void StoreInst::print(std::ostream &os) {
 
 //---
 
-CallInst::CallInst(Func *callee, std::vector<Value*> args, const std::string &name)
-    :Inst(OpCode::CALL, callee->getReturnType(), args, name), callee(callee)
-{
+CallInst::CallInst(Func *callee, std::vector<Value *> args, const std::string &name) :
+    Inst(OpCode::CALL, callee->getReturnType(), args, name),
+    callee(callee) {
     unsigned i = 0;
-    for (auto &arg: args) {
+    for (auto &arg : args) {
         callArgs.push_back(Arg::Create(arg->getType(), arg->getName(), callee, i));
         i++;
-    } 
+    }
 }
 
-CallInst *CallInst::Create(Func *callee, std::vector<Value*> args, const std::string &name) {
+CallInst *CallInst::Create(Func *callee, std::vector<Value *> args, const std::string &name) {
     return new CallInst(callee, args, name);
 }
 
@@ -239,11 +272,10 @@ void CallInst::print(std::ostream &os) {
 
     os << std::format("{} = call {} @{} (", getName(), retType->name, callee->getName());
 
-    for (auto &argVal: getOperands()) {
+    for (auto &argVal : getOperands()) {
         argVal->printAsOperand(os);
 
-        if (argVal != getOperands().back())
-            os << ", ";
+        if (argVal != getOperands().back()) os << ", ";
     }
 
     os << ')';
@@ -251,18 +283,26 @@ void CallInst::print(std::ostream &os) {
 
 //---
 
-CondBrInst::CondBrInst(Value *condn, BasicBlock *trueBB, BasicBlock *falseBB)
-    :Inst(OpCode::BRC, nullptr, {condn}, ""), trueBB(trueBB), falseBB(falseBB) {}
+CondBrInst::CondBrInst(Value *condn, BasicBlock *trueBB, BasicBlock *falseBB) :
+    Inst(OpCode::BRC, nullptr, {condn}, ""),
+    trueBB(trueBB),
+    falseBB(falseBB) {}
 
 CondBrInst *CondBrInst::Create(Value *condn, BasicBlock *trueBB, BasicBlock *falseBB) {
     return new CondBrInst(condn, trueBB, falseBB);
 }
 
-Value *CondBrInst::getCond() { return getOperand(0); }
+Value *CondBrInst::getCond() {
+    return getOperand(0);
+}
 
-BasicBlock *CondBrInst::getThenBlock() { return trueBB; }
+BasicBlock *CondBrInst::getThenBlock() {
+    return trueBB;
+}
 
-BasicBlock *CondBrInst::getElseBlock() { return falseBB; }
+BasicBlock *CondBrInst::getElseBlock() {
+    return falseBB;
+}
 
 void CondBrInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::BRC));
@@ -272,14 +312,17 @@ void CondBrInst::print(std::ostream &os) {
 
 //---
 
-UnCondBrInst::UnCondBrInst(BasicBlock *thenBB)
-    :Inst(OpCode::BR, nullptr, {}, ""), then(thenBB) {}
+UnCondBrInst::UnCondBrInst(BasicBlock *thenBB) :
+    Inst(OpCode::BR, nullptr, {}, ""),
+    then(thenBB) {}
 
 UnCondBrInst *UnCondBrInst::Create(BasicBlock *thenBB) {
     return new UnCondBrInst(thenBB);
 }
 
-BasicBlock *UnCondBrInst::getThenBlock() { return then; }
+BasicBlock *UnCondBrInst::getThenBlock() {
+    return then;
+}
 
 void UnCondBrInst::print(std::ostream &os) {
     os << std::format("{} {}", opcodeToStr(OpCode::BR), then->getName());
@@ -287,26 +330,22 @@ void UnCondBrInst::print(std::ostream &os) {
 
 //---
 
-ReturnInst::ReturnInst(Value *value)
-    :Inst(OpCode::RET, value->getType(), {value}, "") {}
+ReturnInst::ReturnInst(Value *value) :
+    Inst(OpCode::RET, value->getType(), {value}, "") {}
 
-ReturnInst::ReturnInst()
-    :Inst(OpCode::RET, getVoidTy(), {}, "") {}
+ReturnInst::ReturnInst() :
+    Inst(OpCode::RET, getVoidTy(), {}, "") {}
 
 ReturnInst *ReturnInst::Create(Value *value) {
-    if (value)
-        return new ReturnInst(value);
-    else
-        return new ReturnInst();
-} 
+    if (value) return new ReturnInst(value);
+    else return new ReturnInst();
+}
 
 void ReturnInst::print(std::ostream &os) {
     os << std::format("{} ", opcodeToStr(OpCode::RET));
-    
-    if (getNumOperands() > 0) 
-        getOperand(0)->printAsOperand(os);
-    else
-        os << getType()->name;
+
+    if (getNumOperands() > 0) getOperand(0)->printAsOperand(os);
+    else os << getType()->name;
 }
 
 //---

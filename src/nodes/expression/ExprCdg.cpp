@@ -13,7 +13,7 @@ Value *VarExpr::codegen(CodegenVis &cdgvis) {
     AllocaInst *alloca = cdgvis.lookup(Name);
 
     if (!alloca) {
-        return nullptr; 
+        return nullptr;
     }
 
     return Bldr->createLoad(alloca->getValType(), alloca, Name);
@@ -23,7 +23,7 @@ Value *VarExpr::emitPtr(CodegenVis &cdgvis) {
     AllocaInst *alloca = cdgvis.lookup(Name);
 
     if (!alloca) {
-        return nullptr; 
+        return nullptr;
     }
 
     return alloca;
@@ -34,8 +34,7 @@ Value *DerefExpr::codegen(CodegenVis &cdgvis) {
 
     Value *ptr = expr->emitPtr(cdgvis);
 
-    if (isPointerType(expr->infType))
-        ptr = expr->codegen(cdgvis);
+    if (isPointerType(expr->infType)) ptr = expr->codegen(cdgvis);
 
     TypeKind *type = expr->infType->to;
 
@@ -43,8 +42,7 @@ Value *DerefExpr::codegen(CodegenVis &cdgvis) {
 }
 
 Value *DerefExpr::emitPtr(CodegenVis &cdgvis) {
-    if (isArrayType(expr->infType))
-        return expr->emitPtr(cdgvis);
+    if (isArrayType(expr->infType)) return expr->emitPtr(cdgvis);
 
     return expr->codegen(cdgvis);
 }
@@ -58,7 +56,7 @@ Value *SizeOfExpr::codegen(CodegenVis &cdgvis) {
 }
 
 Value *CastExpr::codegen(CodegenVis &cdgvis) {
-    //TBD 
+    // TBD
 }
 
 Value *UnaryExpr::codegen(CodegenVis &cdgvis) {
@@ -71,7 +69,7 @@ Value *UnaryExpr::codegen(CodegenVis &cdgvis) {
         } break;
 
         case Operators::BANG: {
-            return Bldr->createNot(val, "not"); 
+            return Bldr->createNot(val, "not");
         } break;
 
         default: {
@@ -84,10 +82,9 @@ Value *BinaryExpr::codegen(CodegenVis &cdgvis) {
     Value *left = LHS->codegen(cdgvis);
     Value *right = RHS->codegen(cdgvis);
 
-    if (!left || !right)
-        return nullptr;
+    if (!left || !right) return nullptr;
 
-    if (isPointerType(LHS->infType)) 
+    if (isPointerType(LHS->infType))
         return cdgvis.handlePtrArith({left, right, Op, LHS->infType->to});
 
     return cdgvis.handleBinOp({left, right, Op, infType});
@@ -100,8 +97,8 @@ Value *BinaryExpr::emitPtr(CodegenVis &cdgvis) {
     Value *right = RHS->codegen(cdgvis);
 
     if (isArrayType(LHS->infType))
-        return Bldr->createGEP(LHS->infType, left, 
-                {ConstantInt::Create(getType("int"), 0), right}, "arroff");
+        return Bldr->createGEP(LHS->infType, left, {ConstantInt::Create(getType("int"), 0), right},
+                               "arroff");
 
     return nullptr;
 }
@@ -111,7 +108,7 @@ Value *AssignExpr::codegen(CodegenVis &cdgvis) {
 
     Value *addr = LHS->emitPtr(cdgvis);
     Value *exprVal = RHS->codegen(cdgvis);
-    
+
     Bldr->createStore(exprVal, addr);
     return exprVal;
 }
@@ -125,18 +122,15 @@ Value *CallExpr::codegen(CodegenVis &cdgvis) {
     Module *module = (cdgvis.module).get();
     Func *calleefunc = module->getFunc(callee);
 
-    if (!calleefunc)
-        return nullptr;
+    if (!calleefunc) return nullptr;
 
-    if (calleefunc->getArgs().size() != args.size())
-        return nullptr;
+    if (calleefunc->getArgs().size() != args.size()) return nullptr;
 
     std::vector<Value *> argVals;
 
     for (unsigned i = 0, e = args.size(); i != e; ++i) {
         argVals.push_back(args[i]->codegen(cdgvis));
-        if (!argVals.back())
-            return nullptr;
+        if (!argVals.back()) return nullptr;
     }
 
     return Bldr->createCall(calleefunc, argVals, "calltmp");

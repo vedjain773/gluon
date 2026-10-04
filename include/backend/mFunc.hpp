@@ -1,7 +1,7 @@
 #ifndef MFUNC_H
 #define MFUNC_H
 
-#include "backend/riscv64/mBlock.hpp"
+#include "backend/mBlock.hpp"
 #include "IR/Func.hpp"
 #include <vector>
 #include <memory>

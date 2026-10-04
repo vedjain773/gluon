@@ -5,8 +5,8 @@
 #include <vector>
 #include <set>
 
-#include "backend/riscv64/mModule.hpp"
-#include "backend/riscv64/mFunc.hpp"
+#include "backend/mModule.hpp"
+#include "backend/mFunc.hpp"
 
 #include <unordered_map>
 

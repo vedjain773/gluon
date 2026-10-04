@@ -7,8 +7,7 @@ std::unique_ptr<Expression> Parser::ParseIntExpr() {
     std::string NumStr = peekCurr().lexeme;
     int NumVal = std::stoi(NumStr);
 
-    auto Result =
-        std::make_unique<IntExpr>(NumVal, peekCurr().line, peekCurr().column);
+    auto Result = std::make_unique<IntExpr>(NumVal, peekCurr().line, peekCurr().column);
     getNextToken();
     return std::move(Result);
 }
@@ -17,8 +16,7 @@ std::unique_ptr<Expression> Parser::ParseCharExpr() {
     std::string charStr = peekCurr().lexeme;
     char charac = charStr[1];
 
-    auto Result =
-        std::make_unique<CharExpr>(charac, peekCurr().line, peekCurr().column);
+    auto Result = std::make_unique<CharExpr>(charac, peekCurr().line, peekCurr().column);
     getNextToken();
     return std::move(Result);
 }
@@ -26,8 +24,7 @@ std::unique_ptr<Expression> Parser::ParseCharExpr() {
 std::unique_ptr<Expression> Parser::ParseVarExpr() {
     std::string Var = peekCurr().lexeme;
 
-    auto Result =
-        std::make_unique<VarExpr>(Var, peekCurr().line, peekCurr().column);
+    auto Result = std::make_unique<VarExpr>(Var, peekCurr().line, peekCurr().column);
     getNextToken();
     return std::move(Result);
 }
@@ -37,8 +34,7 @@ std::unique_ptr<Expression> Parser::ParseParenExpr() {
 
     auto Result = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     return Result;
 }
@@ -98,12 +94,10 @@ std::unique_ptr<Expression> Parser::ParsePostFixExpr() {
 
                 auto inner = ParseExpr();
 
-                auto binExpr = std::make_unique<BinaryExpr>(
-                    Operators::PLUS, std::move(Prim), std::move(inner), line,
-                    column);
+                auto binExpr = std::make_unique<BinaryExpr>(Operators::PLUS, std::move(Prim),
+                                                            std::move(inner), line, column);
 
-                auto Result = std::make_unique<DerefExpr>(std::move(binExpr),
-                                                          line, column);
+                auto Result = std::make_unique<DerefExpr>(std::move(binExpr), line, column);
 
                 getNextToken();
 
@@ -130,8 +124,7 @@ std::unique_ptr<Expression> Parser::ParseSizeOfExpr() {
 
     if (!isTypeStarter(peekNext().tokentype)) {
         auto parenExpr = ParseParenExpr();
-        Result =
-            std::make_unique<SizeOfExpr>(std::move(parenExpr), tline, tcol);
+        Result = std::make_unique<SizeOfExpr>(std::move(parenExpr), tline, tcol);
     } else {
         // consume '('
         getNextToken();
@@ -158,8 +151,7 @@ std::unique_ptr<Expression> Parser::ParseUnaryExpr() {
 
             getNextToken();
 
-            auto Result = std::make_unique<UnaryExpr>(oper, ParseUnaryExpr(),
-                                                      tline, tcol);
+            auto Result = std::make_unique<UnaryExpr>(oper, ParseUnaryExpr(), tline, tcol);
             return Result;
         } break;
 
@@ -173,12 +165,8 @@ std::unique_ptr<Expression> Parser::ParseUnaryExpr() {
             getNextToken();
             auto expr = ParseUnaryExpr();
 
-            if (isDeref)
-                return std::make_unique<DerefExpr>(std::move(expr), line,
-                                                   column);
-            else
-                return std::make_unique<AddressExpr>(std::move(expr), line,
-                                                     column);
+            if (isDeref) return std::make_unique<DerefExpr>(std::move(expr), line, column);
+            else return std::make_unique<AddressExpr>(std::move(expr), line, column);
 
         } break;
 
@@ -211,8 +199,7 @@ std::unique_ptr<Expression> Parser::ParseBinExpr(BinOpPrec level) {
 
         getNextToken();
         auto rhs = parseOperand(level);
-        lhs = std::make_unique<BinaryExpr>(oper, std::move(lhs), std::move(rhs),
-                                           tline, tcol);
+        lhs = std::make_unique<BinaryExpr>(oper, std::move(lhs), std::move(rhs), tline, tcol);
     }
 
     return lhs;
@@ -228,8 +215,7 @@ std::unique_ptr<Expression> Parser::ParseAssignExpr() {
         getNextToken();
         auto rhs = ParseAssignExpr();
 
-        auto Result = std::make_unique<AssignExpr>(
-                std::move(lhs), std::move(rhs), tline, tcol);
+        auto Result = std::make_unique<AssignExpr>(std::move(lhs), std::move(rhs), tline, tcol);
         return Result;
 
     } else {

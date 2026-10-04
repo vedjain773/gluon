@@ -2,24 +2,32 @@
 #include "IR/Module.hpp"
 #include <format>
 
-Func::Func(const std::string &name, Module *parent, TypeKind *retType, std::vector<Arg*> args)
-    :name(name), parent(parent), returnType(retType), args(args) {}
+Func::Func(const std::string &name, Module *parent, TypeKind *retType, std::vector<Arg *> args) :
+    name(name),
+    parent(parent),
+    returnType(retType),
+    args(args) {}
 
-Func *Func::Create(const std::string &name, Module *parent,
-        TypeKind *retType, std::vector<Arg*> args) 
-{
+Func *Func::Create(const std::string &name, Module *parent, TypeKind *retType,
+                   std::vector<Arg *> args) {
     auto func = std::make_unique<Func>(name, parent, retType, args);
     Func *funcRaw = func.get();
-    
+
     parent->appendFunc(std::move(func));
     return funcRaw;
 }
 
-Module *Func::getParent() { return parent; }
+Module *Func::getParent() {
+    return parent;
+}
 
-TypeKind *Func::getReturnType() { return returnType; }
+TypeKind *Func::getReturnType() {
+    return returnType;
+}
 
-std::string Func::getName() { return name; }
+std::string Func::getName() {
+    return name;
+}
 
 std::string Func::getUniqueName(const std::string &name) {
     if (nameMap.count(name) == 0) {
@@ -31,15 +39,21 @@ std::string Func::getUniqueName(const std::string &name) {
     return std::format("{}.{}", name, nameMap[name]);
 }
 
-std::vector<Arg*> &Func::getArgs() { return args; }
-
-void Func::setArgs(std::vector<Arg*> args) {
-    this->args = args; 
+std::vector<Arg *> &Func::getArgs() {
+    return args;
 }
 
-Arg *Func::getArg(unsigned i) { return args[i]; }
+void Func::setArgs(std::vector<Arg *> args) {
+    this->args = args;
+}
 
-std::vector<std::unique_ptr<BasicBlock>> &Func::getBlocks() { return basicBlocks; }
+Arg *Func::getArg(unsigned i) {
+    return args[i];
+}
+
+std::vector<std::unique_ptr<BasicBlock>> &Func::getBlocks() {
+    return basicBlocks;
+}
 
 BasicBlock *Func::appendBasicBlock(const std::string &name) {
     auto bb = std::make_unique<BasicBlock>(name, this);
@@ -57,21 +71,22 @@ void Func::insertAtEnd(std::unique_ptr<BasicBlock> bb) {
     basicBlocks.push_back(std::move(bb));
 }
 
-BasicBlock *Func::getEntryBlock() { return basicBlocks.front().get(); };
+BasicBlock *Func::getEntryBlock() {
+    return basicBlocks.front().get();
+};
 
 void Func::print(std::ostream &os) {
     os << std::format("define @{} (", name);
 
-    for (auto &arg: args) {
+    for (auto &arg : args) {
         arg->print(os);
-        
-        if (arg != args.back())
-            os << ", ";
+
+        if (arg != args.back()) os << ", ";
     }
 
     os << std::format(") -> {}\n", getReturnType()->name);
 
-    for (auto &bb: basicBlocks) {
+    for (auto &bb : basicBlocks) {
         bb->print(os);
         os << '\n';
     }

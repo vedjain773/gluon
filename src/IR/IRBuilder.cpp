@@ -1,6 +1,8 @@
 #include "IR/IRBuilder.hpp"
 
-IRBuilder::IRBuilder(Module *module) { currModule = module; }
+IRBuilder::IRBuilder(Module *module) {
+    currModule = module;
+}
 
 void IRBuilder::setInsertPoint(BasicBlock *bb) {
     currBasicBlock = bb;
@@ -8,7 +10,9 @@ void IRBuilder::setInsertPoint(BasicBlock *bb) {
     currModule = currFunc->getParent();
 }
 
-BasicBlock *IRBuilder::getInsertBlock() { return currBasicBlock; }
+BasicBlock *IRBuilder::getInsertBlock() {
+    return currBasicBlock;
+}
 
 Value *IRBuilder::createBinOp(OpCode op, Value *lhs, Value *rhs, const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);
@@ -60,8 +64,8 @@ Value *IRBuilder::createZExt(Value *value, TypeKind *type, const std::string &na
     return instRaw;
 }
 
-Value *IRBuilder::createGEP(TypeKind *type, Value *ptr, std::vector<Value*> idx,
-        const std::string &name) {
+Value *IRBuilder::createGEP(TypeKind *type, Value *ptr, std::vector<Value *> idx,
+                            const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);
     std::unique_ptr<GEPInst> inst(GEPInst::Create(type, ptr, idx, nname));
 
@@ -111,9 +115,7 @@ StoreInst *IRBuilder::createStore(Value *value, Value *ptr) {
     return instRaw;
 }
 
-CallInst *IRBuilder::createCall(Func *callee, std::vector<Value*> args,
-        const std::string &name)
-{
+CallInst *IRBuilder::createCall(Func *callee, std::vector<Value *> args, const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);
     std::unique_ptr<CallInst> inst(CallInst::Create(callee, args, nname));
 
@@ -123,7 +125,7 @@ CallInst *IRBuilder::createCall(Func *callee, std::vector<Value*> args,
     return instRaw;
 }
 
-ReturnInst *IRBuilder::createRet(Value *value) { 
+ReturnInst *IRBuilder::createRet(Value *value) {
     std::unique_ptr<ReturnInst> inst(ReturnInst::Create(value));
 
     auto *instRaw = inst.get();

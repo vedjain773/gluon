@@ -6,8 +6,7 @@
 std::unique_ptr<Statement> Parser::ParseExprStmt() {
     std::unique_ptr<Expression> expr = ParseExpr();
 
-    if (!expectAndConsume(TokenType::SEMICOLON, "Missing ';' after expression"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::SEMICOLON, "Missing ';' after expression")) return nullptr;
 
     return std::make_unique<ExprStmt>(std::move(expr));
 }
@@ -19,8 +18,7 @@ std::unique_ptr<BlockStmt> Parser::ParseBlockStmt() {
     while (peekCurr().tokentype != TokenType::RIGHT_CURLY) {
         auto stmt = ParseStmt();
 
-        if (stmt)
-            Result->addStmt(std::move(stmt));
+        if (stmt) Result->addStmt(std::move(stmt));
 
         if (peekCurr().tokentype == TokenType::END_OF_FILE) {
             expect(peekCurr(), "Expected '}'");
@@ -35,24 +33,20 @@ std::unique_ptr<BlockStmt> Parser::ParseBlockStmt() {
 std::unique_ptr<Statement> Parser::ParseIfStmt() {
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after if"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after if")) return nullptr;
 
     auto condn = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     auto ifbody = ParseStmt();
 
     auto elsestmt = ParseElseStmt();
-    return std::make_unique<IfStmt>(std::move(condn), std::move(ifbody),
-                                    std::move(elsestmt));
+    return std::make_unique<IfStmt>(std::move(condn), std::move(ifbody), std::move(elsestmt));
 }
 
 std::unique_ptr<Statement> Parser::ParseElseStmt() {
-    if (peekCurr().tokentype != TokenType::ELSE)
-        return nullptr;
+    if (peekCurr().tokentype != TokenType::ELSE) return nullptr;
 
     getNextToken();
 
@@ -63,13 +57,11 @@ std::unique_ptr<Statement> Parser::ParseElseStmt() {
 std::unique_ptr<Statement> Parser::ParseWhileStmt() {
     getNextToken();
 
-    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after while"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::LEFT_ROUND, "Expected '(' after while")) return nullptr;
 
     auto condn = ParseExpr();
 
-    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'"))
-        return nullptr;
+    if (!expectAndConsume(TokenType::RIGHT_ROUND, "Expected ')'")) return nullptr;
 
     auto whilebody = ParseStmt();
     return std::make_unique<WhileStmt>(std::move(condn), std::move(whilebody));
@@ -114,16 +106,14 @@ std::unique_ptr<Statement> Parser::ParseDeclStmt() {
     }
 
     if (peekCurr().tokentype != TokenType::SEMICOLON) {
-        Error error(lastTokenLine, lastTokenCol,
-                    "Missing ';' after declaration");
+        Error error(lastTokenLine, lastTokenCol, "Missing ';' after declaration");
         numOfErrors += 1;
         advToSyncPoint();
         return nullptr;
     }
 
     getNextToken();
-    return std::make_unique<DeclStmt>(typek, varname, std::move(expr), tline,
-                                      tcol);
+    return std::make_unique<DeclStmt>(typek, varname, std::move(expr), tline, tcol);
 }
 
 std::unique_ptr<Statement> Parser::ParseStmt() {
@@ -169,8 +159,7 @@ std::unique_ptr<Statement> Parser::ParseStmt() {
             // consume break/Consume
             getNextToken();
 
-            if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'"))
-                return nullptr;
+            if (!expectAndConsume(TokenType::SEMICOLON, "Expected ';'")) return nullptr;
 
             return Result;
         } break;

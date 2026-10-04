@@ -3,30 +3,28 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 32> regNames {
-    "zero", "ra", "sp", "gp", "tp",
-    "t0", "t1", "t2",
-    "s0", "s1",
-    "a0", "a1", "a2", "a3",
-    "a4", "a5", "a6", "a7",
-    "s2", "s3", "s4", "s5", "s6", "s7",
-    "s8", "s9", "s10", "s11",
-    "t3", "t4", "t5", "t6"
-};
+constexpr std::array<std::string, 32> regNames{"zero", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",
+                                               "s0",   "s1", "a0",  "a1",  "a2", "a3", "a4", "a5",
+                                               "a6",   "a7", "s2",  "s3",  "s4", "s5", "s6", "s7",
+                                               "s8",   "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
 
-mOperand::mOperand(const OpKind &opkind, TypeKind *opType)
-    :kind(opkind), opType(opType) {}
+mOperand::mOperand(const OpKind &opkind, TypeKind *opType) :
+    kind(opkind),
+    opType(opType) {}
 
 //---
 
-VirtReg::VirtReg(unsigned no, TypeKind *regType)
-    :mOperand(OpKind::VirtualReg, regType), no(no) {}
+VirtReg::VirtReg(unsigned no, TypeKind *regType) :
+    mOperand(OpKind::VirtualReg, regType),
+    no(no) {}
 
 VirtReg *VirtReg::Create(unsigned no, TypeKind *regType) {
     return new VirtReg(no, regType);
 }
 
-unsigned VirtReg::getVirtRegNo() { return no; }
+unsigned VirtReg::getVirtRegNo() {
+    return no;
+}
 
 std::string VirtReg::getPrintStr() {
     return std::format("v{}", no);
@@ -38,8 +36,10 @@ void VirtReg::print(std::ostream &os) {
 
 //---
 
-MemOperand::MemOperand(TypeKind *sType, const Reg &base, int offset)
-    :mOperand(OpKind::MemOperand, sType), offset(offset), base(base) {}
+MemOperand::MemOperand(TypeKind *sType, const Reg &base, int offset) :
+    mOperand(OpKind::MemOperand, sType),
+    offset(offset),
+    base(base) {}
 
 MemOperand *MemOperand::Create(TypeKind *sType, const Reg &base, int offset) {
     return new MemOperand(sType, base, offset);
@@ -58,32 +58,40 @@ void MemOperand::setOffset(int offset) {
 }
 
 void MemOperand::print(std::ostream &os) {
-    os << std::format("[{}, {}]", offset, regToStr(base)); 
+    os << std::format("[{}, {}]", offset, regToStr(base));
 }
 
 //---
 
-StackSlot::StackSlot(unsigned id, TypeKind *stype)
-    :MemOperand(stype, Reg::S0, 0), id(id) {}
+StackSlot::StackSlot(unsigned id, TypeKind *stype) :
+    MemOperand(stype, Reg::S0, 0),
+    id(id) {}
 
 StackSlot *StackSlot::Create(unsigned id, TypeKind *stype) {
     return new StackSlot(id, stype);
 }
 
-unsigned StackSlot::getSlotId() { return id; }
+unsigned StackSlot::getSlotId() {
+    return id;
+}
 
-unsigned StackSlot::getSlotSize() { return opType->size; }
+unsigned StackSlot::getSlotSize() {
+    return opType->size;
+}
 
 //---
 
-PhyReg::PhyReg(Reg reg)
-    :mOperand(OpKind::PhysicalReg), reg(reg) {}
+PhyReg::PhyReg(Reg reg) :
+    mOperand(OpKind::PhysicalReg),
+    reg(reg) {}
 
 PhyReg *PhyReg::Create(Reg reg) {
     return new PhyReg(reg);
 }
 
-Reg PhyReg::getReg() { return reg; }
+Reg PhyReg::getReg() {
+    return reg;
+}
 
 void PhyReg::print(std::ostream &os) {
     os << std::format("{} ", regToStr(reg));
@@ -91,14 +99,17 @@ void PhyReg::print(std::ostream &os) {
 
 //---
 
-Immediate::Immediate(int64_t value, TypeKind *itype)
-    :mOperand(OpKind::Immediate, itype), value(value) {}
+Immediate::Immediate(int64_t value, TypeKind *itype) :
+    mOperand(OpKind::Immediate, itype),
+    value(value) {}
 
 Immediate *Immediate::Create(int64_t value, TypeKind *itype) {
     return new Immediate(value, itype);
-} 
+}
 
-int64_t Immediate::getImmValue() { return value; }
+int64_t Immediate::getImmValue() {
+    return value;
+}
 
 void Immediate::print(std::ostream &os) {
     os << std::format("{} ", value);

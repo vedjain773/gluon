@@ -2,9 +2,9 @@
 
 Func *Prototype::codegen(CodegenVis &cdgvis) {
     Module *module = (cdgvis.module).get();
-    std::vector<Arg*> argVec;
+    std::vector<Arg *> argVec;
 
-    Func *func = Func::Create(funcName, module, retType, std::vector<Arg*> {});
+    Func *func = Func::Create(funcName, module, retType, std::vector<Arg *>{});
 
     for (size_t i = 0; i < paramList.size(); i++) {
         Parameter *param = (paramList[i]).get();
@@ -22,8 +22,7 @@ void FuncDef::codegen(CodegenVis &cdgvis) {
 
     Func *func = module->getFunc(prototype->funcName);
 
-    if (!func)
-        func = prototype->codegen(cdgvis);
+    if (!func) func = prototype->codegen(cdgvis);
 
     BasicBlock *BB = BasicBlock::Create("entry", func);
     Bldr->setInsertPoint(BB);
@@ -33,7 +32,7 @@ void FuncDef::codegen(CodegenVis &cdgvis) {
     for (auto &arg : func->getArgs()) {
         Parameter *param = (proto->paramList[i++]).get();
 
-        std::string paramAllocaStr = std::format("{}.addr", arg->getName()); 
+        std::string paramAllocaStr = std::format("{}.addr", arg->getName());
 
         AllocaInst *alloca = Bldr->createEntryAlloca(param->type, paramAllocaStr);
         Bldr->createStore(arg, alloca);
@@ -41,5 +40,5 @@ void FuncDef::codegen(CodegenVis &cdgvis) {
         cdgvis.insertName(arg->getName(), alloca);
     }
 
-    funcBody->codegen(cdgvis); 
+    funcBody->codegen(cdgvis);
 }

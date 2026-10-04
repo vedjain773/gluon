@@ -29,8 +29,7 @@ void SemanticVisitor::visitProgram(Program &program) {
     scopeVec.push_back(globalScope);
 
     for (auto &edecl : program.root) {
-        if (edecl == nullptr)
-            continue;
+        if (edecl == nullptr) continue;
 
         edecl->accept(*this);
     }
@@ -91,8 +90,7 @@ void SemanticVisitor::visitBlockStmt(BlockStmt &blockstmt) {
 
         stmt->accept(*this);
 
-        if (stmt->isTerminator())
-            isTerm = true;
+        if (stmt->isTerminator()) isTerm = true;
     }
 
     scopeVec.pop_back();
@@ -111,22 +109,22 @@ void SemanticVisitor::visitDeclStmt(DeclStmt &declstmt) {
     if (expr != nullptr) {
         expr->accept(*this);
         TypeKind *exprType = expr->infType;
-        
+
         if (exprType == getType("void")) {
             return reportError(declstmt, "Variables cannot be of type: void");
         }
-        
+
         if (exprType->type != declType->type) {
-            std::string errmsg = std::format(
-                    "Cannot assign expression of type {} to '{}' of type {}",
-                    exprType->name, declstmt.name, declType->name);
+            std::string errmsg =
+                std::format("Cannot assign expression of type {} to '{}' of type {}",
+                            exprType->name, declstmt.name, declType->name);
 
             return reportError(declstmt, errmsg);
-        } 
+        }
 
         if (exprType != declType) {
-            auto castexpr = std::make_unique<CastExpr>(std::move(declstmt.expression),
-                    exprType, declType);
+            auto castexpr =
+                std::make_unique<CastExpr>(std::move(declstmt.expression), exprType, declType);
 
             Expression *cexpr = castexpr.get();
             cexpr->accept(*this);
@@ -199,13 +197,11 @@ void SemanticVisitor::visitReturnStmt(ReturnStmt &returnstmt) {
     retexpr->accept(*this);
     TypeKind *retExprType = retexpr->infType;
 
-    if (isErrorType(retExprType))
-        return;
+    if (isErrorType(retExprType)) return;
 
     if (retExprType != currFuncRetType) {
-        std::string msg = std::format(
-                "Return type ({}) does not match function return type ({})",
-                retExprType->name, currFuncRetType->name);
+        std::string msg = std::format("Return type ({}) does not match function return type ({})",
+                                      retExprType->name, currFuncRetType->name);
 
         return reportError(*retexpr, msg);
     }
@@ -253,7 +249,7 @@ void SemanticVisitor::visitAssignExpr(AssignExpr &assignexpr) {
 void SemanticVisitor::visitBinaryExpr(BinaryExpr &binexpr) {
     Expression *lExpr = (binexpr.LHS).get();
     Expression *rExpr = (binexpr.RHS).get();
- 
+
     lExpr->accept(*this);
     rExpr->accept(*this);
 
@@ -359,8 +355,8 @@ void SemanticVisitor::visitAddressExpr(AddressExpr &addressexpr) {
 
 void SemanticVisitor::visitCastExpr(CastExpr &castexpr) {
     if (isArrayType(castexpr.from)) {
-        std::string errmsg = std::format(
-                "Cannot cast from type: {} to {}", castexpr.from->name, castexpr.to->name);
+        std::string errmsg =
+            std::format("Cannot cast from type: {} to {}", castexpr.from->name, castexpr.to->name);
         return reportError(castexpr, errmsg);
     }
 
@@ -408,7 +404,7 @@ void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
 
         if (currentParamType != paramTypes[i]) {
             std::string errmsg = std::format(
-                    "Expected argument type: {} got: ", paramTypes[i]->name, currentParamType->name); 
+                "Expected argument type: {} got: ", paramTypes[i]->name, currentParamType->name);
 
             return reportError(*callexpr.args[i], errmsg);
         }
@@ -439,7 +435,7 @@ void SemanticVisitor::visitVarExpr(VarExpr &varexpr) {
     }
 }
 
-void SemanticVisitor::visitCharExpr(CharExpr &charexpr) { 
+void SemanticVisitor::visitCharExpr(CharExpr &charexpr) {
     charexpr.infType = getType("char");
 }
 

@@ -4,13 +4,13 @@
 #include "utils/Error.hpp"
 #include "utils/Scope.hpp"
 
-#include "backend/riscv64/LowerPass.hpp"
 #include "backend/riscv64/Emitter.hpp"
-#include "backend/riscv64/RegAlloc.hpp"
 #include "backend/riscv64/FramePass.hpp"
+#include "backend/riscv64/LowerPass.hpp"
+#include "backend/riscv64/RegAlloc.hpp"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 struct CIConfig {
     bool optimize = false;
@@ -18,8 +18,6 @@ struct CIConfig {
     bool printTokens = false;
     bool printIR = false;
     bool printMIR = false;
-    bool printCMIR = false;
-    bool printITG = false;
     bool printASM = false;
 };
 
@@ -33,7 +31,7 @@ int main(int argc, char **argv) {
     }
 
     std::string filename = argv[1];
-    std::string destname = "output.o";
+    std::string destname = std::format("{}.s", filename);
 
     for (int i = 2; i < argc; ++i) {
         std::string_view arg = argv[i];
@@ -48,10 +46,6 @@ int main(int argc, char **argv) {
             config.optimize = true;
         } else if (arg == "--print-mir") {
             config.printMIR = true;
-        } else if (arg == "--print-cmir") {
-            config.printCMIR = true;
-        } else if (arg == "--print-itg") {
-            config.printITG = true;
         } else if (arg == "--print-asm") {
             config.printASM = true;
         } else if (arg == "-o") {
@@ -93,7 +87,7 @@ int main(int argc, char **argv) {
     int totalErrors = noErr + parser.numOfErrors;
 
     if (totalErrors > 0) {
-        std::cout << "Build failed with " << totalErrors << " error(s)\n";
+        std::cerr << "Build failed with " << totalErrors << " error(s)\n";
         return -1;
     }
 
@@ -102,24 +96,18 @@ int main(int argc, char **argv) {
 
     RISCV::LowerPass lp(prog->getModule());
     lp.lower();
-    
-    if (config.printMIR) lp.print(std::cout);
-    
+
     RISCV::RegAlloc allocator(lp.getModule());
     allocator.allocate();
-    
-    if (config.printITG) allocator.printITFGraph(std::cout);
-
-    if (config.printCMIR) lp.print(std::cout);
 
     RISCV::FramePass fp(lp.getModule());
     fp.run();
 
-    lp.print(std::cout);
-    
-    std::ofstream outfile("prog.s");
+    if (config.printMIR) lp.print(std::cout);
+
+    std::ofstream outfile(destname);
     RISCV::Emitter emitter(lp.getModule(), outfile);
-    
+
     if (config.printASM) emitter.emit();
 
     return 0;

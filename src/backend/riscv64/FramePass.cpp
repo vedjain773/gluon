@@ -4,14 +4,14 @@
 using namespace RISCV;
 using size_t = std::size_t;
 
-FramePass::FramePass(mModule *mmod)
-    :mmod(mmod) {}
+FramePass::FramePass(mModule *mmod) :
+    mmod(mmod) {}
 
 void FramePass::calcOffsets(mFunc *mfunc) {
-    int offset = 16;  
-    std::vector<StackSlot*> &ss = mfunc->getStackSlots();
+    int offset = 16;
+    std::vector<StackSlot *> &ss = mfunc->getStackSlots();
 
-    for (auto &slot: ss) {
+    for (auto &slot : ss) {
         TypeKind *sType = slot->getType();
 
         if (offset % sType->align != 0) {
@@ -31,9 +31,54 @@ void FramePass::calcOffsets(mFunc *mfunc) {
     mfunc->setFrameSize(offset);
 }
 
+void FramePass::expand(mFunc *mfunc) {
+    for (auto &mblock: mfunc->getBlocks()) {
+        for (auto &minst: mblock->getInsts()) {
+            Code code = minst->getOpCode();
+            TypeKind *intType = getType("int");
+
+            auto isLoadStore = [](Code code) {
+                switch (code) {
+                    case Code::LB:
+                    case Code::LH:
+                    case Code::LA:
+                    case Code::LW:
+                    case Code::LD: return true;
+
+                    case Code::SB:
+                    case Code::SH:
+                    case Code::SW:
+                    case Code::SD: return true;
+
+                    default: return false;
+                }
+            };
+
+            if (isLoadStore(code) && minst->getOperand(1)->getOpkind() != OpKind::MemOperand) {
+                //assuming operand has already been coloured
+                PhyReg *reg = dynamic_cast<PhyReg*>(minst->getOperand(1));
+                minst->setOperand(1, MemOperand::Create(intType, reg->getReg(), 0));
+                continue;
+            }
+
+            if (code != Code::P_LA) continue;
+            if (minst->getOperand(1)->getOpkind() != OpKind::MemOperand) continue;
+
+            MemOperand *mem = dynamic_cast<MemOperand*>(minst->getOperand(1));
+            Reg reg = mem->getBase();
+            int offset = mem->getOffset();
+
+            minst->setOpCode(Code::ADDI);
+            minst->setOperand(1, PhyReg::Create(reg));
+            minst->setOperand(2, Immediate::Create(offset, getType("int")));
+        }
+    }
+}
+
 void FramePass::run() {
-    for (auto &func: mmod->getFuncs()) {
+    for (auto &func : mmod->getFuncs()) {
         calcOffsets(func.get());
+        expand(func.get());
 
         func->addPrologue();
         func->addEpilogue();

@@ -1,7 +1,7 @@
 #ifndef LOWER_H
 #define LOWER_H
 
-#include "backend/riscv64/mModule.hpp"
+#include "backend/mModule.hpp"
 #include "IR/Module.hpp"
 
 #include <unordered_map>

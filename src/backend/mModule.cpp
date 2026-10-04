@@ -1,8 +1,8 @@
-#include "backend/riscv64/mModule.hpp"
+#include "backend/mModule.hpp"
 
 using namespace RISCV;
 
-mModule::mModule(Module &mod): 
+mModule::mModule(Module &mod) :
     name(mod.getName()) {}
 
 mModule *mModule::Create(Module &mod) {
@@ -21,7 +21,7 @@ std::vector<std::unique_ptr<mFunc>> &mModule::getFuncs() {
 void mModule::print(std::ostream &os) {
     os << std::format(";Module: {}\n\n", name);
 
-    for (auto &func: functions) {
+    for (auto &func : functions) {
         func->print(os);
     }
 }

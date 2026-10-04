@@ -3,7 +3,7 @@
 
 void CodegenVis::initModule(const std::string &fileName) {
     module = std::move(std::make_unique<Module>(fileName));
-    builder = std::move(std::make_unique<IRBuilder>(module.get()) ); 
+    builder = std::move(std::make_unique<IRBuilder>(module.get()));
 }
 
 void CodegenVis::insertName(const std::string &name, AllocaInst *alloca) {
@@ -12,7 +12,7 @@ void CodegenVis::insertName(const std::string &name, AllocaInst *alloca) {
 
 Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
     auto &[left, right, op, type] = opconfig;
-    IRBuilder *Bldr = builder.get(); 
+    IRBuilder *Bldr = builder.get();
 
     switch (op) {
         case Operators::PLUS: {

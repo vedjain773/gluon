@@ -1,7 +1,6 @@
 build/
 out/
 *.o
-tests/
 *.c
 !tests/*.c
 .clang-format-ignore

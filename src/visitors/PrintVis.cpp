@@ -57,8 +57,7 @@ void PrintVisitor::visitAddressExpr(AddressExpr &addressexpr) {
 }
 
 void PrintVisitor::visitSizeOfExpr(SizeOfExpr &sizeofexpr) {
-    std::cout << getIndent() << "|-Sizeof(" << sizeofexpr.argType->name
-              << ")\n";
+    std::cout << getIndent() << "|-Sizeof(" << sizeofexpr.argType->name << ")\n";
 }
 
 void PrintVisitor::visitUnaryExpr(UnaryExpr &unaryexpr) {
@@ -111,8 +110,7 @@ void PrintVisitor::visitBlockStmt(BlockStmt &blockstmt) {
     depth += 1;
 
     for (auto &stmt : blockstmt.statements) {
-        if (stmt != nullptr)
-            stmt->accept(*this);
+        if (stmt != nullptr) stmt->accept(*this);
     }
 
     depth -= 1;

@@ -1,37 +1,65 @@
 #include "frontend/scanner/Token.hpp"
-#include <iostream>
 #include <array>
+#include <iostream>
 
 std::unordered_map<std::string, TokenType> keywords = {
-    {"int", TokenType::INT},           {"uint8_t", TokenType::UINT8},
-    {"uint16_t", TokenType::UINT16},   {"char", TokenType::CHAR},
-    {"void", TokenType::VOID},         {"if", TokenType::IF},
-    {"else", TokenType::ELSE},         {"while", TokenType::WHILE},
-    {"return", TokenType::RETURN},     {"break", TokenType::BREAK},
-    {"continue", TokenType::CONTINUE}, {"sizeof", TokenType::SIZEOF}};
+    {"int", TokenType::INT},     {"uint8_t", TokenType::UINT8},     {"uint16_t", TokenType::UINT16},
+    {"char", TokenType::CHAR},   {"void", TokenType::VOID},         {"if", TokenType::IF},
+    {"else", TokenType::ELSE},   {"while", TokenType::WHILE},       {"return", TokenType::RETURN},
+    {"break", TokenType::BREAK}, {"continue", TokenType::CONTINUE}, {"sizeof", TokenType::SIZEOF}};
 
-constexpr std::array<std::string, 41> TokenTypeNames {
+constexpr std::array<std::string, 41> TokenTypeNames{
     // keywords
-    "INT", "UINT8", "UINT16", "CHAR", "VOID", "IF", "ELSE", "WHILE",
-    "RETURN", "BREAK", "CONTINUE", "SIZEOF",
+    "INT",
+    "UINT8",
+    "UINT16",
+    "CHAR",
+    "VOID",
+    "IF",
+    "ELSE",
+    "WHILE",
+    "RETURN",
+    "BREAK",
+    "CONTINUE",
+    "SIZEOF",
 
     // unary
-    "BANG", "AMPERSAND",
+    "BANG",
+    "AMPERSAND",
 
     // operators
-    "PLUS", "MINUS", "ASTERISK", "SLASH", "MODULUS",
-    "EQUALS", "LESS_THAN", "GREATER_THAN",
+    "PLUS",
+    "MINUS",
+    "ASTERISK",
+    "SLASH",
+    "MODULUS",
+    "EQUALS",
+    "LESS_THAN",
+    "GREATER_THAN",
 
-    "EQUALS_EQUALS", "BANG_EQUALS", "LESS_EQUALS", "GREATER_EQUALS",
+    "EQUALS_EQUALS",
+    "BANG_EQUALS",
+    "LESS_EQUALS",
+    "GREATER_EQUALS",
 
-    "AND", "OR",
+    "AND",
+    "OR",
 
     // delimiters
-    "LEFT_CURLY", "RIGHT_CURLY", "LEFT_ROUND", "RIGHT_ROUND", "LEFT_SQUARE",
-    "RIGHT_SQUARE", "COMMA", "SEMICOLON",
+    "LEFT_CURLY",
+    "RIGHT_CURLY",
+    "LEFT_ROUND",
+    "RIGHT_ROUND",
+    "LEFT_SQUARE",
+    "RIGHT_SQUARE",
+    "COMMA",
+    "SEMICOLON",
 
     // literals
-    "IDENTIFIER", "INTEGER", "CHARACTER", "STRING",
+    "IDENTIFIER",
+    "INTEGER",
+    "CHARACTER",
+    "STRING",
 
     "END_OF_FILE",
 };
@@ -63,6 +91,5 @@ std::string Token::getTokenStr() {
 }
 
 void Token::printToken(tabulate::Table &table) {
-    table.add_row(
-        {lexeme, getTokenStr(), std::to_string(line), std::to_string(column)});
+    table.add_row({lexeme, getTokenStr(), std::to_string(line), std::to_string(column)});
 }

@@ -21,6 +21,8 @@ class mInst {
     virtual ~mInst() = default;
 
     Code getOpCode();
+    void setOpCode(const Code &opcode);
+
     mBlock* getParent();
 
     unsigned getNumOperands();

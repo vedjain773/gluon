@@ -1,15 +1,17 @@
 #ifndef FRAMEPASS_H
 #define FRAMEPASS_H
 
-#include "backend/riscv64/mModule.hpp"
-#include "backend/riscv64/mFunc.hpp"
+#include "backend/mModule.hpp"
+#include "backend/mFunc.hpp"
 
 namespace RISCV {
 
 class FramePass {
   private:
     mModule *mmod;
+    
     void calcOffsets(mFunc *func); 
+    void expand(mFunc *func);
 
   public:
     FramePass(mModule *mmod);

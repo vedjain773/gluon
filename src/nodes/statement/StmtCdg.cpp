@@ -8,8 +8,7 @@ void BlockStmt::codegen(CodegenVis &cdgvis) {
     for (size_t i = 0; i < statements.size(); i++) {
         statements[i]->codegen(cdgvis);
 
-        if (statements[i]->isTerminator())
-            break;
+        if (statements[i]->isTerminator()) break;
     }
 }
 
@@ -30,7 +29,7 @@ void IfStmt::codegen(CodegenVis &cdgvis) {
 
     auto mergeBB = BasicBlock::CreateDetached("if.after");
     auto elseBB = BasicBlock::CreateDetached("if.else");
- 
+
     BasicBlock *mergeRaw = mergeBB.get();
     BasicBlock *elseRaw = elseBB.get();
 
@@ -108,11 +107,11 @@ void WhileStmt::codegen(CodegenVis &cdgvis) {
 }
 
 void BreakStmt::codegen(CodegenVis &cdgvis) {
-    //TBD 
+    // TBD
 }
 
 void ContinueStmt::codegen(CodegenVis &cdgvis) {
-    //TBD 
+    // TBD
 }
 
 void ReturnStmt::codegen(CodegenVis &cdgvis) {

@@ -1,7 +1,7 @@
 #ifndef MBLOCK_H
 #define MBLOCK_H
 
-#include "backend/riscv64/mInst.hpp"
+#include "backend/mInst.hpp"
 #include "IR/BasicBlock.hpp"
 #include <vector>
 #include <memory>

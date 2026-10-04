@@ -1,7 +1,8 @@
 #ifndef EMITTER_H
 #define EMITTER_H
 
-#include "backend/riscv64/mModule.hpp"
+#include "backend/mModule.hpp"
+#include <vector>
 
 namespace RISCV {
 
@@ -10,6 +11,8 @@ class Emitter {
     mModule *module;
     std::ostream &os;
 
+    std::vector<mBlock*> blockIDs;
+    unsigned getId(mBlock* block);
     std::string getInstStr(const Code &code);
 
     void emitFunc(mFunc *func);

@@ -1,7 +1,7 @@
 #ifndef MMODULE_H
 #define MMODULE_H
 
-#include "backend/riscv64/mFunc.hpp"
+#include "backend/mFunc.hpp"
 #include "IR/Module.hpp"
 
 namespace RISCV {
