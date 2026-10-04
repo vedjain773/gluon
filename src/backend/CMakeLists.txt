@@ -7,4 +7,5 @@ target_sources(gluon PRIVATE
     riscv64/mFunc.cpp
     riscv64/mModule.cpp
     riscv64/RegAlloc.cpp
+    riscv64/FramePass.cpp
 ) 

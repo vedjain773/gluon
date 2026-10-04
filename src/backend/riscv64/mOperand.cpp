@@ -38,8 +38,29 @@ void VirtReg::print(std::ostream &os) {
 
 //---
 
+MemOperand::MemOperand(TypeKind *sType, const Reg &base, int offset)
+    :mOperand(OpKind::MemOperand, sType), offset(offset), base(base) {}
+
+MemOperand *MemOperand::Create(TypeKind *sType, const Reg &base, int offset) {
+    return new MemOperand(sType, base, offset);
+}
+
+Reg MemOperand::getBase() {
+    return base;
+}
+
+void MemOperand::setOffset(int offset) {
+    this->offset = offset;
+}
+
+void MemOperand::print(std::ostream &os) {
+    os << std::format("[{}, {}]", offset, regToStr(base)); 
+}
+
+//---
+
 StackSlot::StackSlot(unsigned id, TypeKind *stype)
-    :mOperand(OpKind::StackSlot, stype), id(id) {}
+    :MemOperand(stype, Reg::S0, 0), id(id) {}
 
 StackSlot *StackSlot::Create(unsigned id, TypeKind *stype) {
     return new StackSlot(id, stype);
@@ -48,10 +69,6 @@ StackSlot *StackSlot::Create(unsigned id, TypeKind *stype) {
 unsigned StackSlot::getSlotId() { return id; }
 
 unsigned StackSlot::getSlotSize() { return opType->size; }
-
-void StackSlot::print(std::ostream &os) {
-    os << std::format("ss{} ", id);
-}
 
 //---
 

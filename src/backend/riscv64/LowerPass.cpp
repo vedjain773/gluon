@@ -24,6 +24,9 @@ void LowerPass::lowerFunc(Func *func) {
         currFunc->appendBlock(std::move(mblock));
     }
 
+    auto mEpi = std::make_unique<mBlock>("epi", currFunc);
+    currFunc->appendBlock(std::move(mEpi));
+
     for (auto &bb: func->getBlocks()) lowerBlock(bb.get());
 }
 
@@ -31,7 +34,6 @@ void LowerPass::lowerBlock(BasicBlock *bb) {
     currBlock = blockMap[bb];
 
     for (auto &pred: bb->getPredecessors()) currBlock->addPred(blockMap[pred]); 
-
     for (auto &inst: bb->getInsts()) lowerInst(inst.get());
 }
 
@@ -86,7 +88,7 @@ void LowerPass::lowerInst(Inst *inst) {
 mOperand *LowerPass::materialize(mOperand *oper) {
     OpKind opkind = oper->getOpkind();
 
-    if (opkind == OpKind::Immediate || opkind == OpKind::StackSlot) {
+    if (opkind == OpKind::Immediate || opkind == OpKind::MemOperand) {
         TypeKind *type = oper->getType();
         mOperand *virtReg = newVirtReg(type);
         emit(Code::LI, {virtReg, oper});
@@ -290,7 +292,9 @@ void LowerPass::handleRet(Inst *inst) {
     Code opc = operand->getOpkind() == OpKind::Immediate ? Code::LI : Code::MV;
 
     emit(opc, {PhyReg::Create(Reg::A0), operand});
-    emit(Code::RET, {});
+
+    emitBr(Code::J, nullptr, getEpilogue());
+    emitRet();
 }
 
 //---
@@ -335,6 +339,15 @@ void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
     currBlock->appendInst(std::move(inst)); 
 }
 
+void LowerPass::emitRet() {
+    mBlock *epiBlock = getEpilogue(); 
+    epiBlock->remRet(); 
+
+    std::vector<mOperand*> retOpers = {};
+    auto inst = std::make_unique<mInst>(Code::RET, epiBlock, retOpers);
+    epiBlock->appendInst(std::move(inst));
+}
+
 mOperand *LowerPass::genOpInst(const Code &code, std::initializer_list<mOperand*> opers,
          TypeKind *type)
 {
@@ -354,6 +367,12 @@ mOperand *LowerPass::genAddr(Value *value) {
 
     emit(Code::P_LA, {addrHolder, addr});
     return addrHolder;
+}
+
+
+mBlock *LowerPass::getEpilogue() {
+    mBlock *epiBlock = currFunc->getBlocks().back().get();
+    return epiBlock->getName() == "epi" ? epiBlock : nullptr;
 }
 
 //---

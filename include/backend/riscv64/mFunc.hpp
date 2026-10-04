@@ -19,6 +19,8 @@ class mFunc {
     std::vector<std::unique_ptr<mBlock>> blocks;
     std::vector<StackSlot*> stackSlots;
 
+    int frameSize = 16;
+
   public:
     mFunc(Func &func, mModule *parent);
 
@@ -26,7 +28,13 @@ class mFunc {
     mModule *getParent();
 
     unsigned getNextSlotId();
+    std::vector<StackSlot*> &getStackSlots();
     void insertSlot(StackSlot *slot);
+
+    void setFrameSize(unsigned size);
+
+    void addPrologue();
+    void addEpilogue();
 
     mBlock* appendBlock(std::unique_ptr<mBlock> bb);
     mBlock* getEntryBlock();

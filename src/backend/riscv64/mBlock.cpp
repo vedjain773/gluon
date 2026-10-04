@@ -5,12 +5,19 @@ using namespace RISCV;
 mBlock::mBlock(BasicBlock &bb, mFunc *parent)
     :name(bb.getName()), parent(parent) {}
 
+mBlock::mBlock(const std::string &blockName, mFunc *parent)
+    :name(blockName), parent(parent) {}
+
 std::string mBlock::getName() { return name; }
 
 mFunc *mBlock::getParent() { return parent; }
 
 void mBlock::appendInst(std::unique_ptr<mInst> inst) {
     instructions.push_back(std::move(inst));
+}
+
+void mBlock::appendAtTop(std::unique_ptr<mInst> inst) {
+    instructions.insert(instructions.begin(), std::move(inst));
 }
 
 std::vector<std::unique_ptr<mInst>> &mBlock::getInsts() {
@@ -28,6 +35,11 @@ void mBlock::addPred(mBlock *bb) {
 
 void mBlock::addSucc(mBlock *bb) {
     succs.push_back(bb);
+}
+
+void mBlock::remRet() {
+    if (!instructions.empty() && instructions.back()->getOpCode() == Code::RET)
+        instructions.pop_back();
 }
 
 void mBlock::print(std::ostream &os) {

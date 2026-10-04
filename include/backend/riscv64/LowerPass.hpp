@@ -46,9 +46,12 @@ class LowerPass {
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
+    void emitRet();
 
     mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);
     mOperand *genAddr(Value *value);
+
+    mBlock *getEpilogue();
 
   public:
     LowerPass (Module *module);

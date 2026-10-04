@@ -23,11 +23,13 @@ class mBlock {
 
   public:
     mBlock(BasicBlock &bb, mFunc* parent);
+    mBlock(const std::string &blockName, mFunc *parent);
 
     std::string getName();
     mFunc* getParent();
 
     void appendInst(std::unique_ptr<mInst> inst);
+    void appendAtTop(std::unique_ptr<mInst> inst);
     std::vector<std::unique_ptr<mInst>> &getInsts();
 
     std::vector<mBlock*>& getPreds();
@@ -36,6 +38,7 @@ class mBlock {
     void addPred(mBlock *bb);
     void addSucc(mBlock *bb);
 
+    void remRet();
     void print(std::ostream& os);
 };
 
