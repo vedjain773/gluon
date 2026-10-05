@@ -192,6 +192,8 @@ void RegAlloc::colour() {
 
         if (found) {
             vregStack.push(node);
+            for (auto &vreg: workingITG[node]) remEdge(node, vreg);
+            
             interference.erase(node);
         } else {
             break;

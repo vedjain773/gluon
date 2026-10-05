@@ -97,8 +97,16 @@ int main(int argc, char **argv) {
     RISCV::LowerPass lp(prog->getModule());
     lp.lower();
 
+#ifdef PRINT_MIR
+    lp.print(std::cout);      
+#endif
+
     RISCV::RegAlloc allocator(lp.getModule());
     allocator.allocate();
+
+#ifdef PRINT_ITG
+    allocator.printITFGraph(std::cout);      
+#endif
 
     RISCV::FramePass fp(lp.getModule());
     fp.run();

@@ -10,7 +10,9 @@ class FramePass {
   private:
     mModule *mmod;
     
-    void calcOffsets(mFunc *func); 
+    void calcOffsets(mFunc *func);
+    void handlePLAmem(mInst *minst);
+
     void expand(mFunc *func);
 
   public:

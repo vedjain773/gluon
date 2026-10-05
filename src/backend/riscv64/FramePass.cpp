@@ -31,11 +31,20 @@ void FramePass::calcOffsets(mFunc *mfunc) {
     mfunc->setFrameSize(offset);
 }
 
+void FramePass::handlePLAmem(mInst *minst) {
+    MemOperand *mem = dynamic_cast<MemOperand*>(minst->getOperand(1));
+    Reg reg = mem->getBase();
+    int offset = mem->getOffset();
+
+    minst->setOpCode(Code::ADDI);
+    minst->setOperand(1, PhyReg::Create(reg));
+    minst->setOperand(2, Immediate::Create(offset, getType("int")));
+}
+
 void FramePass::expand(mFunc *mfunc) {
     for (auto &mblock: mfunc->getBlocks()) {
         for (auto &minst: mblock->getInsts()) {
             Code code = minst->getOpCode();
-            TypeKind *intType = getType("int");
 
             auto isLoadStore = [](Code code) {
                 switch (code) {
@@ -57,20 +66,15 @@ void FramePass::expand(mFunc *mfunc) {
             if (isLoadStore(code) && minst->getOperand(1)->getOpkind() != OpKind::MemOperand) {
                 //assuming operand has already been coloured
                 PhyReg *reg = dynamic_cast<PhyReg*>(minst->getOperand(1));
-                minst->setOperand(1, MemOperand::Create(intType, reg->getReg(), 0));
+                minst->setOperand(1, MemOperand::Create(getType("int"), reg->getReg(), 0));
                 continue;
             }
 
+            mInst *minstRaw = minst.get();
+
             if (code != Code::P_LA) continue;
-            if (minst->getOperand(1)->getOpkind() != OpKind::MemOperand) continue;
-
-            MemOperand *mem = dynamic_cast<MemOperand*>(minst->getOperand(1));
-            Reg reg = mem->getBase();
-            int offset = mem->getOffset();
-
-            minst->setOpCode(Code::ADDI);
-            minst->setOperand(1, PhyReg::Create(reg));
-            minst->setOperand(2, Immediate::Create(offset, getType("int")));
+            if (minst->getOperand(1)->getOpkind() != OpKind::MemOperand) continue; 
+            handlePLAmem(minstRaw);
         }
     }
 }

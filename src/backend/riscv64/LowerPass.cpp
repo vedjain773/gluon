@@ -260,7 +260,7 @@ void LowerPass::handleGEP(Inst *inst) {
 
     for (int i = 0; i < numIndices; i++) {
         mOperand *index = materialize(handleValue(indices[i]));
-        mOperand *sizeImm = Immediate::Create(currType->size, intType);
+        mOperand *sizeImm = materialize(Immediate::Create(currType->size, intType));
 
         mOperand *mulres = genOpInst(Code::MUL, {index, sizeImm}, intType);
         mOperand *addres = genOpInst(Code::ADD, {offset, mulres}, intType);
@@ -384,8 +384,9 @@ mOperand *LowerPass::genOpInst(const Code &code, std::initializer_list<mOperand 
 
 mOperand *LowerPass::genAddr(Value *value) {
     mOperand *addr = handleAddr(value);
-    mOperand *addrHolder = newVirtReg(value->getType());
+    if (addr->getOpkind() == OpKind::VirtualReg) return addr;
 
+    mOperand *addrHolder = newVirtReg(value->getType());
     emit(Code::P_LA, {addrHolder, addr});
     return addrHolder;
 }
