@@ -18,6 +18,8 @@ class mModule {
     mFunc *appendFunc(std::unique_ptr<mFunc> func);
     std::vector<std::unique_ptr<mFunc>> &getFuncs();
 
+    mFunc *getFunc(const std::string &name);
+
     void print(std::ostream &os);
 };
     

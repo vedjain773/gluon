@@ -19,6 +19,7 @@ struct CIConfig {
     bool printIR = false;
     bool printMIR = false;
     bool printASM = false;
+    bool nc = false;
 };
 
 int main(int argc, char **argv) {
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
     CIConfig config;
 
     if (argc < 2) {
-        std::cerr << "Usage: quark <src> [flags] [-o <dest>]\n";
+        std::cerr << "Usage: gluon <src> [flags] [-o <dest>]\n";
         return 1;
     }
 
@@ -48,6 +49,8 @@ int main(int argc, char **argv) {
             config.printMIR = true;
         } else if (arg == "--print-asm") {
             config.printASM = true;
+        } else if (arg == "--no-compile") {
+            config.nc = true;
         } else if (arg == "-o") {
             if (++i >= argc) {
                 std::cerr << "error: -o requires an argument\n";
@@ -91,8 +94,11 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    
     prog->codegen();
     if (config.printIR) prog->printIR();
+
+    if (config.nc) return 0;
 
     RISCV::LowerPass lp(prog->getModule());
     lp.lower();

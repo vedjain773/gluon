@@ -37,6 +37,7 @@ class LowerPass {
     void handleLoad(Inst *inst);
     void handleStore(Inst *inst);
     void handleGEP(Inst *inst);
+    void handleCall(Inst *inst);
 
     void handleUBr(Inst *inst);
     void handleCBr(Inst *inst);
@@ -46,12 +47,14 @@ class LowerPass {
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
+    void emitCall(const std::string &name);
     void emitRet();
 
     mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);
     mOperand *genAddr(Value *value);
 
     mBlock *getEpilogue();
+    void reset();
 
   public:
     LowerPass (Module *module);

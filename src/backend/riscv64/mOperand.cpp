@@ -1,4 +1,5 @@
 #include "backend/riscv64/mOperand.hpp"
+#include "utils/Scope.hpp"
 #include <array>
 
 using namespace RISCV;
@@ -83,12 +84,16 @@ unsigned StackSlot::getSlotSize() {
 
 //---
 
-PhyReg::PhyReg(Reg reg) :
-    mOperand(OpKind::PhysicalReg),
+PhyReg::PhyReg(Reg reg, TypeKind *type) :
+    mOperand(OpKind::PhysicalReg, type),
     reg(reg) {}
 
 PhyReg *PhyReg::Create(Reg reg) {
-    return new PhyReg(reg);
+    return new PhyReg(reg, ::getType("int*"));
+}
+
+PhyReg *PhyReg::Create(Reg reg, TypeKind *type) {
+    return new PhyReg(reg, type);
 }
 
 Reg PhyReg::getReg() {

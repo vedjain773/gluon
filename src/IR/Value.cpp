@@ -50,6 +50,10 @@ Arg *Arg::Create(TypeKind *type, const std::string &name, Func *F, unsigned argN
     return new Arg(type, name, F, argNo);
 }
 
+unsigned Arg::getArgNo() {
+    return argNo;
+}
+
 //---
 
 TypeKind *getVoidTy() {

@@ -164,7 +164,6 @@ class StoreInst: public Inst {
 class CallInst: public Inst {
   private:
     Func *callee;
-    std::vector<Arg*> callArgs;
     CallInst(Func *callee, std::vector<Value*> args, const std::string &name);
 
   public:

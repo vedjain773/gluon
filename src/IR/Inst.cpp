@@ -255,16 +255,14 @@ void StoreInst::print(std::ostream &os) {
 
 CallInst::CallInst(Func *callee, std::vector<Value *> args, const std::string &name) :
     Inst(OpCode::CALL, callee->getReturnType(), args, name),
-    callee(callee) {
-    unsigned i = 0;
-    for (auto &arg : args) {
-        callArgs.push_back(Arg::Create(arg->getType(), arg->getName(), callee, i));
-        i++;
-    }
-}
+    callee(callee) {}
 
 CallInst *CallInst::Create(Func *callee, std::vector<Value *> args, const std::string &name) {
     return new CallInst(callee, args, name);
+}
+
+Func *CallInst::getCallee() {
+    return callee;
 }
 
 void CallInst::print(std::ostream &os) {

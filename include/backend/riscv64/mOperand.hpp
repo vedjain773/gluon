@@ -24,6 +24,7 @@ enum class Code: unsigned {
     LI, LB, LH, LA, LW, LD,
     SB, SH, SW, SD,
     BEQZ, BNEZ, RET, J,
+    CALL,
     NOP,
     P_LA
 };
@@ -97,10 +98,11 @@ class StackSlot: public MemOperand {
 class PhyReg: public mOperand {
   private:
     Reg reg; 
-    PhyReg(Reg reg);
+    PhyReg(Reg reg, TypeKind *type);
   
   public:
     static PhyReg *Create(Reg reg);
+    static PhyReg *Create(Reg reg, TypeKind *type);
     Reg getReg();
 
     void print(std::ostream &os);

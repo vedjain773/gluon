@@ -8,6 +8,8 @@
 namespace RISCV {
 
 class mBlock;
+class mFunc;
+class mModule;
 
 class mInst {
   private:
@@ -23,7 +25,7 @@ class mInst {
     Code getOpCode();
     void setOpCode(const Code &opcode);
 
-    mBlock* getParent();
+    mBlock *getParent();
 
     unsigned getNumOperands();
     mOperand *getOperand(unsigned i);
@@ -37,11 +39,22 @@ class mInst {
 
 class mBrInst: public mInst {
   private:
-    mBlock* label;
+    mBlock *label;
 
   public:
     mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label);
     mBlock *getBlock();
+    void print(std::ostream &os);
+};
+
+class mCallInst: public mInst {
+  private:
+    mFunc *callee;
+
+  public:
+    mCallInst(mBlock *parent, const std::string &funcName);
+    mFunc *getFunc();
+
     void print(std::ostream &os);
 };
 

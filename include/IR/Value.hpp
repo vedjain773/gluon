@@ -58,6 +58,8 @@ class Arg: public Value {
   public:
     Arg(TypeKind *type, const std::string &name, Func *F, unsigned argNo);
     static Arg *Create(TypeKind *type, const std::string &name, Func *F, unsigned argNo);
+
+    unsigned getArgNo();
 };
 
 TypeKind *getVoidTy();

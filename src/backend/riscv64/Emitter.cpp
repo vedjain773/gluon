@@ -3,10 +3,10 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 28> codeNames = {
+constexpr std::array<std::string, 29> codeNames = {
     "neg",  "addi", "add",  "sub",  "mul", "div", "rem", "sgt", "slt", "seqz",
     "snez", "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
-    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "nop", "p_la"};
+    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","nop", "p_la"};
 
 Emitter::Emitter(mModule *module, std::ostream &os) :
     module(module),
@@ -26,16 +26,18 @@ std::string Emitter::getInstStr(const Code &opcode) {
 }
 
 void Emitter::emit() {
-    os << ".text\n";
+    os << std::format("{0: <4}.text\n", " ");
 
     for (auto &func : module->getFuncs())
         emitFunc(func.get());
 }
 
 void Emitter::emitFunc(mFunc *func) {
-    os << std::format(".globl {0}\n{0}:\n", func->getName());
+    std::string funcName = func->getName();
 
-    blockIDs.clear();
+    os << std::format(".globl {}\n", funcName);
+    os << std::format(".type {0}, @function\n\n{0}:\n", funcName);
+
     for (auto &block : func->getBlocks())
         blockIDs.push_back(block.get());
 
@@ -66,11 +68,23 @@ void Emitter::emitInst(mInst *inst) {
         if (i != numOpers - 1) os << ", ";
     }
 
+    emitBr(inst, opc);
+    emitCall(inst);
+}
+
+void Emitter::emitBr(mInst *inst, Code opc) {
     mBrInst *mbrinst = dynamic_cast<mBrInst *>(inst);
     if (mbrinst != nullptr) {
         if (opc != Code::J) os << ", ";
 
         os << std::format(".LBB{}", getId(mbrinst->getBlock()));
+    }
+}
+
+void Emitter::emitCall(mInst *inst) {
+    mCallInst *mcallinst = dynamic_cast<mCallInst *>(inst);
+    if (mcallinst != nullptr) {
+        os << mcallinst->getFunc()->getName();
     }
 }
 

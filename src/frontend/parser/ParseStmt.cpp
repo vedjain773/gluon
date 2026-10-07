@@ -79,6 +79,8 @@ std::unique_ptr<Statement> Parser::ParseReturnStmt() {
         Result = std::make_unique<ReturnStmt>(std::move(retexpr));
     } else {
         auto retexpr = ParseExpr();
+        if (retexpr == nullptr) return nullptr;
+
         Result = std::make_unique<ReturnStmt>(std::move(retexpr));
     }
 

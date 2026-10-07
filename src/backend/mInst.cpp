@@ -1,13 +1,15 @@
 #include "backend/mInst.hpp"
 #include "backend/mBlock.hpp"
+#include "backend/mFunc.hpp"
+#include "backend/mModule.hpp"
 #include <format>
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 28> codeNames = {
+constexpr std::array<std::string, 29> codeNames = {
     "NEG",  "ADDI", "ADD",  "SUB",  "MUL", "DIV", "REM", "SGT", "SLT", "SEQZ",
     "SNEZ", "MV",   "LI",   "LB",   "LH",  "LA",  "LW",  "LD",  "SB",  "SH",
-    "SW",   "SD",   "BEQZ", "BNEZ", "RET", "J",   "NOP", "P_LA"};
+    "SW",   "SD",   "BEQZ", "BNEZ", "RET", "J",   "CALL","NOP", "P_LA"};
 
 std::string RISCV::codeToStr(const Code &code) {
     return codeNames[static_cast<unsigned>(code)];
@@ -143,4 +145,21 @@ void mBrInst::print(std::ostream &os) {
     }
 
     os << std::format(".L{}", label->getName());
+}
+
+//---
+
+mCallInst::mCallInst(mBlock *parent, const std::string &funcName) :
+    mInst(Code::CALL, parent, {}) {
+  
+    mModule *mod = parent->getParent()->getParent();
+    callee = mod->getFunc(funcName);
+}
+
+mFunc *mCallInst::getFunc() {
+    return callee;
+}
+
+void mCallInst::print(std::ostream &os) {
+    os << std::format("{} {}", codeToStr(Code::CALL), callee->getName());
 }

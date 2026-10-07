@@ -18,6 +18,14 @@ std::vector<std::unique_ptr<mFunc>> &mModule::getFuncs() {
     return functions;
 }
 
+mFunc *mModule::getFunc(const std::string &name) {
+    for (auto &func: functions) {
+        if (func->getName() == name) return func.get();
+    }
+
+    return nullptr;
+}
+
 void mModule::print(std::ostream &os) {
     os << std::format(";Module: {}\n\n", name);
 

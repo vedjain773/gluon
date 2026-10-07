@@ -13,8 +13,10 @@ mModule *LowerPass::getModule() {
 }
 
 void LowerPass::lower() {
-    for (auto &func : module->getFuncs())
+    for (auto &func : module->getFuncs()) {
         lowerFunc(func.get());
+        reset();
+    }
 }
 
 void LowerPass::lowerFunc(Func *func) {
@@ -97,6 +99,10 @@ void LowerPass::lowerInst(Inst *inst) {
             handleRet(inst);
             break;
 
+        case OpCode::CALL:
+            handleCall(inst);
+            break;
+
         default:
             return;
     }
@@ -143,6 +149,14 @@ mOperand *LowerPass::handleValue(Value *value) {
         case ValueKind::Instruction: {
             return insertReg(value);
         } break;
+        
+        case ValueKind::Argument: {
+            Arg *arg = dynamic_cast<Arg *>(value);
+            unsigned regNo = 10 + arg->getArgNo();
+            TypeKind *type = arg->getType();
+
+            return PhyReg::Create(static_cast<Reg>(regNo), type);
+        } break;
 
         default:
             return nullptr;
@@ -150,8 +164,15 @@ mOperand *LowerPass::handleValue(Value *value) {
 }
 
 mOperand *LowerPass::handleAddr(Value *value) {
+
+    auto getReg = [&](Arg *arg) {
+        Reg reg = static_cast<Reg>(10 + arg->getArgNo());
+        return PhyReg::Create(reg);
+    };
+
     if (stackSlotTable.count(value) != 0) return stackSlotTable[value];
     else if (virtualRegTable.count(value) != 0) return virtualRegTable[value];
+    else if (Arg *arg = dynamic_cast<Arg*>(value)) return getReg(arg);
     else return nullptr;
 }
 
@@ -319,6 +340,27 @@ void LowerPass::handleRet(Inst *inst) {
     emitRet();
 }
 
+void LowerPass::handleCall(Inst *inst) {
+    CallInst *callinst = dynamic_cast<CallInst*>(inst);
+    std::vector<Value *> &args = inst->getOperands(); 
+    unsigned aId = 10;
+
+    for (auto &arg: args) {
+        Reg reg = static_cast<Reg>(aId++);
+        mOperand *oper;
+
+        if (isPointerType(arg->getType())) oper = genAddr(arg);
+        else oper = materialize(handleValue(arg));
+
+        emit(Code::MV, {PhyReg::Create(reg), oper});
+    }
+    
+    emitCall(callinst->getCallee()->getName());
+    mOperand *result = insertReg(inst);
+
+    emit(Code::MV, {result, PhyReg::Create(Reg::A0)});
+}
+
 //---
 
 void LowerPass::handleUBr(Inst *inst) {
@@ -361,6 +403,11 @@ void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
     currBlock->appendInst(std::move(inst));
 }
 
+void LowerPass::emitCall(const std::string &name) {
+    auto inst = std::make_unique<mCallInst>(currBlock, name);
+    currBlock->appendInst(std::move(inst));
+}
+
 void LowerPass::emitRet() {
     mBlock *epiBlock = getEpilogue();
     epiBlock->remRet();
@@ -384,7 +431,7 @@ mOperand *LowerPass::genOpInst(const Code &code, std::initializer_list<mOperand 
 
 mOperand *LowerPass::genAddr(Value *value) {
     mOperand *addr = handleAddr(value);
-    if (addr->getOpkind() == OpKind::VirtualReg) return addr;
+    if (addr->getOpkind() != OpKind::MemOperand) return addr;
 
     mOperand *addrHolder = newVirtReg(value->getType());
     emit(Code::P_LA, {addrHolder, addr});
@@ -394,6 +441,18 @@ mOperand *LowerPass::genAddr(Value *value) {
 mBlock *LowerPass::getEpilogue() {
     mBlock *epiBlock = currFunc->getBlocks().back().get();
     return epiBlock->getName() == "epi" ? epiBlock : nullptr;
+}
+
+void LowerPass::reset() {
+    blockMap.clear();
+    virtualRegTable.clear();
+    stackSlotTable.clear();
+}
+
+//---
+
+void LowerPass::print(std::ostream &os) {
+    mmod->print(os);
 }
 
 //---
@@ -449,10 +508,4 @@ Code RISCV::getLoadCode(mOperand *oper) {
         default:
             return Code::LD;
     }
-}
-
-//---
-
-void LowerPass::print(std::ostream &os) {
-    mmod->print(os);
 }

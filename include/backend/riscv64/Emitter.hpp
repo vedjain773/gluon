@@ -19,6 +19,9 @@ class Emitter {
     void emitBlock(mBlock *block);
 
     void emitInst(mInst *inst);
+    void emitBr(mInst *inst, Code code);
+    void emitCall(mInst *inst);
+
     void emitOper(mOperand *oper);
 
   public:
