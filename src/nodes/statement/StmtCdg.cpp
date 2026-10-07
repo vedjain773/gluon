@@ -5,11 +5,13 @@ void ExprStmt::codegen(CodegenVis &cdgvis) {
 }
 
 void BlockStmt::codegen(CodegenVis &cdgvis) {
+    cdgvis.pushScope();
     for (size_t i = 0; i < statements.size(); i++) {
         statements[i]->codegen(cdgvis);
 
         if (statements[i]->isTerminator()) break;
     }
+    cdgvis.popScope();
 }
 
 void IfStmt::codegen(CodegenVis &cdgvis) {
@@ -41,7 +43,9 @@ void IfStmt::codegen(CodegenVis &cdgvis) {
 
     Bldr->setInsertPoint(thenRaw);
 
+    cdgvis.pushScope();
     body->codegen(cdgvis);
+    cdgvis.popScope();
 
     if (Bldr->getInsertBlock()->getTerminator() == nullptr) {
         Bldr->createBr(mergeRaw);
@@ -96,7 +100,9 @@ void WhileStmt::codegen(CodegenVis &cdgvis) {
     func->insertAtEnd(std::move(bodyBB));
     Bldr->setInsertPoint(bodyRaw);
 
+    cdgvis.pushScope();
     body->codegen(cdgvis);
+    cdgvis.popScope();
 
     if (Bldr->getInsertBlock()->getTerminator() == nullptr) {
         Bldr->createBr(condRaw);

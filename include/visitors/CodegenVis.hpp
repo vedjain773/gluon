@@ -22,7 +22,7 @@ struct OpConfig {
 
 class CodegenVis {
   private: 
-    std::unordered_map<std::string, AllocaInst *> table;
+      std::vector<std::unordered_map<std::string, AllocaInst *>> table;
 
   public:
     std::unique_ptr<Module> module;
@@ -35,7 +35,11 @@ class CodegenVis {
     Value *handlePtrArith(const OpConfig &opconfig);
 
     void clearTable();
-    AllocaInst *lookup(std::string name);
+
+    void pushScope();
+    void popScope();
+
+    AllocaInst *lookup(const std::string &name);
 };
 
 #endif

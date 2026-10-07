@@ -26,6 +26,7 @@ void FuncDef::codegen(CodegenVis &cdgvis) {
 
     BasicBlock *BB = BasicBlock::Create("entry", func);
     Bldr->setInsertPoint(BB);
+    cdgvis.pushScope();
 
     size_t i = 0;
     Prototype *proto = prototype.get();
@@ -41,4 +42,5 @@ void FuncDef::codegen(CodegenVis &cdgvis) {
     }
 
     funcBody->codegen(cdgvis);
+    cdgvis.popScope();
 }

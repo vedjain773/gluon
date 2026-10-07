@@ -1,13 +1,15 @@
 #include "visitors/CodegenVis.hpp"
 #include "nodes/Expression.hpp"
 
+#include <cassert>
+
 void CodegenVis::initModule(const std::string &fileName) {
     module = std::move(std::make_unique<Module>(fileName));
     builder = std::move(std::make_unique<IRBuilder>(module.get()));
 }
 
 void CodegenVis::insertName(const std::string &name, AllocaInst *alloca) {
-    table.insert({name, alloca});
+    table.back().insert({name, alloca});
 }
 
 Value *CodegenVis::handleBinOp(const OpConfig &opconfig) {
@@ -88,6 +90,19 @@ void CodegenVis::clearTable() {
     table.clear();
 }
 
-AllocaInst *CodegenVis::lookup(std::string name) {
-    return table[name];
+void CodegenVis::pushScope() {
+    table.emplace_back();
+}
+
+void CodegenVis::popScope() {
+    assert(!table.empty());
+    table.pop_back();
+}
+
+AllocaInst *CodegenVis::lookup(const std::string &name) {
+    for (int i = table.size() - 1; i >= 0; i--) {
+        if (table[i].count(name)) return table[i][name]; 
+    }
+    
+    return nullptr;
 }
