@@ -10,6 +10,7 @@
 #include "IR/IRBuilder.hpp"
 
 #include <memory>
+#include <stack>
 
 enum class Operators;
 
@@ -22,11 +23,13 @@ struct OpConfig {
 
 class CodegenVis {
   private: 
-      std::vector<std::unordered_map<std::string, AllocaInst *>> table;
+    std::vector<std::unordered_map<std::string, AllocaInst *>> table;
 
   public:
     std::unique_ptr<Module> module;
     std::unique_ptr<IRBuilder> builder;
+    
+    std::stack<std::pair<BasicBlock*, BasicBlock*>> loopStack;
 
     void initModule(const std::string &fileName);
     void insertName(const std::string &name, AllocaInst *alloca);

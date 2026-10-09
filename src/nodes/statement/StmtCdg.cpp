@@ -82,6 +82,8 @@ void WhileStmt::codegen(CodegenVis &cdgvis) {
     BasicBlock *bodyRaw = bodyBB.get();
     BasicBlock *afterRaw = afterBB.get();
 
+    cdgvis.loopStack.push(std::make_pair(afterRaw, condRaw));
+
     Bldr->createBr(condRaw);
 
     Bldr->setInsertPoint(condRaw);
@@ -110,14 +112,26 @@ void WhileStmt::codegen(CodegenVis &cdgvis) {
 
     func->insertAtEnd(std::move(afterBB));
     Bldr->setInsertPoint(afterRaw);
+
+    cdgvis.loopStack.pop();
 }
 
 void BreakStmt::codegen(CodegenVis &cdgvis) {
-    // TBD
+    IRBuilder *Bldr = (cdgvis.builder).get();
+
+    if (!cdgvis.loopStack.empty()) {
+        auto [afterBB, condBB] = cdgvis.loopStack.top();
+        Bldr->createBr(afterBB); 
+    }
 }
 
 void ContinueStmt::codegen(CodegenVis &cdgvis) {
-    // TBD
+    IRBuilder *Bldr = (cdgvis.builder).get();
+
+    if (!cdgvis.loopStack.empty()) {
+        auto [afterBB, condBB] = cdgvis.loopStack.top();
+        Bldr->createBr(condBB);
+    }
 }
 
 void ReturnStmt::codegen(CodegenVis &cdgvis) {

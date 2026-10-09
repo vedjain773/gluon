@@ -54,6 +54,7 @@ Also check out [Quark](https://github.com/vedjain773/quark)!
 - Pointers
 - Arrays (including multi-dimensional arrays)
 - Control flow through if-else blocks and while loops
+- Break and Continue statements
 - Blocks and nested scopes (variable shadowing)
 - Comparison and arithmetic operators
 - Function calls
