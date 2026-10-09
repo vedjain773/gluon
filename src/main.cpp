@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
     }
 
     std::string filename = argv[1];
-    std::string destname = std::format("{}.s", filename);
+
+    std::string destname = std::format("{}.s", filename.substr(0, filename.size() - 2));
 
     for (int i = 2; i < argc; ++i) {
         std::string_view arg = argv[i];

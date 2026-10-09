@@ -18,6 +18,7 @@ class mFunc {
 
     std::vector<std::unique_ptr<mBlock>> blocks;
     std::vector<StackSlot*> stackSlots;
+    std::vector<Reg> calleeSavedRegs;
 
     int frameSize = 16;
 
@@ -32,6 +33,8 @@ class mFunc {
     void insertSlot(StackSlot *slot);
 
     void setFrameSize(unsigned size);
+    void addCalleeSavedReg(Reg reg);
+    unsigned getCSRsize();
 
     void addPrologue();
     void addEpilogue();

@@ -2,6 +2,7 @@ build/
 out/
 *.o
 *.c
+!examples/*.c
 !tests/*.c
 .clang-format-ignore
 gluon

@@ -1,6 +1,7 @@
 #include "backend/riscv64/RegAlloc.hpp"
 #include "backend/riscv64/mOperand.hpp"
 
+#include <iostream>
 #include <algorithm>
 #include <stack>
 
@@ -24,6 +25,11 @@ void RegAlloc::run(mFunc *func) {
     performLiveAnalysis();
     createITFGraph();
     colour();
+}
+
+bool RegAlloc::isCalleeSaved(Reg reg) {
+    unsigned regid = static_cast<unsigned>(reg);
+    return (regid > 17 && regid < 28) || reg == Reg::S1; 
 }
 
 void RegAlloc::addEdge(VirtReg *v1, VirtReg *v2) {
@@ -80,9 +86,18 @@ std::set<Reg> RegAlloc::getRegDiff(const std::set<Reg> &s1, const std::set<Reg> 
     return result;
 }
 
+void RegAlloc::addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg) { 
+    auto it = std::find(liveAcrossCalls.begin(), liveAcrossCalls.end(), vreg);
+    if (it == liveAcrossCalls.end()) return;
+    
+    adjRegs.insert({Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6});
+}
+
 RegAlloc::RegAlloc(mModule *module) :
     module(module) {
-    availReg = {Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6};
+    availReg = {Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
+        Reg::S1, Reg::S2, Reg::S3, Reg::S4, Reg::S5, Reg::S6, Reg::S7, Reg::S8,
+        Reg::S9, Reg::S10, Reg::S11};
 }
 
 void RegAlloc::createITFGraph() {
@@ -111,10 +126,14 @@ void RegAlloc::createITFGraph() {
                 }
             }
 
+            if (inst->getOpCode() == Code::CALL) {
+                for (auto &vreg: liveNow) liveAcrossCalls.push_back(vreg);
+            } 
+
             for (VirtReg *defReg : defs)
                 liveNow.erase(defReg);
             for (VirtReg *useReg : uses)
-                liveNow.insert(useReg);
+                liveNow.insert(useReg); 
         }
     }
 }
@@ -212,11 +231,17 @@ void RegAlloc::colour() {
         for (auto &neighbour : workingITG[curr]) {
             if (regMap.contains(neighbour)) adjRegs.insert(regMap[neighbour]);
         }
+        
+        addTempRegs(adjRegs, curr); 
 
         std::set<Reg> validRegs = getRegDiff(availRegSet, adjRegs);
         if (validRegs.empty()) continue;
 
-        regMap[curr] = *(validRegs.begin());
+        Reg reg = regMap[curr] = *(validRegs.begin());
+
+        if (isCalleeSaved(reg)) {
+            func->addCalleeSavedReg(reg); 
+        }
     }
 
     replace(func);

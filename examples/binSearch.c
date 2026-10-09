@@ -1,0 +1,28 @@
+int binSearch(int* int_p, int size, int target) {
+    int left = 0;
+    int right = size - 1;
+    int mid = 0;
+
+    while (left <= right) {
+        mid = (left + right) / 2;
+        int currEle = int_p[mid];
+
+        if (currEle == target) return mid;
+        else if (currEle > target) right = mid - 1;
+        else if (currEle < target) left = mid + 1;
+    }
+
+    return -1;
+}
+
+int main() {
+    int arr[5];
+
+    arr[0] = 1;
+    arr[1] = 3;
+    arr[2] = 5;
+    arr[3] = 7;
+    arr[4] = 9;
+
+    return binSearch(&arr[0], 5, 10);
+}

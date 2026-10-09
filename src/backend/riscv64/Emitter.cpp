@@ -26,7 +26,7 @@ std::string Emitter::getInstStr(const Code &opcode) {
 }
 
 void Emitter::emit() {
-    os << std::format("{0: <4}.text\n", " ");
+    os << ".text\n";
 
     for (auto &func : module->getFuncs())
         emitFunc(func.get());

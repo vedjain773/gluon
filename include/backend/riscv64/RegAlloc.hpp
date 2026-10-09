@@ -22,6 +22,8 @@ class RegAlloc {
     std::map<mBlock*, std::set<VirtReg*>> liveInMap;
     std::map<mBlock*, std::set<VirtReg*>> liveOutMap;
 
+    std::vector<VirtReg*> liveAcrossCalls;
+
     std::vector<mBlock*> blockVec;
 
     std::set<VirtReg*> getDiff(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
@@ -36,6 +38,8 @@ class RegAlloc {
     std::vector<Reg> availReg;
     std::map<VirtReg*, Reg> regMap;
 
+    bool isCalleeSaved(Reg reg);
+
     void addEdge(VirtReg *v1, VirtReg *v2);
     void remEdge(VirtReg *v1, VirtReg *v2);
 
@@ -43,6 +47,8 @@ class RegAlloc {
     void createITFGraph();
     void colour();
     
+    void addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg);
+
     void replace(mFunc *func);
     void run(mFunc *func);
 

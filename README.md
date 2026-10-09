@@ -42,6 +42,8 @@ The compiler currently consists of a custom frontend and a RISC-V backend. The f
 
 The RISC-V backend then lowers this IR into a simpler machine-level representation. It models virtual registers, physical registers, immediates, and stack locations, and currently handles integer arithmetic, comparisons, memory operations, address generation, and function returns.
 
+The backend makes use of a Chaitin-style graph colouring register allocator where in virtual registers from the MIR are represented as nodes in an interference graph which are then subsequently coloured through iterative graph simplification and colouring.
+
 The backend emits RISC-V 64-bit assembly which can be assembled with the GNU RISC-V toolchain and executed using QEMU. The generated code is intentionally straightforward for now; register allocation and most optimizations have not been implemented yet.
 
 Also check out [Quark](https://github.com/vedjain773/quark)!
