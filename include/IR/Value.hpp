@@ -3,15 +3,32 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 #include <format>
 #include "utils/Scope.hpp"
 
 class Func;
+class Inst;
+class Value;
 
 enum class ValueKind {
     Constant,
     Instruction,
     Argument
+};
+
+class Use {
+  private:
+    Inst *inst;
+    unsigned no;
+    Use(Inst *inst, unsigned no);
+
+  public:
+    static Use *Create(Inst *inst, unsigned no);
+    Inst *getInst();
+    unsigned getOpNo();
+
+    void replaceUseWith(Value *value);
 };
 
 class Value {
@@ -20,13 +37,27 @@ class Value {
     TypeKind *type;
     ValueKind vkind;
 
+    std::vector<Use *> valUses;
+
   protected:
     Value(TypeKind *type, ValueKind vkind, const std::string &name);
 
   public:
     virtual ~Value() = default;
+
+    void addUse(Inst *inst, unsigned no);
+    void addUse(Use *use); 
+
+    void removeUse(Inst *inst, unsigned idx);
+    void replaceAllUsesWith(Value *value);
+
+    std::vector<Use*> &uses();
+    std::vector<Inst*> users();
+    
     ValueKind getValueKind();
     TypeKind *getType();
+
+    void setName(const std::string &name);
     std::string getName();
 
     virtual void printAsOperand(std::ostream &os) {

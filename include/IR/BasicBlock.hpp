@@ -15,6 +15,8 @@ class BasicBlock {
     std::vector<BasicBlock*> predecessors;              
     std::vector<BasicBlock*> successors;
 
+    std::vector<PHINode*> phiNodes;
+
   public:
     BasicBlock(const std::string &name, Func *parent);
     static BasicBlock *Create(const std::string &name, Func *parent = nullptr);
@@ -26,11 +28,15 @@ class BasicBlock {
 
     void appendInst(std::unique_ptr<Inst> inst);
     void insertInst(Inst *before, std::unique_ptr<Inst> inst);
+    void insertInstAtTop(std::unique_ptr<Inst> inst);
     void removeInst(Inst *inst);
 
     Inst *getFirstInst();
     Inst *getLastInst();
     std::vector<std::unique_ptr<Inst>> &getInsts();
+
+    void addPHI(PHINode *phinode);
+    std::vector<PHINode*> &phis();
 
     Inst *getTerminator();
     bool hasTerminator();
@@ -39,6 +45,12 @@ class BasicBlock {
     std::vector<BasicBlock*> &getSuccessors();
     void addPredecessor(BasicBlock *bb);
     void addSuccessor(BasicBlock *bb);
+
+    unsigned getNumPreds();
+    unsigned getNumSuccs();
+
+    bool hasNPreds(unsigned n);
+    bool hasNPredsOrMore(unsigned n);
 
     void print(std::ostream &os);
 };

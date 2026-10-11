@@ -31,6 +31,9 @@ enum class OpCode: unsigned {
     //Terminators
     RET, BR, BRC,
 
+    //PHI nodes
+    PHI,
+
     //Call
     CALL
 };
@@ -48,8 +51,10 @@ class Inst : public Value {
 
   public:
     OpCode getOpCode();
+
     BasicBlock *getParent();
     void setParent(BasicBlock *bb);
+    void eraseFromParent();
 
     unsigned getNumOperands();
     Value *getOperand(unsigned i);
@@ -197,6 +202,23 @@ class UnCondBrInst: public Inst {
     static UnCondBrInst *Create(BasicBlock *then);
     BasicBlock *getThenBlock();
 
+    void print(std::ostream &os);
+};
+
+class PHINode: public Inst {
+  private:
+    std::vector<std::pair<Value*, BasicBlock*>> pairs;
+    unsigned numEdges;
+
+    PHINode(TypeKind *type, unsigned numEdges, const std::string &name, BasicBlock *bb);
+
+  public:
+    static PHINode *Create(TypeKind *type, unsigned numEdges,
+            const std::string &name, BasicBlock *bb);
+  
+    std::vector<BasicBlock*> blocks();
+
+    void addIncoming(Value *value, BasicBlock *bb);
     void print(std::ostream &os);
 };
 

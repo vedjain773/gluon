@@ -6,9 +6,10 @@
 
 //---
 
-constexpr std::array<std::string, 24> opcodeNames{
+constexpr std::array<std::string, 25> opcodeNames{
     "not", "neg",  "add", "sub", "mul",  "div",    "rem",  "gt",    "gte", "lt", "lte", "eq",
-    "neq", "land", "lor", "gep", "zext", "alloca", "load", "store", "ret", "br", "br",  "call"};
+    "neq", "land", "lor", "gep", "zext", "alloca", "load", "store", "ret", "br", "br",  "phi",
+    "call"};
 
 std::string opcodeToStr(OpCode opcode) {
     return opcodeNames[static_cast<unsigned>(opcode)];
@@ -19,7 +20,14 @@ std::string opcodeToStr(OpCode opcode) {
 Inst::Inst(OpCode op, TypeKind *type, std::vector<Value *> ops, const std::string &name) :
     Value(type, ValueKind::Instruction, name),
     opcode(op),
-    operands(ops) {}
+    operands(ops) {
+
+    unsigned i = 0;
+    for (auto &operand: ops) {
+        operand->addUse(this, i);
+        i++;
+    }
+}
 
 OpCode Inst::getOpCode() {
     return opcode;
@@ -31,6 +39,15 @@ BasicBlock *Inst::getParent() {
 
 void Inst::setParent(BasicBlock *bb) {
     parent = bb;
+}
+
+void Inst::eraseFromParent() {
+    for (unsigned i = 0; i < operands.size(); ++i) {
+        if (!operands[i]) continue;
+        operands[i]->removeUse(this, i);
+    }
+
+    getParent()->removeInst(this); 
 }
 
 unsigned Inst::getNumOperands() {
@@ -324,6 +341,42 @@ BasicBlock *UnCondBrInst::getThenBlock() {
 
 void UnCondBrInst::print(std::ostream &os) {
     os << std::format("{} {}", opcodeToStr(OpCode::BR), then->getName());
+}
+
+//---
+
+PHINode::PHINode(TypeKind *type, unsigned numEdges, const std::string &name, BasicBlock *bb) :
+    Inst(OpCode::PHI, type, {}, name),
+    numEdges(numEdges) {
+
+    pairs.reserve(numEdges);
+    setParent(bb);
+}
+
+PHINode *PHINode::Create(TypeKind *type, unsigned numEdges,
+        const std::string &name, BasicBlock *bb) {
+    return new PHINode(type, numEdges, name, bb);
+}
+
+std::vector<BasicBlock*> PHINode::blocks() {
+    std::vector<BasicBlock*> bbs;
+    for (auto &[_, bb]: pairs) bbs.push_back(bb);
+
+    return bbs;
+}
+
+void PHINode::addIncoming(Value *value, BasicBlock *bb) {
+    pairs.push_back(std::make_pair(value, bb));
+}
+
+void PHINode::print(std::ostream &os) {
+    os << std::format("{} = {} {} ", getName(), opcodeToStr(OpCode::PHI), getType()->name);
+
+    for (auto &[value, bb]: pairs) {
+        os << "[";
+        value->printAsOperand(os);
+        os << std::format(", {}] ", bb->getName());
+    }
 }
 
 //---

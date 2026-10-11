@@ -12,7 +12,7 @@ do
     for mode in normal 
     do
         
-        ./gluon "$file" --print-asm -o out/prog.s 
+        ./gluon "$file" -o out/prog.s 
         label="[STD]"
 
         riscv64-linux-gnu-as out/prog.s -o out/prog.o

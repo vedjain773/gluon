@@ -91,6 +91,8 @@ AllocaInst *IRBuilder::createEntryAlloca(TypeKind *type, const std::string &name
 
     auto *instRaw = inst.get();
     BasicBlock *entry = currFunc->getEntryBlock();
+    inst->setParent(entry);
+
     entry->insertInst(entry->getFirstInst(), std::move(inst));
 
     return instRaw;

@@ -4,6 +4,9 @@
 #include "utils/Error.hpp"
 #include "utils/Scope.hpp"
 
+#include "IR/Opt.hpp"
+#include "IR/passes/Mem2Reg.hpp"
+
 #include "backend/riscv64/Emitter.hpp"
 #include "backend/riscv64/FramePass.hpp"
 #include "backend/riscv64/LowerPass.hpp"
@@ -18,7 +21,6 @@ struct CIConfig {
     bool printTokens = false;
     bool printIR = false;
     bool printMIR = false;
-    bool printASM = false;
     bool nc = false;
 };
 
@@ -48,8 +50,6 @@ int main(int argc, char **argv) {
             config.optimize = true;
         } else if (arg == "--print-mir") {
             config.printMIR = true;
-        } else if (arg == "--print-asm") {
-            config.printASM = true;
         } else if (arg == "--no-compile") {
             config.nc = true;
         } else if (arg == "-o") {
@@ -95,9 +95,17 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    
     prog->codegen();
-    if (config.printIR) prog->printIR();
+    
+    if (config.optimize) {
+        Opt optimizer(prog->getModule());
+        Mem2Reg promotePass;
+
+        optimizer.addPass(&promotePass);
+        optimizer.optimize();
+    }
+
+    if (config.printIR) prog->printIR(); 
 
     if (config.nc) return 0;
 
@@ -119,11 +127,10 @@ int main(int argc, char **argv) {
     fp.run();
 
     if (config.printMIR) lp.print(std::cout);
-
+ 
     std::ofstream outfile(destname);
     RISCV::Emitter emitter(lp.getModule(), outfile);
-
-    if (config.printASM) emitter.emit();
+    emitter.emit();
 
     return 0;
 }

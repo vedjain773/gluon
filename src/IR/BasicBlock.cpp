@@ -35,6 +35,7 @@ std::string BasicBlock::getName() {
 }
 
 void BasicBlock::appendInst(std::unique_ptr<Inst> inst) {
+    inst->setParent(this);
     instructions.push_back(std::move(inst));
 }
 
@@ -45,6 +46,11 @@ void BasicBlock::insertInst(Inst *before, std::unique_ptr<Inst> inst) {
     }
 
     instructions.insert(instructions.begin() + i, std::move(inst));
+}
+
+void BasicBlock::insertInstAtTop(std::unique_ptr<Inst> inst) {
+    inst->setParent(this);
+    instructions.insert(instructions.begin(), std::move(inst));
 }
 
 void BasicBlock::removeInst(Inst *inst) {
@@ -68,6 +74,17 @@ Inst *BasicBlock::getFirstInst() {
 Inst *BasicBlock::getLastInst() {
     if (instructions.size()) return instructions.back().get();
     else return nullptr;
+}
+
+void BasicBlock::addPHI(PHINode *phinode) {
+    phiNodes.push_back(phinode);
+
+    std::unique_ptr<PHINode> phiInst(phinode);
+    this->insertInstAtTop(std::move(phiInst));
+}
+
+std::vector<PHINode*> &BasicBlock::phis() {
+    return phiNodes;
 }
 
 Inst *BasicBlock::getTerminator() {
@@ -95,6 +112,22 @@ void BasicBlock::addPredecessor(BasicBlock *bb) {
 
 void BasicBlock::addSuccessor(BasicBlock *bb) {
     successors.push_back(bb);
+}
+
+unsigned BasicBlock::getNumPreds() {
+    return predecessors.size();
+}
+
+unsigned BasicBlock::getNumSuccs() {
+    return successors.size();
+}
+
+bool BasicBlock::hasNPreds(unsigned n) {
+    return predecessors.size() == n;
+}
+
+bool BasicBlock::hasNPredsOrMore(unsigned n) {
+    return predecessors.size() >= n;
 }
 
 void BasicBlock::print(std::ostream &os) {

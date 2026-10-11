@@ -5,4 +5,8 @@ target_sources(gluon PRIVATE
     IRBuilder.cpp
     Module.cpp
     Value.cpp
+
+    Opt.cpp
+    passes/Pass.cpp
+    passes/Mem2Reg.cpp
 )
