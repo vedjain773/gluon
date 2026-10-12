@@ -149,8 +149,7 @@ void CompInst::print(std::ostream &os) {
 
 GEPInst::GEPInst(TypeKind *type, Value *ptr, std::vector<Value *> idxList,
                  const std::string &name) :
-    Inst(OpCode::GEP, getResultType(idxList.size(), ptr->getType()), {ptr}, name),
-    idxList(idxList),
+    Inst(OpCode::GEP, getResultType(idxList.size(), ptr->getType()), getOps(ptr, idxList), name),
     srcType(type) {}
 
 TypeKind *GEPInst::getResultType(unsigned size, TypeKind *ptr) {
@@ -160,6 +159,13 @@ TypeKind *GEPInst::getResultType(unsigned size, TypeKind *ptr) {
     while (num-- > 0)
         currType = currType->to;
     return getPtrTo(currType->name);
+}
+
+std::vector<Value *> GEPInst::getOps(Value *ptr, std::vector<Value *> idxList) {
+    std::vector<Value *> ops = {ptr};
+    ops.insert(ops.begin() + 1, idxList.begin(), idxList.end());
+
+    return ops;
 }
 
 GEPInst *GEPInst::Create(TypeKind *type, Value *ptr, std::vector<Value *> idxList,
@@ -176,22 +182,27 @@ Value *GEPInst::getPointerOp() {
 }
 
 unsigned GEPInst::getNumIndices() {
-    return idxList.size();
+   return getNumOperands() - 1;
 }
 
-std::vector<Value *> &GEPInst::getIndices() {
+std::vector<Value *> GEPInst::getIndices() {
+    std::vector<Value *> idxList;
+    idxList.reserve(getNumIndices());
+
+    for (int i = 1; i < getNumOperands(); i++)
+        idxList.push_back(getOperand(i));
+
     return idxList;
 }
 
 void GEPInst::print(std::ostream &os) {
     os << std::format("{} = {} {}, ", getName(), opcodeToStr(OpCode::GEP), srcType->name);
-    getOperand(0)->printAsOperand(os);
-    os << ", ";
+    std::vector<Value *> &opList = getOperands();
 
-    for (auto &idx : idxList) {
-        idx->printAsOperand(os);
+    for (auto &oper : opList) {
+        oper->printAsOperand(os);
 
-        if (idx != idxList.back()) os << ", ";
+        if (oper != opList.back()) os << ", ";
     }
 }
 

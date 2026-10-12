@@ -102,10 +102,10 @@ class CompInst: public Inst {
 
 class GEPInst: public Inst {
   private:
-    std::vector<Value*> idxList;
     TypeKind *srcType;
-
     TypeKind *getResultType(unsigned size, TypeKind *ptr);
+    std::vector<Value *> getOps(Value *ptr, std::vector<Value *> idxList);
+
     GEPInst(TypeKind *type, Value *ptr, std::vector<Value*> idxList, const std::string &name);
 
   public:
@@ -116,7 +116,7 @@ class GEPInst: public Inst {
     Value *getPointerOp();
 
     unsigned getNumIndices();
-    std::vector<Value*> &getIndices();
+    std::vector<Value*> getIndices();
 
     void print(std::ostream &os);
 };
