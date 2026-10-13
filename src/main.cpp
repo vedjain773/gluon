@@ -6,6 +6,8 @@
 
 #include "IR/Opt.hpp"
 #include "IR/passes/Mem2Reg.hpp"
+#include "IR/passes/ConstantProp.hpp"
+#include "IR/passes/DeadBrPass.hpp"
 
 #include "backend/riscv64/Emitter.hpp"
 #include "backend/riscv64/FramePass.hpp"
@@ -93,8 +95,12 @@ int main(int argc, char **argv) {
     if (config.optimize) {
         Opt optimizer(irMod);
         Mem2Reg promotePass;
+        ConstantProp cpPass;
+        DeadBrPass dbPass;
 
         optimizer.addPass(&promotePass);
+        optimizer.addPass(&cpPass);
+        optimizer.addPass(&dbPass);
         optimizer.optimize();
     }
 

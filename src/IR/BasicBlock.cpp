@@ -106,12 +106,37 @@ std::vector<BasicBlock *> &BasicBlock::getSuccessors() {
 }
 
 void BasicBlock::addPredecessor(BasicBlock *bb) {
+    auto &preds = getPredecessors();
+    for (auto &pred: preds) 
+        if (pred == bb) return;
+
     predecessors.push_back(bb);
     bb->addSuccessor(this);
 }
 
+void BasicBlock::remPredecessor(BasicBlock *bb) {
+    unsigned i, num = getNumPreds();
+    for (i = 0; i < num; i++) {
+        if (predecessors[i] == bb) break;
+    }
+    
+    for (auto &node: phiNodes)
+        node->remBlock(bb);
+
+    predecessors.erase(predecessors.begin() + i);
+}
+
 void BasicBlock::addSuccessor(BasicBlock *bb) {
     successors.push_back(bb);
+}
+
+void BasicBlock::remSuccessor(BasicBlock *bb) {
+    unsigned i, num = getNumSuccs();
+    for (i = 0; i < num; i++) {
+        if (successors[i] == bb) break;
+    }
+
+    successors.erase(successors.begin() + i);
 }
 
 unsigned BasicBlock::getNumPreds() {

@@ -44,7 +44,9 @@ class BasicBlock {
     std::vector<BasicBlock*> &getPredecessors();
     std::vector<BasicBlock*> &getSuccessors();
     void addPredecessor(BasicBlock *bb);
+    void remPredecessor(BasicBlock *bb);
     void addSuccessor(BasicBlock *bb);
+    void remSuccessor(BasicBlock *bb);
 
     unsigned getNumPreds();
     unsigned getNumSuccs();

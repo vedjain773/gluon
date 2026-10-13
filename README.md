@@ -33,12 +33,18 @@ qemu-riscv64 ./output
 | --print-tokens    | Print tokens          |
 | --print-ast       | Print AST             |
 | --print-ir        | Print IR              |
+| --optimize        | Apply optimizations   |
 | --print-mir       | Print machine IR      |
 | --print-asm       | Print Risc-V64 assembly to a file |
 | -o                | Set destination file name |
 
 ## Compiler Features
 The compiler currently consists of a custom frontend and a RISC-V backend. The frontend lowers source programs into a typed, LLVM-inspired intermediate representation built around functions, basic blocks, and instructions.
+
+The compiler also makes use of LLVM-style passes to optimize the IR. These include:
+- Mem2Reg (similar to LLVM's mem2reg pass)
+- Constant Propagation
+- Dead Branch Removal
 
 The RISC-V backend then lowers this IR into a simpler machine-level representation. It models virtual registers, physical registers, immediates, and stack locations, and currently handles integer arithmetic, comparisons, memory operations, address generation, and function returns.
 

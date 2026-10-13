@@ -62,6 +62,7 @@ class Inst : public Value {
 
     std::vector<Value*> &getOperands();
 
+    bool isBinary();
     bool isTerminator();
 };
 
@@ -220,6 +221,7 @@ class PHINode: public Inst {
     std::vector<std::pair<Value*, BasicBlock*>> &getPairs();
 
     void addIncoming(Value *value, BasicBlock *bb);
+    void remBlock(BasicBlock *bb);
     void print(std::ostream &os);
 };
 

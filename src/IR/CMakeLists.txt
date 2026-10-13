@@ -7,6 +7,7 @@ target_sources(gluon PRIVATE
     Value.cpp
 
     Opt.cpp
-    passes/Pass.cpp
     passes/Mem2Reg.cpp
+    passes/ConstantProp.cpp
+    passes/DeadBrPass.cpp
 )

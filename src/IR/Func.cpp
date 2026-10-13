@@ -71,6 +71,15 @@ void Func::insertAtEnd(std::unique_ptr<BasicBlock> bb) {
     basicBlocks.push_back(std::move(bb));
 }
 
+void Func::removeBlock(BasicBlock *bb) {
+    unsigned i, num = basicBlocks.size();
+    for (i = 0; i < num; i++) {
+        if (basicBlocks[i].get() == bb) break; 
+    }
+
+    basicBlocks.erase(basicBlocks.begin() + i);
+}
+
 BasicBlock *Func::getEntryBlock() {
     return basicBlocks.front().get();
 };

@@ -66,6 +66,12 @@ std::vector<Value *> &Inst::getOperands() {
     return operands;
 }
 
+bool Inst::isBinary() {
+    unsigned opid = static_cast<unsigned>(opcode);
+
+    return 2 <= opid && opid <= 14;
+}
+
 bool Inst::isTerminator() {
     switch (opcode) {
         case OpCode::RET:
@@ -382,6 +388,17 @@ std::vector<std::pair<Value*, BasicBlock*>> &PHINode::getPairs() {
 
 void PHINode::addIncoming(Value *value, BasicBlock *bb) {
     pairs.push_back(std::make_pair(value, bb));
+}
+
+void PHINode::remBlock(BasicBlock *bb) {
+    unsigned i = 0;
+    for (auto &[_, block]: pairs) {
+        if (block == bb) break;
+        i++;
+    }
+
+    if (i == pairs.size()) return;
+    pairs.erase(pairs.begin() + i);
 }
 
 void PHINode::print(std::ostream &os) {
