@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+class PHINode;
+
 namespace RISCV {
 
 class mBlock;
@@ -44,6 +46,17 @@ class mBrInst: public mInst {
   public:
     mBrInst(Code opcode, mBlock *parent, mOperand *cond, mBlock *label);
     mBlock *getBlock();
+    void print(std::ostream &os);
+};
+
+class mPhiInst: public mInst {
+  private:
+    std::vector<std::pair<mOperand*, mBlock*>> pairs;
+
+  public:
+    mPhiInst(mOperand *inst, mBlock *parent, std::vector<std::pair<mOperand*, mBlock*>> pairs);
+
+    std::vector<std::pair<mOperand*, mBlock*>> &getPairs();
     void print(std::ostream &os);
 };
 

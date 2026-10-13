@@ -6,10 +6,10 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 29> codeNames = {
+constexpr std::array<std::string, 30> codeNames = {
     "NEG",  "ADDI", "ADD",  "SUB",  "MUL", "DIV", "REM", "SGT", "SLT", "SEQZ",
     "SNEZ", "MV",   "LI",   "LB",   "LH",  "LA",  "LW",  "LD",  "SB",  "SH",
-    "SW",   "SD",   "BEQZ", "BNEZ", "RET", "J",   "CALL","NOP", "P_LA"};
+    "SW",   "SD",   "BEQZ", "BNEZ", "RET", "J",   "CALL","NOP", "P_LA","P_PHI"};
 
 std::string RISCV::codeToStr(const Code &code) {
     return codeNames[static_cast<unsigned>(code)];
@@ -67,6 +67,7 @@ bool mInst::isDef(unsigned i) {
         case Code::LW:
         case Code::LD:
         case Code::P_LA:
+        case Code::P_PHI:
             return i == 0;
 
         default:
@@ -145,6 +146,30 @@ void mBrInst::print(std::ostream &os) {
     }
 
     os << std::format(".L{}", label->getName());
+}
+
+//---
+
+mPhiInst::mPhiInst(mOperand *inst, mBlock *parent,
+        std::vector<std::pair<mOperand*, mBlock*>> pairs):
+    mInst(Code::P_PHI, parent, {inst}),
+    pairs(pairs) {}
+
+std::vector<std::pair<mOperand*, mBlock*>> &mPhiInst::getPairs() {
+    return pairs;    
+}
+
+void mPhiInst::print(std::ostream &os) {
+    os << std::format("{} ", codeToStr(Code::P_PHI));
+
+    getOperand(0)->print(os);
+
+    for (auto &[op, block]: pairs) {
+        os << "[";
+        op->print(os);
+
+        os << std::format("{}] ", block->getName());
+    }
 }
 
 //---

@@ -99,6 +99,10 @@ void LowerPass::lowerInst(Inst *inst) {
             handleRet(inst);
             break;
 
+        case OpCode::PHI: 
+            handlePHI(inst);
+            break;
+
         case OpCode::CALL:
             handleCall(inst);
             break;
@@ -327,6 +331,25 @@ void LowerPass::handleStore(Inst *inst) {
 
 //---
 
+void LowerPass::handlePHI(Inst *inst) {
+    PHINode *phi = dynamic_cast<PHINode*>(inst);
+    mOperand *res = insertReg(inst);
+
+    std::vector<std::pair<Value*, BasicBlock*>> &opairs = phi->getPairs();
+    std::vector<std::pair<mOperand*, mBlock*>> pairs;
+
+    for (auto &[value, bblock]: opairs) {
+        mOperand *oper = handleValue(value);
+        mBlock *block = blockMap[bblock];
+
+        pairs.push_back(std::make_pair(oper, block));
+    }
+
+    emitPhi(res, pairs);
+}
+
+//---
+
 void LowerPass::handleRet(Inst *inst) {
     Value *value = inst->getOperand(0);
     if (value == nullptr) return;
@@ -406,6 +429,11 @@ void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
 void LowerPass::emitCall(const std::string &name) {
     auto inst = std::make_unique<mCallInst>(currBlock, name);
     currBlock->appendInst(std::move(inst));
+}
+
+void LowerPass::emitPhi(mOperand *inst, std::vector<std::pair<mOperand*, mBlock*>> pairs) {
+    auto phinst = std::make_unique<mPhiInst>(inst, currBlock, pairs);
+    currBlock->appendInst(std::move(phinst));
 }
 
 void LowerPass::emitRet() {

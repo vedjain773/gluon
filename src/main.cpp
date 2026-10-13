@@ -10,6 +10,7 @@
 #include "backend/riscv64/Emitter.hpp"
 #include "backend/riscv64/FramePass.hpp"
 #include "backend/riscv64/LowerPass.hpp"
+#include "backend/riscv64/PHIPass.hpp"
 #include "backend/riscv64/RegAlloc.hpp"
 
 #include <fstream>
@@ -40,19 +41,13 @@ int main(int argc, char **argv) {
     for (int i = 2; i < argc; ++i) {
         std::string_view arg = argv[i];
 
-        if (arg == "--print-tokens") {
-            config.printTokens = true;
-        } else if (arg == "--print-ast") {
-            config.printAST = true;
-        } else if (arg == "--print-ir") {
-            config.printIR = true;
-        } else if (arg == "--optimize") {
-            config.optimize = true;
-        } else if (arg == "--print-mir") {
-            config.printMIR = true;
-        } else if (arg == "--no-compile") {
-            config.nc = true;
-        } else if (arg == "-o") {
+        if (arg == "--print-tokens") config.printTokens = true;
+        else if (arg == "--print-ast") config.printAST = true;
+        else if (arg == "--print-ir") config.printIR = true;
+        else if (arg == "--optimize") config.optimize = true;
+        else if (arg == "--print-mir") config.printMIR = true;
+        else if (arg == "--no-compile") config.nc = true;
+        else if (arg == "-o") {
             if (++i >= argc) {
                 std::cerr << "error: -o requires an argument\n";
                 return 1;
@@ -83,10 +78,7 @@ int main(int argc, char **argv) {
 
     int noErr = prog->semAnalyse();
 
-    if (config.printAST) {
-        prog->printAST();
-        std::cout << "\n";
-    }
+    if (config.printAST) prog->printAST();
 
     int totalErrors = noErr + parser.numOfErrors;
 
@@ -106,11 +98,16 @@ int main(int argc, char **argv) {
     }
 
     if (config.printIR) prog->printIR(); 
-
+    
     if (config.nc) return 0;
 
     RISCV::LowerPass lp(prog->getModule());
     lp.lower();
+
+    if (config.optimize) {
+        RISCV::PhiPass phipass(lp.getModule());
+        phipass.run();
+    }
 
 #ifdef PRINT_MIR
     lp.print(std::cout);      

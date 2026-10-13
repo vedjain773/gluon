@@ -3,10 +3,10 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 29> codeNames = {
+constexpr std::array<std::string, 28> codeNames = {
     "neg",  "addi", "add",  "sub",  "mul", "div", "rem", "sgt", "slt", "seqz",
     "snez", "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
-    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","nop", "p_la"};
+    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","nop"};
 
 Emitter::Emitter(mModule *module, std::ostream &os) :
     module(module),
@@ -58,8 +58,12 @@ void Emitter::emitBlock(mBlock *block) {
 }
 
 void Emitter::emitInst(mInst *inst) {
-    os << std::format("{} ", getInstStr(inst->getOpCode()));
     Code opc = inst->getOpCode();
+    
+    unsigned opid = static_cast<unsigned>(opc);
+    if (opid > 27) return;
+
+    os << std::format("{} ", getInstStr(opc));
 
     unsigned numOpers = inst->getNumOperands();
     for (unsigned i = 0; i < numOpers; i++) {

@@ -26,7 +26,7 @@ enum class Code: unsigned {
     BEQZ, BNEZ, RET, J,
     CALL,
     NOP,
-    P_LA
+    P_LA, P_PHI
 };
 
 enum class Reg: unsigned {

@@ -30,6 +30,10 @@ class mBlock {
 
     void appendInst(std::unique_ptr<mInst> inst);
     void appendAtTop(std::unique_ptr<mInst> inst);
+    void insertPnel(std::unique_ptr<mInst> inst);
+
+    void removeInst(mInst *inst);
+
     std::vector<std::unique_ptr<mInst>> &getInsts();
 
     std::vector<mBlock*>& getPreds();

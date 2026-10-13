@@ -26,6 +26,22 @@ void mBlock::appendAtTop(std::unique_ptr<mInst> inst) {
     instructions.insert(instructions.begin(), std::move(inst));
 }
 
+void mBlock::insertPnel(std::unique_ptr<mInst> inst) {
+    instructions.insert(instructions.end() - 1, std::move(inst));
+}
+
+void mBlock::removeInst(mInst *inst) {
+    unsigned i;
+
+    for (i = 0; i < instructions.size(); i++) {
+        mInst *curr = instructions[i].get();
+        
+        if (curr == inst) break;
+    }
+
+    instructions.erase(instructions.begin() + i);
+}
+
 std::vector<std::unique_ptr<mInst>> &mBlock::getInsts() {
     return instructions;
 }

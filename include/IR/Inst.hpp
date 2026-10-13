@@ -217,6 +217,7 @@ class PHINode: public Inst {
             const std::string &name, BasicBlock *bb);
   
     std::vector<BasicBlock*> blocks();
+    std::vector<std::pair<Value*, BasicBlock*>> &getPairs();
 
     void addIncoming(Value *value, BasicBlock *bb);
     void print(std::ostream &os);

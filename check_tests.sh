@@ -5,7 +5,7 @@ passed=0
 
 echo -e "\033[K\e[34m[Testing Unoptimized IR]\e[0m:"
 
-for file in tests/debug/*.c
+for file in tests/*.c
 do
     expected=$(grep "EXPECTED:" "$file" | cut -d':' -f2 | xargs)
     
@@ -48,7 +48,7 @@ echo -e "\033[K\e[34m[Testing Optimized IR]\e[0m:"
 total_files=0
 passed=0
 
-for file in tests/opt/*.c
+for file in tests/*.c
 do
     expected=$(grep "EXPECTED:" "$file" | cut -d':' -f2 | xargs)
     

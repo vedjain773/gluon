@@ -3,7 +3,7 @@ out/
 *.o
 *.c
 !examples/*.c
-!tests/debug/*.c
+!tests/*.c
 tests/opt/
 .clang-format-ignore
 gluon

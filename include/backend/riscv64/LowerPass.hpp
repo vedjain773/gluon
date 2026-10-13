@@ -38,6 +38,7 @@ class LowerPass {
     void handleStore(Inst *inst);
     void handleGEP(Inst *inst);
     void handleCall(Inst *inst);
+    void handlePHI(Inst *inst);
 
     void handleUBr(Inst *inst);
     void handleCBr(Inst *inst);
@@ -48,6 +49,7 @@ class LowerPass {
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
     void emitCall(const std::string &name);
+    void emitPhi(mOperand *inst, std::vector<std::pair<mOperand*, mBlock*>> pairs);
     void emitRet();
 
     mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);

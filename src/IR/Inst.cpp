@@ -376,6 +376,10 @@ std::vector<BasicBlock*> PHINode::blocks() {
     return bbs;
 }
 
+std::vector<std::pair<Value*, BasicBlock*>> &PHINode::getPairs() {
+    return pairs;
+}
+
 void PHINode::addIncoming(Value *value, BasicBlock *bb) {
     pairs.push_back(std::make_pair(value, bb));
 }
