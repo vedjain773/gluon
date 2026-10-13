@@ -40,36 +40,36 @@ Value::Value(TypeKind *type, ValueKind vkind, const std::string &name) :
     vkind(vkind) {}
 
 void Value::addUse(Inst *inst, unsigned no) {
-    valUses.push_back(Use::Create(inst, no));
+    uses.push_back(Use::Create(inst, no));
 }
 
 void Value::addUse(Use *use) {
-    valUses.push_back(use);
+    uses.push_back(use);
 }
 
 void Value::replaceAllUsesWith(Value *value) {
-    for (auto &use: valUses) {
+    for (auto &use: uses) {
         use->replaceUseWith(value); 
     }
 }
 
 void Value::removeUse(Inst *inst, unsigned idx) {
-    for (auto it = valUses.begin(); it != valUses.end(); ++it) {
+    for (auto it = uses.begin(); it != uses.end(); ++it) {
         if ((*it)->getInst() == inst && (*it)->getOpNo() == idx) {
-            valUses.erase(it);
+            uses.erase(it);
             return;
         }
     }
 }
 
-std::vector<Use*> &Value::uses() {
-    return valUses;
+std::vector<Use*> &Value::getUses() {
+    return uses;
 }
 
-std::vector<Inst*> Value::users() {
+std::vector<Inst*> Value::getUsers() {
     std::vector<Inst*> users;
 
-    for (auto &use: valUses)
+    for (auto &use: uses)
         users.push_back(use->getInst());
 
     return users;

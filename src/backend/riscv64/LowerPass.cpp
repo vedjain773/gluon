@@ -30,6 +30,20 @@ void LowerPass::lowerFunc(Func *func) {
         blockMap.insert({bb.get(), mblock.get()});
         currFunc->appendBlock(std::move(mblock));
     }
+    
+    std::vector<Arg*> &args = func->getArgs();
+    mBlock *entry = currFunc->getEntryBlock();
+    currBlock = entry;
+
+    for (auto &arg: args) {
+        mOperand *argReg = insertReg(arg);
+        
+        unsigned regNo = 10 + arg->getArgNo();
+        TypeKind *type = arg->getType();
+
+        mOperand *phyreg = PhyReg::Create(static_cast<Reg>(regNo), type);
+        emit(Code::MV, {argReg, phyreg});
+    }
 
     auto mEpi = std::make_unique<mBlock>("epi", currFunc);
     currFunc->appendBlock(std::move(mEpi));
@@ -150,18 +164,11 @@ mOperand *LowerPass::handleValue(Value *value) {
             return Immediate::Create(cvalue, value->getType());
         } break;
 
-        case ValueKind::Instruction: {
+        case ValueKind::Instruction: 
+        case ValueKind::Argument: {
             return insertReg(value);
         } break;
         
-        case ValueKind::Argument: {
-            Arg *arg = dynamic_cast<Arg *>(value);
-            unsigned regNo = 10 + arg->getArgNo();
-            TypeKind *type = arg->getType();
-
-            return PhyReg::Create(static_cast<Reg>(regNo), type);
-        } break;
-
         default:
             return nullptr;
     }

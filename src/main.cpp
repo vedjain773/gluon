@@ -88,9 +88,10 @@ int main(int argc, char **argv) {
     }
 
     prog->codegen();
-    
+    Module *irMod = prog->getModule();
+
     if (config.optimize) {
-        Opt optimizer(prog->getModule());
+        Opt optimizer(irMod);
         Mem2Reg promotePass;
 
         optimizer.addPass(&promotePass);
@@ -101,11 +102,12 @@ int main(int argc, char **argv) {
     
     if (config.nc) return 0;
 
-    RISCV::LowerPass lp(prog->getModule());
+    RISCV::LowerPass lp(irMod);
     lp.lower();
+    RISCV::mModule *bdMod = lp.getModule();
 
     if (config.optimize) {
-        RISCV::PhiPass phipass(lp.getModule());
+        RISCV::PhiPass phipass(bdMod);
         phipass.run();
     }
 
@@ -113,20 +115,20 @@ int main(int argc, char **argv) {
     lp.print(std::cout);      
 #endif
 
-    RISCV::RegAlloc allocator(lp.getModule());
+    RISCV::RegAlloc allocator(bdMod);
     allocator.allocate();
 
 #ifdef PRINT_ITG
     allocator.printITFGraph(std::cout);      
 #endif
 
-    RISCV::FramePass fp(lp.getModule());
+    RISCV::FramePass fp(bdMod);
     fp.run();
 
     if (config.printMIR) lp.print(std::cout);
  
     std::ofstream outfile(destname);
-    RISCV::Emitter emitter(lp.getModule(), outfile);
+    RISCV::Emitter emitter(bdMod, outfile);
     emitter.emit();
 
     return 0;

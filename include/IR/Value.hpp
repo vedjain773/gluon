@@ -37,7 +37,7 @@ class Value {
     TypeKind *type;
     ValueKind vkind;
 
-    std::vector<Use *> valUses;
+    std::vector<Use *> uses;
 
   protected:
     Value(TypeKind *type, ValueKind vkind, const std::string &name);
@@ -51,8 +51,8 @@ class Value {
     void removeUse(Inst *inst, unsigned idx);
     void replaceAllUsesWith(Value *value);
 
-    std::vector<Use*> &uses();
-    std::vector<Inst*> users();
+    std::vector<Use*> &getUses();
+    std::vector<Inst*> getUsers();
     
     ValueKind getValueKind();
     TypeKind *getType();

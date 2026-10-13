@@ -16,7 +16,7 @@ bool isAllocaPromotable(AllocaInst *inst) {
     TypeKind *allocatedType = inst->getValType();
     if (isArrayType(allocatedType)) return false;
 
-    for (auto &use: inst->uses()) {
+    for (auto &use: inst->getUses()) {
         Inst *useInst = use->getInst();
         unsigned no = use->getOpNo();
 
@@ -201,7 +201,7 @@ BlockSet Mem2Reg::computeIDF(BlockVec &defSites) {
 
 BlockVec Mem2Reg::getDefSites(Value *allocainst) {
     BlockVec defsites;
-    for (Inst *U : allocainst->users()) {
+    for (Inst *U : allocainst->getUsers()) {
         StoreInst *SI = dynamic_cast<StoreInst*>(U);
 
         if (SI) defsites.push_back(SI->getParent());
@@ -213,7 +213,7 @@ BlockVec Mem2Reg::getDefSites(Value *allocainst) {
 std::map<BasicBlock *, StoreInst *> Mem2Reg::getBlockDefs(AllocaInst *allocainst) {
     std::map<BasicBlock *, StoreInst *> blockDefs;
 
-    for (Inst *U : allocainst->users()) {
+    for (Inst *U : allocainst->getUsers()) {
         if (StoreInst *SI = dynamic_cast<StoreInst*>(U)) blockDefs[SI->getParent()] = SI;
     }
 
