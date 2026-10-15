@@ -10,4 +10,5 @@ target_sources(gluon PRIVATE
     passes/Mem2Reg.cpp
     passes/ConstantProp.cpp
     passes/DeadBrPass.cpp
+    passes/OrphanPhi.cpp
 )

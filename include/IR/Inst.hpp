@@ -45,7 +45,7 @@ class Inst : public Value {
     OpCode opcode; 
     BasicBlock *parent;
     std::vector<Value*> operands;
-
+  
   protected:
     Inst(OpCode op, TypeKind *type, std::vector<Value*> ops, const std::string &name);
 
@@ -58,9 +58,11 @@ class Inst : public Value {
 
     unsigned getNumOperands();
     Value *getOperand(unsigned i);
-    void setOperand(unsigned i, Value *v);
-
     std::vector<Value*> &getOperands();
+    
+    void setOperand(unsigned i, Value *v);
+    void addOperand(Value *value);
+    void remOperand(unsigned i);
 
     bool isBinary();
     bool isTerminator();
@@ -221,7 +223,12 @@ class PHINode: public Inst {
     std::vector<std::pair<Value*, BasicBlock*>> &getPairs();
 
     void addIncoming(Value *value, BasicBlock *bb);
+    void updPair(unsigned i, Value *value);
     void remBlock(BasicBlock *bb);
+
+    std::pair<Value*, BasicBlock*> &getPair(unsigned id);
+    unsigned getNumEdges();
+
     void print(std::ostream &os);
 };
 

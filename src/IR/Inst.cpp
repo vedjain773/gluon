@@ -66,6 +66,24 @@ std::vector<Value *> &Inst::getOperands() {
     return operands;
 }
 
+void Inst::addOperand(Value *value) {
+    unsigned i = getNumOperands();
+    operands.push_back(value);
+    value->addUse(this, i);
+}
+
+void Inst::remOperand(unsigned i) {
+    getOperand(i)->removeUse(this, i);
+    operands.erase(operands.begin() + i);
+    
+    unsigned numOps = getNumOperands();
+
+    for (unsigned idx = i; idx < numOps; idx++) {
+        Use *use = operands[i]->getUse(this, i + 1);
+        use->setOpNo(i);
+    }
+}
+
 bool Inst::isBinary() {
     unsigned opid = static_cast<unsigned>(opcode);
 
@@ -386,8 +404,21 @@ std::vector<std::pair<Value*, BasicBlock*>> &PHINode::getPairs() {
     return pairs;
 }
 
+std::pair<Value*, BasicBlock*> &PHINode::getPair(unsigned id) {
+    return pairs[id];
+}
+
 void PHINode::addIncoming(Value *value, BasicBlock *bb) {
-    pairs.push_back(std::make_pair(value, bb));
+    addOperand(value);
+    pairs.push_back(std::make_pair(value, bb)); 
+}
+
+void PHINode::updPair(unsigned i, Value *value) {
+    pairs[i].first = value;    
+}
+
+unsigned PHINode::getNumEdges() {
+    return numEdges;
 }
 
 void PHINode::remBlock(BasicBlock *bb) {
@@ -399,6 +430,9 @@ void PHINode::remBlock(BasicBlock *bb) {
 
     if (i == pairs.size()) return;
     pairs.erase(pairs.begin() + i);
+    remOperand(i);
+
+    numEdges--; 
 }
 
 void PHINode::print(std::ostream &os) {

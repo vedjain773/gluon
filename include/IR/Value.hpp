@@ -28,6 +28,8 @@ class Use {
     Inst *getInst();
     unsigned getOpNo();
 
+    void setOpNo(unsigned no);
+
     void replaceUseWith(Value *value);
 };
 
@@ -46,7 +48,7 @@ class Value {
     virtual ~Value() = default;
 
     void addUse(Inst *inst, unsigned no);
-    void addUse(Use *use); 
+    Use *getUse(Inst *inst, unsigned no);
 
     void removeUse(Inst *inst, unsigned idx);
     void replaceAllUsesWith(Value *value);

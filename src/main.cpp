@@ -8,6 +8,7 @@
 #include "IR/passes/Mem2Reg.hpp"
 #include "IR/passes/ConstantProp.hpp"
 #include "IR/passes/DeadBrPass.hpp"
+#include "IR/passes/OrphanPhi.hpp"
 
 #include "backend/riscv64/Emitter.hpp"
 #include "backend/riscv64/FramePass.hpp"
@@ -68,9 +69,7 @@ int main(int argc, char **argv) {
     scanner.scanFile();
     scanner.scanProg();
 
-    if (config.printTokens) {
-        scanner.printTokens();
-    }
+    if (config.printTokens) scanner.printTokens();
 
     std::vector<Token> tokenlist = scanner.getTokenList();
 
@@ -97,10 +96,12 @@ int main(int argc, char **argv) {
         Mem2Reg promotePass;
         ConstantProp cpPass;
         DeadBrPass dbPass;
+        OrphanPhi opPass;
 
         optimizer.addPass(&promotePass);
         optimizer.addPass(&cpPass);
         optimizer.addPass(&dbPass);
+        optimizer.addPass(&opPass);
         optimizer.optimize();
     }
 

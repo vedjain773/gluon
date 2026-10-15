@@ -21,6 +21,10 @@ unsigned Use::getOpNo() {
     return no;
 }
 
+void Use::setOpNo(unsigned no) {
+    this->no = no;
+}
+
 void Use::replaceUseWith(Value *value) {
     Inst *user = inst;
     unsigned idx = no;
@@ -29,6 +33,8 @@ void Use::replaceUseWith(Value *value) {
     currValue->removeUse(inst, no);
 
     user->setOperand(idx, value);
+    if (PHINode *phi = dynamic_cast<PHINode*>(user)) phi->updPair(idx, value);
+
     value->addUse(user, idx);
 }
 
@@ -43,8 +49,13 @@ void Value::addUse(Inst *inst, unsigned no) {
     uses.push_back(Use::Create(inst, no));
 }
 
-void Value::addUse(Use *use) {
-    uses.push_back(use);
+Use *Value::getUse(Inst *inst, unsigned no) {
+    for (auto &use: uses) {
+        Inst *user = use->getInst();
+        unsigned opno = use->getOpNo();
+
+        if (user == inst && opno == no) return use;
+    }
 }
 
 void Value::replaceAllUsesWith(Value *value) {
