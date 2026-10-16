@@ -45,6 +45,17 @@ void mInst::setOperand(unsigned i, mOperand *operand) {
     operands[i] = operand;
 }
 
+void mInst::remOperand(mOperand *operand) {
+    unsigned numOpers = getNumOperands();
+
+    unsigned id;
+    for (id = 0; id < numOpers; id++) {
+        if (getOperand(id) == operand) break;
+    }
+
+    operands.erase(operands.begin() + id);
+}
+
 bool mInst::isDef(unsigned i) {
     switch (opcode) {
         case Code::ADD:

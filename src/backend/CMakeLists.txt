@@ -10,4 +10,5 @@ target_sources(gluon PRIVATE
     riscv64/RegAlloc.cpp
     riscv64/FramePass.cpp
     riscv64/PHIPass.cpp
+    riscv64/Peephole.cpp
 ) 

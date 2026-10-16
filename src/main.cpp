@@ -14,6 +14,7 @@
 #include "backend/riscv64/FramePass.hpp"
 #include "backend/riscv64/LowerPass.hpp"
 #include "backend/riscv64/PHIPass.hpp"
+#include "backend/riscv64/Peephole.hpp"
 #include "backend/riscv64/RegAlloc.hpp"
 
 #include <fstream>
@@ -112,6 +113,9 @@ int main(int argc, char **argv) {
     RISCV::LowerPass lp(irMod);
     lp.lower();
     RISCV::mModule *bdMod = lp.getModule();
+
+    RISCV::Peephole peepOpt(bdMod);
+    peepOpt.redInst();
 
     if (config.optimize) {
         RISCV::PhiPass phipass(bdMod);

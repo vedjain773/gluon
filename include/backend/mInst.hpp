@@ -30,8 +30,11 @@ class mInst {
     mBlock *getParent();
 
     unsigned getNumOperands();
+
     mOperand *getOperand(unsigned i);
     void setOperand(unsigned i, mOperand *operand);
+
+    void remOperand(mOperand *operand);
 
     bool isDef(unsigned i);
     bool isUse(unsigned i);

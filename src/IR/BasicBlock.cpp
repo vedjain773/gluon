@@ -124,6 +124,7 @@ void BasicBlock::remPredecessor(BasicBlock *bb) {
         node->remBlock(bb);
 
     predecessors.erase(predecessors.begin() + i);
+    bb->remSuccessor(this);
 }
 
 void BasicBlock::addSuccessor(BasicBlock *bb) {
