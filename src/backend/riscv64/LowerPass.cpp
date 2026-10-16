@@ -164,7 +164,7 @@ mOperand *LowerPass::handleValue(Value *value) {
             return Immediate::Create(cvalue, value->getType());
         } break;
 
-        case ValueKind::Instruction: 
+        case ValueKind::Instruction:
         case ValueKind::Argument: {
             return insertReg(value);
         } break;
@@ -177,8 +177,21 @@ mOperand *LowerPass::handleValue(Value *value) {
 mOperand *LowerPass::handleAddr(Value *value) {
 
     auto getReg = [&](Arg *arg) {
-        Reg reg = static_cast<Reg>(10 + arg->getArgNo());
-        return PhyReg::Create(reg);
+        unsigned argNo = arg->getArgNo();
+
+        if (argNo > 7) {
+            TypeKind *type = value->getType();
+            unsigned id = currFunc->getNextSlotId();
+
+            StackSlot *slot = StackSlot::Create(id, type);
+            stackSlotTable.insert({arg, slot});
+            currFunc->insertSlot(slot);
+            
+            return dynamic_cast<mOperand*>(slot);
+        } 
+
+        Reg reg = static_cast<Reg>(10 + argNo);
+        return dynamic_cast<mOperand*>(PhyReg::Create(reg));
     };
 
     if (stackSlotTable.count(value) != 0) return stackSlotTable[value];

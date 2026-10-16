@@ -48,6 +48,7 @@ class RegAlloc {
     void colour();
     
     void addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg);
+    Reg getPhyReg(std::set<Reg> &regs);
 
     void replace(mFunc *func);
     void run(mFunc *func);

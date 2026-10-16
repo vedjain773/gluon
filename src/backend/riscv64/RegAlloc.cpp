@@ -93,6 +93,14 @@ void RegAlloc::addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg) {
     adjRegs.insert({Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6});
 }
 
+Reg RegAlloc::getPhyReg(std::set<Reg> &regs) {
+    for (auto reg: regs) {
+        if (!isCalleeSaved(reg)) return reg; 
+    }
+
+    return *(regs.begin());
+}
+
 RegAlloc::RegAlloc(mModule *module) :
     module(module) {
     availReg = {Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
@@ -237,7 +245,7 @@ void RegAlloc::colour() {
         std::set<Reg> validRegs = getRegDiff(availRegSet, adjRegs);
         if (validRegs.empty()) continue;
 
-        Reg reg = regMap[curr] = *(validRegs.begin());
+        Reg reg = regMap[curr] = getPhyReg(validRegs);
 
         if (isCalleeSaved(reg)) {
             func->addCalleeSavedReg(reg); 
