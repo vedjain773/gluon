@@ -46,6 +46,14 @@ std::vector<std::unique_ptr<mInst>> &mBlock::getInsts() {
     return instructions;
 }
 
+unsigned mBlock::getNumInsts() {
+    return instructions.size();
+}
+
+mInst *mBlock::getTerminator() {
+    return instructions.back().get();
+}
+
 std::vector<mBlock *> &mBlock::getPreds() {
     return preds;
 }

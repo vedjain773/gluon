@@ -5,6 +5,10 @@ using namespace RISCV;
 Peephole::Peephole(mModule *mod):
     mod(mod) {}
 
+void Peephole::updateMod(mModule *mod) {
+    this->mod = mod;
+}
+
 void Peephole::applyIdentity(mInst *inst) {
     Code opc = inst->getOpCode();
 
@@ -47,6 +51,20 @@ void Peephole::applyIdentity(mInst *inst) {
 
         } break;
 
+        case Code::SLT:
+        case Code::SGT: {
+            mOperand *op1 = inst->getOperand(1);
+            mOperand *op2 = inst->getOperand(2);
+
+            if (op1 == op2) {
+                inst->remOperand(op1);
+                inst->remOperand(op2);
+                
+                inst->setOpCode(Code::LI);
+            }
+        } break;
+
+
         default: return;
     }
 }
@@ -56,6 +74,54 @@ void Peephole::redInst() {
         for (auto &block: func->getBlocks()) {
             for (auto &inst: block->getInsts()) {
                 applyIdentity(inst.get()); 
+            }
+        } 
+    } 
+}
+
+void Peephole::remJump() {
+    for (auto &func: mod->getFuncs()) {
+        auto &blocks = func->getBlocks();
+
+        for (auto it = blocks.begin(); it != blocks.end() - 1;) {
+            mBlock *block = (*it++).get();
+            mInst *inst = block->getTerminator();
+
+            Code opc = inst->getOpCode();
+            if (opc != Code::J) continue;
+
+            mBlock *next = (*it).get();
+            mBrInst *mbrinst = dynamic_cast<mBrInst*>(inst);
+
+            if (mbrinst == nullptr) continue;
+            mBlock *label = mbrinst->getBlock();
+            
+            if (label == next) inst->eraseFromParent();
+        }
+    } 
+}
+
+void Peephole::remMoves() {
+    for (auto &func: mod->getFuncs()) {
+        for (auto &block: func->getBlocks()) {
+            auto &insts = block->getInsts();
+            if (insts.empty()) continue;
+
+            for (auto it = insts.begin(); it != insts.end() - 1;) {
+                mInst *curr = (*it++).get();
+                mInst *next = (*it).get();
+
+                Code opc = curr->getOpCode();
+                Code opcNext = next->getOpCode();
+
+                if (opc != opcNext || opc != Code::MV) continue;
+                mOperand *currarr[2] = {curr->getOperand(0), curr->getOperand(1)};
+                mOperand *nextarr[2] = {next->getOperand(0), next->getOperand(1)};
+
+                if (currarr[0] == nextarr[1] && currarr[1] == nextarr[0]) {
+                    it++;
+                    next->eraseFromParent();
+                }
             }
         } 
     } 

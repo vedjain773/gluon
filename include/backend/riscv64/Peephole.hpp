@@ -12,7 +12,11 @@ class Peephole {
 
   public:
     Peephole(mModule *mod);
+    void updateMod(mModule *mod);
+
     void redInst();
+    void remJump();
+    void remMoves();
 };
 
 };

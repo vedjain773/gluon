@@ -132,6 +132,11 @@ bool mInst::isUse(unsigned i) {
     }
 }
 
+void mInst::eraseFromParent() {
+    mBlock *parent = getParent();
+    parent->removeInst(this);
+}
+
 void mInst::print(std::ostream &os) {
     os << std::format("{} ", codeToStr(opcode));
 

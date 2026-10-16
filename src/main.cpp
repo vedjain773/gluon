@@ -122,6 +122,8 @@ int main(int argc, char **argv) {
         phipass.run();
     }
 
+    peepOpt.remJump();
+
 #ifdef PRINT_MIR
     lp.print(std::cout);      
 #endif
@@ -135,6 +137,9 @@ int main(int argc, char **argv) {
 
     RISCV::FramePass fp(bdMod);
     fp.run();
+    
+    peepOpt.updateMod(bdMod);
+    peepOpt.remMoves();
 
     if (config.printMIR) lp.print(std::cout);
  

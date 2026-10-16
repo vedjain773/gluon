@@ -39,6 +39,7 @@ class mInst {
     bool isDef(unsigned i);
     bool isUse(unsigned i);
 
+    void eraseFromParent();
     virtual void print(std::ostream &os);
 };
 

@@ -35,6 +35,8 @@ class mBlock {
     void removeInst(mInst *inst);
 
     std::vector<std::unique_ptr<mInst>> &getInsts();
+    unsigned getNumInsts();
+    mInst *getTerminator();
 
     std::vector<mBlock*>& getPreds();
     std::vector<mBlock*>& getSuccs();
