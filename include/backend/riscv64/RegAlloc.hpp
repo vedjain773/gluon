@@ -4,11 +4,16 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <bitset>
 
 #include "backend/mModule.hpp"
 #include "backend/mFunc.hpp"
 
 #include <unordered_map>
+#include <array>
+
+#define NUM_REGS 18
+#define CALLER_S 7
 
 namespace RISCV {
 
@@ -35,7 +40,8 @@ class RegAlloc {
     std::unordered_map<VirtReg*, std::set<VirtReg*>> interference;
     std::unordered_map<VirtReg*, std::set<VirtReg*>> workingITG;
 
-    std::vector<Reg> availReg;
+    std::map<Reg, unsigned> reg2Int;
+    std::array<Reg, NUM_REGS> availReg;
     std::map<VirtReg*, Reg> regMap;
 
     bool isCalleeSaved(Reg reg);
@@ -47,8 +53,8 @@ class RegAlloc {
     void createITFGraph();
     void colour();
     
-    void addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg);
-    Reg getPhyReg(std::set<Reg> &regs);
+    void addTempRegs(std::bitset<NUM_REGS> &adjRegs, VirtReg *vreg);
+    Reg getPhyReg(std::bitset<NUM_REGS> &regs);
 
     void replace(mFunc *func);
     void run(mFunc *func);

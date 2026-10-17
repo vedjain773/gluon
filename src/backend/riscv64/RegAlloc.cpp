@@ -86,19 +86,19 @@ std::set<Reg> RegAlloc::getRegDiff(const std::set<Reg> &s1, const std::set<Reg> 
     return result;
 }
 
-void RegAlloc::addTempRegs(std::set<Reg> &adjRegs, VirtReg *vreg) { 
+void RegAlloc::addTempRegs(std::bitset<NUM_REGS> &adjRegs, VirtReg *vreg) { 
     auto it = std::find(liveAcrossCalls.begin(), liveAcrossCalls.end(), vreg);
     if (it == liveAcrossCalls.end()) return;
-    
-    adjRegs.insert({Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6});
+   
+    for (auto it = availReg.begin() + 0; it != availReg.begin() + CALLER_S; it++) {
+        adjRegs.set(reg2Int[*it]);
+    }
 }
 
-Reg RegAlloc::getPhyReg(std::set<Reg> &regs) {
-    for (auto reg: regs) {
-        if (!isCalleeSaved(reg)) return reg; 
+Reg RegAlloc::getPhyReg(std::bitset<NUM_REGS> &regs) {
+    for (int i = 0; i < NUM_REGS; i++) {
+        if (regs[i]) return availReg[i];
     }
-
-    return *(regs.begin());
 }
 
 RegAlloc::RegAlloc(mModule *module) :
@@ -106,6 +106,9 @@ RegAlloc::RegAlloc(mModule *module) :
     availReg = {Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
         Reg::S1, Reg::S2, Reg::S3, Reg::S4, Reg::S5, Reg::S6, Reg::S7, Reg::S8,
         Reg::S9, Reg::S10, Reg::S11};
+
+    for (int i = 0; i < NUM_REGS; i++)
+        reg2Int.insert({availReg[i], i});
 }
 
 void RegAlloc::createITFGraph() {
@@ -119,7 +122,9 @@ void RegAlloc::createITFGraph() {
             std::vector<VirtReg *> uses;
 
             for (unsigned i = 0; i < inst->getNumOperands(); i++) {
-                VirtReg *virtReg = dynamic_cast<VirtReg *>(inst->getOperand(i));
+                mOperand *oper = inst->getOperand(i);
+                VirtReg *virtReg = dynamic_cast<VirtReg *>(oper);
+                
 
                 if (virtReg == nullptr) continue;
                 interference[virtReg];
@@ -200,7 +205,7 @@ void RegAlloc::performLiveAnalysis() {
 }
 
 void RegAlloc::colour() {
-    size_t k = availReg.size();
+    constexpr size_t k = availReg.size();
     workingITG = interference;
     std::stack<VirtReg *> vregStack;
 
@@ -227,23 +232,27 @@ void RegAlloc::colour() {
         }
     }
 
-    std::set<Reg> availRegSet(availReg.begin(), availReg.end());
+    std::bitset<NUM_REGS> availRegSet;
+    availRegSet.flip();
 
     while (!vregStack.empty()) {
         VirtReg *curr = vregStack.top();
         vregStack.pop();
-        std::set<Reg> adjRegs;
+        std::bitset<NUM_REGS> adjRegs;
 
         if (regMap.contains(curr)) continue;
 
         for (auto &neighbour : workingITG[curr]) {
-            if (regMap.contains(neighbour)) adjRegs.insert(regMap[neighbour]);
+            if (regMap.contains(neighbour)) {
+                Reg neighReg = regMap[neighbour];
+                adjRegs.set(reg2Int[neighReg]);
+            }
         }
         
         addTempRegs(adjRegs, curr); 
 
-        std::set<Reg> validRegs = getRegDiff(availRegSet, adjRegs);
-        if (validRegs.empty()) continue;
+        std::bitset<NUM_REGS> validRegs = availRegSet & ~adjRegs;
+        if (validRegs.none()) continue;
 
         Reg reg = regMap[curr] = getPhyReg(validRegs);
 

@@ -72,6 +72,7 @@ class LowerPass {
 };
 
 Code getCode(const OpCode &opc);
+Code getCode(const OpCode &opc, TypeKind *type);
 
 Code getLoadCode(mOperand *oper);
 Code getStoreCode(mOperand *oper);

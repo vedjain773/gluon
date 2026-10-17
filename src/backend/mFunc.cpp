@@ -44,6 +44,14 @@ unsigned mFunc::getCSRsize() {
     return calleeSavedRegs.size();
 }
 
+void mFunc::addStackArg() {
+    stackArgs++;
+}
+
+unsigned mFunc::getStackArgs() {
+    return stackArgs; 
+}
+
 void mFunc::addPrologue() {
     mBlock *entry = blocks.front().get();
     TypeKind *intType = getType("int");

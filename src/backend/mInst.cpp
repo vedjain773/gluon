@@ -6,10 +6,11 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 30> codeNames = {
-    "NEG",  "ADDI", "ADD",  "SUB",  "MUL", "DIV", "REM", "SGT", "SLT", "SEQZ",
-    "SNEZ", "MV",   "LI",   "LB",   "LH",  "LA",  "LW",  "LD",  "SB",  "SH",
-    "SW",   "SD",   "BEQZ", "BNEZ", "RET", "J",   "CALL","NOP", "P_LA","P_PHI"};
+constexpr std::array<std::string, 34> codeNames = {
+    "NEG",  "NEGW", "ADDI", "ADD",  "SUB",  "MUL", "DIV", "REM",
+    "ADDW", "SUBW", "MULW", "SGT",  "SLT",  "SEQZ",
+    "SNEZ", "MV",   "LI",   "LB",   "LH",   "LA",  "LW",  "LD",  "SB",  "SH",
+    "SW",   "SD",   "BEQZ", "BNEZ", "RET",  "J",   "CALL","NOP", "P_LA","P_PHI"};
 
 std::string RISCV::codeToStr(const Code &code) {
     return codeNames[static_cast<unsigned>(code)];

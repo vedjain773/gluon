@@ -36,13 +36,12 @@ void LowerPass::lowerFunc(Func *func) {
     currBlock = entry;
 
     for (auto &arg: args) {
+        mOperand *sec = handleAddr(arg); 
         mOperand *argReg = insertReg(arg);
         
-        unsigned regNo = 10 + arg->getArgNo();
-        TypeKind *type = arg->getType();
+        Code opc = sec->getOpkind() == OpKind::PhysicalReg ? Code::MV : Code::LD;
 
-        mOperand *phyreg = PhyReg::Create(static_cast<Reg>(regNo), type);
-        emit(Code::MV, {argReg, phyreg});
+        emit(opc, {argReg, sec});
     }
 
     auto mEpi = std::make_unique<mBlock>("epi", currFunc);
@@ -181,13 +180,9 @@ mOperand *LowerPass::handleAddr(Value *value) {
 
         if (argNo > 7) {
             TypeKind *type = value->getType();
-            unsigned id = currFunc->getNextSlotId();
-
-            StackSlot *slot = StackSlot::Create(id, type);
-            stackSlotTable.insert({arg, slot});
-            currFunc->insertSlot(slot);
-            
-            return dynamic_cast<mOperand*>(slot);
+            MemOperand *mem = MemOperand::Create(type, Reg::S0, (argNo - 8) * 8); 
+                        
+            return dynamic_cast<mOperand*>(mem);
         } 
 
         Reg reg = static_cast<Reg>(10 + argNo);
@@ -389,13 +384,27 @@ void LowerPass::handleCall(Inst *inst) {
     unsigned aId = 10;
 
     for (auto &arg: args) {
-        Reg reg = static_cast<Reg>(aId++);
+        TypeKind *argType = arg->getType();
+        unsigned argNo = aId - 10;
         mOperand *oper;
 
-        if (isPointerType(arg->getType())) oper = genAddr(arg);
-        else oper = materialize(handleValue(arg));
+        if (isPointerType(argType)) oper = genAddr(arg);
+        else oper = handleValue(arg);
 
-        emit(Code::MV, {PhyReg::Create(reg), oper});
+        if (argNo < 8) {
+            Reg reg = static_cast<Reg>(aId);
+            Code opc = oper->getOpkind() == OpKind::VirtualReg ? Code::MV : Code::LI;
+
+            emit(opc, {PhyReg::Create(reg), oper});
+        } else {
+            mOperand *mat = materialize(oper);
+
+            MemOperand *mem = MemOperand::Create(argType, Reg::SP, (argNo - 8) * 8);
+            currFunc->addStackArg();
+            emit(Code::SD, {mat, mem});
+        }
+        
+        aId++;
     }
     
     emitCall(callinst->getCallee()->getName());
@@ -513,6 +522,30 @@ Code RISCV::getCode(const OpCode &opc) {
             return Code::SUB;
         case OpCode::MUL:
             return Code::MUL;
+        case OpCode::DIV:
+            return Code::DIV;
+        case OpCode::REM:
+            return Code::REM;
+        case OpCode::LT:
+            return Code::SLT;
+        case OpCode::GT:
+            return Code::SGT;
+        default:
+            return Code::NOP;
+    }
+}
+
+Code RISCV::getCode(const OpCode &opc, TypeKind *type) {
+    bool isWord = type->size == 4;
+    if (!isWord) return getCode(opc);
+
+    switch (opc) {
+        case OpCode::ADD:
+            return Code::ADDW;
+        case OpCode::SUB:
+            return Code::SUBW;
+        case OpCode::MUL:
+            return Code::MULW;
         case OpCode::DIV:
             return Code::DIV;
         case OpCode::REM:

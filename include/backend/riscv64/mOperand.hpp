@@ -17,8 +17,9 @@ enum class OpKind {
 };
 
 enum class Code: unsigned {
-    NEG,
+    NEG, NEGW,
     ADDI, ADD, SUB, MUL, DIV, REM,
+    ADDW, SUBW, MULW,
     SGT, SLT, SEQZ, SNEZ,
     MV,
     LI, LB, LH, LA, LW, LD,

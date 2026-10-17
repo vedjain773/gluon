@@ -3,8 +3,9 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 28> codeNames = {
-    "neg",  "addi", "add",  "sub",  "mul", "div", "rem", "sgt", "slt", "seqz",
+constexpr std::array<std::string, 32> codeNames = {
+    "neg",  "negw", "addi", "add",  "sub",  "mul", "div", "rem",
+    "addw", "subw", "mulw", "sgt",  "slt", "seqz",
     "snez", "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
     "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","nop"};
 
@@ -61,7 +62,7 @@ void Emitter::emitInst(mInst *inst) {
     Code opc = inst->getOpCode();
     
     unsigned opid = static_cast<unsigned>(opc);
-    if (opid > 27) return;
+    if (opid > 31) return;
 
     os << std::format("{} ", getInstStr(opc));
 

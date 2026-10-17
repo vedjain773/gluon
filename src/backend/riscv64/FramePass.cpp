@@ -9,7 +9,7 @@ FramePass::FramePass(mModule *mmod) :
 
 void FramePass::calcOffsets(mFunc *mfunc) {
     int offset = 16;
-    offset += mfunc->getCSRsize() * 8;
+    offset += mfunc->getCSRsize() * 8 + mfunc->getStackArgs() * 8;
 
     std::vector<StackSlot *> &ss = mfunc->getStackSlots();
 

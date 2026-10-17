@@ -17,9 +17,11 @@ class mFunc {
     mModule *parent;
 
     std::vector<std::unique_ptr<mBlock>> blocks;
+
     std::vector<StackSlot*> stackSlots;
     std::vector<Reg> calleeSavedRegs;
 
+    int stackArgs = 0;
     int frameSize = 16;
 
   public:
@@ -35,6 +37,9 @@ class mFunc {
     void setFrameSize(unsigned size);
     void addCalleeSavedReg(Reg reg);
     unsigned getCSRsize();
+
+    void addStackArg();
+    unsigned getStackArgs();
 
     void addPrologue();
     void addEpilogue();
