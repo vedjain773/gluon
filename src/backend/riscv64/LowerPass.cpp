@@ -186,7 +186,7 @@ mOperand *LowerPass::handleAddr(Value *value) {
         } 
 
         Reg reg = static_cast<Reg>(10 + argNo);
-        return dynamic_cast<mOperand*>(PhyReg::Create(reg));
+        return dynamic_cast<mOperand*>(getPhyReg(reg));
     };
 
     if (stackSlotTable.count(value) != 0) return stackSlotTable[value];
@@ -199,11 +199,12 @@ mOperand *LowerPass::handleAddr(Value *value) {
 
 void LowerPass::handleUnaryOp(Inst *inst, const OpCode &code) {
     UnaryInst *uinst = dynamic_cast<UnaryInst *>(inst);
+    bool isWord = inst->getType()->size == 4;
 
     mOperand *oper = materialize(handleValue(uinst->getUnaryOper()));
     mOperand *result = insertReg(inst);
 
-    Code opc = code == OpCode::NEG ? Code::NEG : Code::SEQZ;
+    Code opc = code == OpCode::NEG ? (isWord ? Code::NEGW : Code::NEG) : Code::SEQZ;
     emit(opc, {result, oper});
 }
 
@@ -219,7 +220,7 @@ void LowerPass::handleBinOp(Inst *inst, const OpCode &code) {
     mOperand *rhsVirtReg = materialize(handleValue(rhs));
 
     mOperand *result = insertReg(inst);
-    emit(getCode(code), {result, lhsVirtReg, rhsVirtReg});
+    emit(getCode(code, inst->getType()), {result, lhsVirtReg, rhsVirtReg});
 }
 
 //---
@@ -296,7 +297,7 @@ void LowerPass::handleGEP(Inst *inst) {
     // Calculate offset
     unsigned numIndices = gepInst->getNumIndices();
     TypeKind *currType = gepInst->getSrcType();
-    mOperand *offset = PhyReg::Create(Reg::ZERO);
+    mOperand *offset = getPhyReg(Reg::ZERO);
 
     for (int i = 0; i < numIndices; i++) {
         mOperand *index = materialize(handleValue(indices[i]));
@@ -372,7 +373,7 @@ void LowerPass::handleRet(Inst *inst) {
     mOperand *operand = handleValue(value);
     Code opc = operand->getOpkind() == OpKind::Immediate ? Code::LI : Code::MV;
 
-    emit(opc, {PhyReg::Create(Reg::A0), operand});
+    emit(opc, {getPhyReg(Reg::A0), operand});
 
     emitBr(Code::J, nullptr, getEpilogue());
     emitRet();
@@ -395,7 +396,7 @@ void LowerPass::handleCall(Inst *inst) {
             Reg reg = static_cast<Reg>(aId);
             Code opc = oper->getOpkind() == OpKind::VirtualReg ? Code::MV : Code::LI;
 
-            emit(opc, {PhyReg::Create(reg), oper});
+            emit(opc, {getPhyReg(reg), oper});
         } else {
             mOperand *mat = materialize(oper);
 
@@ -410,7 +411,7 @@ void LowerPass::handleCall(Inst *inst) {
     emitCall(callinst->getCallee()->getName());
     mOperand *result = insertReg(inst);
 
-    emit(Code::MV, {result, PhyReg::Create(Reg::A0)});
+    emit(Code::MV, {result, getPhyReg(Reg::A0)});
 }
 
 //---
@@ -441,6 +442,13 @@ void LowerPass::handleCBr(Inst *inst) {
 
 VirtReg *LowerPass::newVirtReg(TypeKind *type) {
     return VirtReg::Create(currentRegNo++, type);
+}
+
+PhyReg *LowerPass::getPhyReg(const Reg &reg) {
+    if (phyregMap.count(reg) != 0) return phyregMap[reg];
+
+    phyregMap.insert({reg, PhyReg::Create(reg)});
+    return phyregMap[reg];
 }
 
 void LowerPass::emit(const Code &code, std::initializer_list<mOperand *> opers) {

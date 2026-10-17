@@ -105,24 +105,35 @@ void Peephole::remMoves() {
     for (auto &func: mod->getFuncs()) {
         for (auto &block: func->getBlocks()) {
             auto &insts = block->getInsts();
+
             if (insts.empty()) continue;
+            std::vector<mInst*> erasables;
 
-            for (auto it = insts.begin(); it != insts.end() - 1;) {
-                mInst *curr = (*it++).get();
-                mInst *next = (*it).get();
+            for (auto it = insts.begin(); it != insts.end(); ++it) {
+                auto nextIt = std::next(it);
 
+                if (nextIt == insts.end()) break;
+
+                mInst *curr = it->get();
+                mInst *next = nextIt->get();
+                
                 Code opc = curr->getOpCode();
                 Code opcNext = next->getOpCode();
 
                 if (opc != opcNext || opc != Code::MV) continue;
-                mOperand *currarr[2] = {curr->getOperand(0), curr->getOperand(1)};
-                mOperand *nextarr[2] = {next->getOperand(0), next->getOperand(1)};
+                
+                PhyReg *curr0 = dynamic_cast<PhyReg*>(curr->getOperand(0));
+                PhyReg *curr1 = dynamic_cast<PhyReg*>(curr->getOperand(1));
 
-                if (currarr[0] == nextarr[1] && currarr[1] == nextarr[0]) {
-                    it++;
-                    next->eraseFromParent();
-                }
+                PhyReg *next0 = dynamic_cast<PhyReg*>(next->getOperand(0));
+                PhyReg *next1 = dynamic_cast<PhyReg*>(next->getOperand(1));
+                    
+                if (curr0->getReg() == next1->getReg() && curr1->getReg() == next0->getReg())
+                    erasables.push_back(next);
             }
+
+            for (mInst *inst: erasables)
+                inst->eraseFromParent();
         } 
     } 
 }

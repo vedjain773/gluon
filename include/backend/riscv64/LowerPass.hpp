@@ -21,6 +21,8 @@ class LowerPass {
 
     std::unordered_map<Value*, VirtReg*> virtualRegTable;
     std::unordered_map<Value*, StackSlot*> stackSlotTable;
+    std::unordered_map<Reg, PhyReg*> phyregMap;
+
     unsigned currentRegNo;
 
     mOperand *insertReg(Value *value);
@@ -45,6 +47,7 @@ class LowerPass {
     void handleRet(Inst *inst);
 
     VirtReg *newVirtReg(TypeKind *type);
+    PhyReg *getPhyReg(const Reg &reg);
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);

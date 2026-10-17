@@ -62,6 +62,9 @@ bool mInst::isDef(unsigned i) {
         case Code::ADD:
         case Code::SUB:
         case Code::MUL:
+        case Code::ADDW:
+        case Code::SUBW:
+        case Code::MULW:
         case Code::DIV:
         case Code::REM:
         case Code::SGT:
@@ -69,6 +72,7 @@ bool mInst::isDef(unsigned i) {
             return i == 0;
 
         case Code::NEG:
+        case Code::NEGW:
         case Code::SEQZ:
         case Code::SNEZ:
         case Code::MV:
@@ -92,6 +96,9 @@ bool mInst::isUse(unsigned i) {
         case Code::ADD:
         case Code::SUB:
         case Code::MUL:
+        case Code::ADDW:
+        case Code::SUBW:
+        case Code::MULW:
         case Code::DIV:
         case Code::REM:
         case Code::SGT:
@@ -99,6 +106,7 @@ bool mInst::isUse(unsigned i) {
             return i == 1 || i == 2;
 
         case Code::NEG:
+        case Code::NEGW:
         case Code::SEQZ:
         case Code::SNEZ:
         case Code::MV:
