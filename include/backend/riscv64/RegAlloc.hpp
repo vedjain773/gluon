@@ -12,10 +12,17 @@
 #include <unordered_map>
 #include <array>
 
-#define NUM_REGS 18
-#define CALLER_S 7
+#define NUM_REGS 26
+#define CALLER_S 15
 
 namespace RISCV {
+
+struct defUses {
+    std::vector<VirtReg *> vUses;
+    std::vector<VirtReg *> vDefs;
+    std::vector<Reg> pUses;
+    std::vector<Reg> pDefs;
+};
 
 class RegAlloc {
   private:
@@ -27,18 +34,23 @@ class RegAlloc {
     std::map<mBlock*, std::set<VirtReg*>> liveInMap;
     std::map<mBlock*, std::set<VirtReg*>> liveOutMap;
 
-    std::vector<VirtReg*> liveAcrossCalls;
+    std::map<mBlock*, std::bitset<NUM_REGS>> puseMap;
+    std::map<mBlock*, std::bitset<NUM_REGS>> pdefMap;
+    std::map<mBlock*, std::bitset<NUM_REGS>> pliveInMap;
+    std::map<mBlock*, std::bitset<NUM_REGS>> pliveOutMap;
 
     std::vector<mBlock*> blockVec;
+    defUses getDefUses(mInst *minst);
 
     std::set<VirtReg*> getDiff(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
-    std::set<VirtReg*> getInter(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
     std::set<VirtReg*> getUnion(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
-
-    std::set<Reg> getRegDiff(const std::set<Reg> &s1, const std::set<Reg> &s2);
 
     std::unordered_map<VirtReg*, std::set<VirtReg*>> interference;
     std::unordered_map<VirtReg*, std::set<VirtReg*>> workingITG;
+    std::unordered_map<VirtReg*, std::bitset<NUM_REGS>> conflicts;
+
+    unsigned getDegree(VirtReg *vreg);
+    unsigned getConflicts(VirtReg *vreg);
 
     std::map<Reg, unsigned> reg2Int;
     std::array<Reg, NUM_REGS> availReg;
@@ -49,13 +61,15 @@ class RegAlloc {
     void addEdge(VirtReg *v1, VirtReg *v2);
     void remEdge(VirtReg *v1, VirtReg *v2);
 
-    void performLiveAnalysis();
+    void virLiveAnalysis();
+    void phyLiveAnalysis();
     void createITFGraph();
     void colour();
     
     void addTempRegs(std::bitset<NUM_REGS> &adjRegs, VirtReg *vreg);
     Reg getPhyReg(std::bitset<NUM_REGS> &regs);
 
+    void reset();
     void replace(mFunc *func);
     void run(mFunc *func);
 

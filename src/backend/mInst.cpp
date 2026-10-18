@@ -199,8 +199,8 @@ void mPhiInst::print(std::ostream &os) {
 
 //---
 
-mCallInst::mCallInst(mBlock *parent, const std::string &funcName) :
-    mInst(Code::CALL, parent, {}) {
+mCallInst::mCallInst(mBlock *parent, const std::string &funcName, unsigned numArgs) :
+    mInst(Code::CALL, parent, {}), numArgs(numArgs) {
   
     mModule *mod = parent->getParent()->getParent();
     callee = mod->getFunc(funcName);
@@ -208,6 +208,10 @@ mCallInst::mCallInst(mBlock *parent, const std::string &funcName) :
 
 mFunc *mCallInst::getFunc() {
     return callee;
+}
+
+unsigned mCallInst::getNumArgs() {
+    return numArgs;
 }
 
 void mCallInst::print(std::ostream &os) {

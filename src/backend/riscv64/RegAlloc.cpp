@@ -16,20 +16,28 @@ void RegAlloc::allocate() {
 }
 
 void RegAlloc::run(mFunc *func) {
-    blockVec.clear();
+    reset();
 
-    for (auto &bb : func->getBlocks()) {
+    for (auto &bb : func->getBlocks())
         blockVec.push_back(bb.get());
-    }
 
-    performLiveAnalysis();
+    virLiveAnalysis();
+    phyLiveAnalysis();
     createITFGraph();
     colour();
 }
 
 bool RegAlloc::isCalleeSaved(Reg reg) {
-    unsigned regid = static_cast<unsigned>(reg);
-    return (regid > 17 && regid < 28) || reg == Reg::S1; 
+    return reg2Int[reg] >= CALLER_S;
+}
+
+unsigned RegAlloc::getDegree(VirtReg *vreg) {
+    return interference[vreg].size(); 
+}
+
+unsigned RegAlloc::getConflicts(VirtReg *vreg) {
+    if (conflicts.count(vreg) == 0) return 0;
+    return conflicts[vreg].count();
 }
 
 void RegAlloc::addEdge(VirtReg *v1, VirtReg *v2) {
@@ -47,22 +55,58 @@ void RegAlloc::remEdge(VirtReg *v1, VirtReg *v2) {
     interference[v2].erase(v1);
 }
 
+defUses RegAlloc::getDefUses(mInst *minst) {
+    defUses result;
+
+    unsigned size = minst->getNumOperands();
+    for (unsigned i = 0; i < size; i++) {
+        mOperand *oper = minst->getOperand(i);
+        
+        VirtReg *vreg = dynamic_cast<VirtReg *>(oper);
+        PhyReg *preg = dynamic_cast<PhyReg *>(oper);
+
+        if (preg != nullptr) {
+            Reg reg = preg->getReg();
+            if (reg2Int.count(reg) == 0) continue;
+        }
+
+        if (minst->isDef(i)) {
+            if (vreg) result.vDefs.push_back(vreg);
+            else if (preg) result.pDefs.push_back(preg->getReg());
+        }
+
+        if (minst->isUse(i)) {
+            if (vreg) result.vUses.push_back(vreg);
+            else if (preg) result.pUses.push_back(preg->getReg());
+        }
+    } 
+
+    if (mCallInst *callinst = dynamic_cast<mCallInst*>(minst)) {
+        unsigned i, numArgs = callinst->getNumArgs();
+        for (i = 0; i < numArgs && i < 8; i++) {
+            Reg reg = static_cast<Reg>(10 + i);
+            result.pUses.push_back(reg);
+        }
+
+        for (i = 0; i < CALLER_S; i++) {
+            Reg reg = availReg[i];
+            result.pDefs.push_back(reg);
+        }
+    }
+
+    if (minst->getOpCode() == Code::RET) {
+        result.pUses.push_back(Reg::A0);
+    } 
+
+    return result;
+}
+
 std::set<VirtReg *> RegAlloc::getDiff(const std::set<VirtReg *> &s1,
                                       const std::set<VirtReg *> &s2) {
     std::set<VirtReg *> result;
 
     std::set_difference(s1.begin(), s1.end(), s2.begin(), s2.end(),
                         std::inserter(result, result.begin()));
-
-    return result;
-}
-
-std::set<VirtReg *> RegAlloc::getInter(const std::set<VirtReg *> &s1,
-                                       const std::set<VirtReg *> &s2) {
-    std::set<VirtReg *> result;
-
-    std::set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(),
-                          std::inserter(result, result.begin()));
 
     return result;
 }
@@ -77,24 +121,6 @@ std::set<VirtReg *> RegAlloc::getUnion(const std::set<VirtReg *> &s1,
     return result;
 }
 
-std::set<Reg> RegAlloc::getRegDiff(const std::set<Reg> &s1, const std::set<Reg> &s2) {
-    std::set<Reg> result;
-
-    std::set_difference(s1.begin(), s1.end(), s2.begin(), s2.end(),
-                        std::inserter(result, result.begin()));
-
-    return result;
-}
-
-void RegAlloc::addTempRegs(std::bitset<NUM_REGS> &adjRegs, VirtReg *vreg) { 
-    auto it = std::find(liveAcrossCalls.begin(), liveAcrossCalls.end(), vreg);
-    if (it == liveAcrossCalls.end()) return;
-   
-    for (auto it = availReg.begin() + 0; it != availReg.begin() + CALLER_S; it++) {
-        adjRegs.set(reg2Int[*it]);
-    }
-}
-
 Reg RegAlloc::getPhyReg(std::bitset<NUM_REGS> &regs) {
     for (int i = 0; i < NUM_REGS; i++) {
         if (regs[i]) return availReg[i];
@@ -103,7 +129,8 @@ Reg RegAlloc::getPhyReg(std::bitset<NUM_REGS> &regs) {
 
 RegAlloc::RegAlloc(mModule *module) :
     module(module) {
-    availReg = {Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
+    availReg = {Reg::A0, Reg::A1, Reg::A2, Reg::A3, Reg::A4, Reg::A5, Reg::A6, Reg::A7,
+        Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
         Reg::S1, Reg::S2, Reg::S3, Reg::S4, Reg::S5, Reg::S6, Reg::S7, Reg::S8,
         Reg::S9, Reg::S10, Reg::S11};
 
@@ -111,55 +138,13 @@ RegAlloc::RegAlloc(mModule *module) :
         reg2Int.insert({availReg[i], i});
 }
 
-void RegAlloc::createITFGraph() {
-    for (mBlock *block : blockVec) {
-        std::vector<std::unique_ptr<mInst>> &instructions = block->getInsts();
-        std::set<VirtReg *> liveNow = liveOutMap[block];
-
-        for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
-            mInst *inst = (*it).get();
-            std::vector<VirtReg *> defs;
-            std::vector<VirtReg *> uses;
-
-            for (unsigned i = 0; i < inst->getNumOperands(); i++) {
-                mOperand *oper = inst->getOperand(i);
-                VirtReg *virtReg = dynamic_cast<VirtReg *>(oper);
-                
-
-                if (virtReg == nullptr) continue;
-                interference[virtReg];
-
-                if (inst->isDef(i)) defs.push_back(virtReg);
-                else if (inst->isUse(i)) uses.push_back(virtReg);
-            }
-
-            for (VirtReg *defReg : defs) {
-                for (VirtReg *liveReg : liveNow) {
-                    addEdge(defReg, liveReg);
-                }
-            }
-
-            if (inst->getOpCode() == Code::CALL) {
-                for (auto &vreg: liveNow) liveAcrossCalls.push_back(vreg);
-            } 
-
-            for (VirtReg *defReg : defs)
-                liveNow.erase(defReg);
-            for (VirtReg *useReg : uses)
-                liveNow.insert(useReg); 
-        }
-    }
-}
-
-void RegAlloc::performLiveAnalysis() {
+void RegAlloc::virLiveAnalysis() {
     for (mBlock *block : blockVec) {
         std::set<VirtReg *> seenDefs;
 
         for (auto &inst : block->getInsts()) {
             mInst *instRaw = inst.get();
             unsigned size = instRaw->getNumOperands();
-
-            if (size == 0) continue;
 
             for (size_t i = 0; i < size; i++) {
                 mOperand *reg = instRaw->getOperand(i);
@@ -204,32 +189,151 @@ void RegAlloc::performLiveAnalysis() {
     }
 }
 
+void RegAlloc::phyLiveAnalysis() {
+    for (mBlock *block : blockVec) {
+        std::bitset<NUM_REGS> seenDefs;
+
+        for (auto &inst : block->getInsts()) {
+            mInst *instRaw = inst.get();
+            unsigned size = instRaw->getNumOperands();
+
+            if (instRaw->getOpCode() == Code::RET && !seenDefs[reg2Int[Reg::A0]]) {
+                puseMap[block].set(reg2Int[Reg::A0]);
+            }
+
+            if (mCallInst *callinst = dynamic_cast<mCallInst*>(instRaw)) {
+                unsigned i, numArgs = callinst->getNumArgs();
+                for (i = 0; i < numArgs && i < 8; i++) {
+                    Reg reg = static_cast<Reg>(10 + i);
+                    if (seenDefs[reg2Int[reg]]) continue;
+
+                    puseMap[block].set(reg2Int[reg]);
+                }
+
+                for (i = 0; i < CALLER_S; i++) {
+                    Reg reg = availReg[i];
+                    seenDefs.set(reg2Int[reg]);
+                }
+            }
+
+            for (size_t i = 0; i < size; i++) {
+                mOperand *op = instRaw->getOperand(i);
+                PhyReg *phyreg = dynamic_cast<PhyReg *>(op);
+
+                if (phyreg == nullptr) continue;
+
+                Reg reg = phyreg->getReg();
+                if (reg2Int.count(reg) == 0) continue;
+
+                if (instRaw->isUse(i) && !seenDefs[reg2Int[reg]]) {
+                    puseMap[block].set(reg2Int[reg]);
+                }
+
+                if (instRaw->isDef(i)) seenDefs.set(reg2Int[reg]);
+            }
+        }
+
+        pdefMap[block] = seenDefs;
+    }
+
+    bool constant = false;
+    while (!constant) {
+        constant = true;
+
+        for (mBlock *block : blockVec) {
+            std::bitset<NUM_REGS> pliveInSet =
+                puseMap[block] | (pliveOutMap[block] & ~pdefMap[block]);
+
+            if (pliveInMap[block] != pliveInSet) {
+                constant = false;
+                pliveInMap[block] = pliveInSet;
+            }
+
+            std::bitset<NUM_REGS> pliveOutSet;
+
+            for (mBlock *succ : block->getSuccs()) {
+                pliveOutSet = pliveOutSet | pliveInMap[succ];
+            }
+
+            if (pliveOutSet != pliveOutMap[block]) {
+                constant = false;
+                pliveOutMap[block] = pliveOutSet;
+            }
+        }
+    }
+}
+
+
+void RegAlloc::createITFGraph() {
+    for (mBlock *block : blockVec) {
+        auto &instructions = block->getInsts();
+
+        std::set<VirtReg *> liveNow = liveOutMap[block];
+        std::bitset<NUM_REGS> pliveNow = pliveOutMap[block];
+
+        for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
+            mInst *inst = (*it).get();
+            
+            auto [vUses, vDefs, pUses, pDefs] = getDefUses(inst);
+            
+            for (VirtReg *defReg : vDefs) {
+                for (VirtReg *liveReg : liveNow)
+                    addEdge(defReg, liveReg);
+
+                for (unsigned i = 0; i < NUM_REGS; i++) {
+                    if (pliveNow[i]) {
+                        Reg reg = availReg[i];
+                        conflicts[defReg].set(reg2Int[reg]);
+                    } 
+                }    
+            } 
+
+            for (Reg pdefReg: pDefs) {
+                for (VirtReg *liveReg : liveNow)
+                    conflicts[liveReg].set(reg2Int[pdefReg]);
+            }
+            
+            for (Reg pdefReg: pDefs)
+                pliveNow.reset(reg2Int[pdefReg]);
+
+            for (Reg puseReg: pUses)
+                pliveNow.set(reg2Int[puseReg]);
+
+            for (VirtReg *defReg: vDefs)
+                liveNow.erase(defReg);
+
+            for (VirtReg *useReg: vUses)
+                liveNow.insert(useReg); 
+        }
+    }
+}
+
 void RegAlloc::colour() {
     constexpr size_t k = availReg.size();
     workingITG = interference;
     std::stack<VirtReg *> vregStack;
 
-    while (!interference.empty()) {
-        VirtReg *node = nullptr;
-        bool found = false;
+    std::vector<VirtReg*> worklist; 
 
-        for (auto it = interference.begin(); it != interference.end();) {
-            auto &[vreg, vregSet] = *(it++);
+    for (auto it = interference.begin(); it != interference.end();) {
+        auto &[vreg, _] = *(it++);
+        
+        if (getDegree(vreg) < k - getConflicts(vreg)) worklist.push_back(vreg);
+    }
 
-            if (vregSet.size() < k) {
-                found = true;
-                node = vreg;
-            }
+    while (!worklist.empty()) {
+        VirtReg *node = worklist.back();
+        worklist.pop_back();
+        vregStack.push(node);
+
+        auto neighbours = interference[node];
+
+        for (auto vreg: neighbours) {
+            remEdge(node, vreg);
+            if (getDegree(vreg) < k - getConflicts(vreg)) worklist.push_back(vreg);
         }
-
-        if (found) {
-            vregStack.push(node);
-            for (auto &vreg: workingITG[node]) remEdge(node, vreg);
             
-            interference.erase(node);
-        } else {
-            break;
-        }
+        interference.erase(node);
     }
 
     std::bitset<NUM_REGS> availRegSet;
@@ -249,8 +353,8 @@ void RegAlloc::colour() {
             }
         }
         
-        addTempRegs(adjRegs, curr); 
-
+        if (conflicts.count(curr) != 0) adjRegs = adjRegs | conflicts[curr];;
+        
         std::bitset<NUM_REGS> validRegs = availRegSet & ~adjRegs;
         if (validRegs.none()) continue;
 
@@ -262,6 +366,25 @@ void RegAlloc::colour() {
     }
 
     replace(func);
+}
+
+void RegAlloc::reset() {
+    useMap.clear();
+    defMap.clear();
+    liveInMap.clear();
+    liveOutMap.clear();
+
+    puseMap.clear();
+    pdefMap.clear();
+    pliveInMap.clear();
+    pliveOutMap.clear();
+
+    interference.clear();
+    workingITG.clear();
+    conflicts.clear();
+    
+    regMap.clear();
+    blockVec.clear();
 }
 
 void RegAlloc::replace(mFunc *func) {

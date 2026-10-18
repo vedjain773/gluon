@@ -67,10 +67,12 @@ class mPhiInst: public mInst {
 class mCallInst: public mInst {
   private:
     mFunc *callee;
+    unsigned numArgs;
 
   public:
-    mCallInst(mBlock *parent, const std::string &funcName);
+    mCallInst(mBlock *parent, const std::string &funcName, unsigned numArgs);
     mFunc *getFunc();
+    unsigned getNumArgs();
 
     void print(std::ostream &os);
 };

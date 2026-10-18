@@ -408,7 +408,7 @@ void LowerPass::handleCall(Inst *inst) {
         aId++;
     }
     
-    emitCall(callinst->getCallee()->getName());
+    emitCall(callinst->getCallee()->getName(), args.size());
     mOperand *result = insertReg(inst);
 
     emit(Code::MV, {result, getPhyReg(Reg::A0)});
@@ -463,8 +463,8 @@ void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
     currBlock->appendInst(std::move(inst));
 }
 
-void LowerPass::emitCall(const std::string &name) {
-    auto inst = std::make_unique<mCallInst>(currBlock, name);
+void LowerPass::emitCall(const std::string &name, unsigned numArgs) {
+    auto inst = std::make_unique<mCallInst>(currBlock, name, numArgs);
     currBlock->appendInst(std::move(inst));
 }
 

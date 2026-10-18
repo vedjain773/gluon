@@ -51,7 +51,7 @@ class LowerPass {
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
-    void emitCall(const std::string &name);
+    void emitCall(const std::string &name, unsigned numArgs);
     void emitPhi(mOperand *inst, std::vector<std::pair<mOperand*, mBlock*>> pairs);
     void emitRet();
 
