@@ -31,6 +31,10 @@ bool RegAlloc::isCalleeSaved(Reg reg) {
     return reg2Int[reg] >= CALLER_S;
 }
 
+void RegAlloc::addNode(VirtReg *vreg) {
+    interference[vreg];
+}
+
 unsigned RegAlloc::getDegree(VirtReg *vreg) {
     return interference[vreg].size(); 
 }
@@ -55,34 +59,30 @@ void RegAlloc::remEdge(VirtReg *v1, VirtReg *v2) {
     interference[v2].erase(v1);
 }
 
-defUses RegAlloc::getDefUses(mInst *minst) {
+defUses RegAlloc::getDefUses(mInst *inst) {
     defUses result;
 
-    unsigned size = minst->getNumOperands();
-    for (unsigned i = 0; i < size; i++) {
-        mOperand *oper = minst->getOperand(i);
-        
-        VirtReg *vreg = dynamic_cast<VirtReg *>(oper);
-        PhyReg *preg = dynamic_cast<PhyReg *>(oper);
+    unsigned numOpers = inst->getNumOperands();
+    
+    for (unsigned i = 0; i < numOpers; i++) {
+        mOperand *oper = inst->getOperand(i);
 
-        if (preg != nullptr) {
-            Reg reg = preg->getReg();
+        if (VirtReg *virtReg = dynamic_cast<VirtReg *>(oper)) {
+            if (inst->isDef(i)) result.vDefs.push_back(virtReg);
+            if (inst->isUse(i)) result.vUses.push_back(virtReg);
+
+        } else if (PhyReg *phyReg = dynamic_cast<PhyReg *>(oper)) {
+            Reg reg = phyReg->getReg();
             if (reg2Int.count(reg) == 0) continue;
-        }
 
-        if (minst->isDef(i)) {
-            if (vreg) result.vDefs.push_back(vreg);
-            else if (preg) result.pDefs.push_back(preg->getReg());
+            if (inst->isDef(i)) result.pDefs.push_back(reg);
+            if (inst->isUse(i)) result.pUses.push_back(reg);
         }
+    }
 
-        if (minst->isUse(i)) {
-            if (vreg) result.vUses.push_back(vreg);
-            else if (preg) result.pUses.push_back(preg->getReg());
-        }
-    } 
-
-    if (mCallInst *callinst = dynamic_cast<mCallInst*>(minst)) {
+    if (mCallInst *callinst = dynamic_cast<mCallInst*>(inst)) {
         unsigned i, numArgs = callinst->getNumArgs();
+
         for (i = 0; i < numArgs && i < 8; i++) {
             Reg reg = static_cast<Reg>(10 + i);
             result.pUses.push_back(reg);
@@ -94,7 +94,7 @@ defUses RegAlloc::getDefUses(mInst *minst) {
         }
     }
 
-    if (minst->getOpCode() == Code::RET) {
+    if (inst->getOpCode() == Code::RET) {
         result.pUses.push_back(Reg::A0);
     } 
 
@@ -144,18 +144,14 @@ void RegAlloc::virLiveAnalysis() {
 
         for (auto &inst : block->getInsts()) {
             mInst *instRaw = inst.get();
-            unsigned size = instRaw->getNumOperands();
+            auto [vUses, vDefs, pUses, pDefs] = getDefUses(instRaw);
 
-            for (size_t i = 0; i < size; i++) {
-                mOperand *reg = instRaw->getOperand(i);
-                VirtReg *virtReg = dynamic_cast<VirtReg *>(reg);
+            for (VirtReg *virtreg: vUses) {
+                if (!seenDefs.contains(virtreg)) useMap[block].insert(virtreg);
+            }
 
-                if (virtReg == nullptr) continue;
-                if (instRaw->isUse(i) && !seenDefs.contains(virtReg)) {
-                    useMap[block].insert(virtReg);
-                }
-
-                if (instRaw->isDef(i)) seenDefs.insert(virtReg);
+            for (VirtReg *virtreg: vDefs) {
+                seenDefs.insert(virtreg);
             }
         }
 
@@ -195,41 +191,14 @@ void RegAlloc::phyLiveAnalysis() {
 
         for (auto &inst : block->getInsts()) {
             mInst *instRaw = inst.get();
-            unsigned size = instRaw->getNumOperands();
+            auto [vUses, vDefs, pUses, pDefs] = getDefUses(instRaw);
 
-            if (instRaw->getOpCode() == Code::RET && !seenDefs[reg2Int[Reg::A0]]) {
-                puseMap[block].set(reg2Int[Reg::A0]);
+            for (Reg useReg: pUses) {
+                if (!seenDefs[reg2Int[useReg]]) puseMap[block].set(reg2Int[useReg]);
             }
 
-            if (mCallInst *callinst = dynamic_cast<mCallInst*>(instRaw)) {
-                unsigned i, numArgs = callinst->getNumArgs();
-                for (i = 0; i < numArgs && i < 8; i++) {
-                    Reg reg = static_cast<Reg>(10 + i);
-                    if (seenDefs[reg2Int[reg]]) continue;
-
-                    puseMap[block].set(reg2Int[reg]);
-                }
-
-                for (i = 0; i < CALLER_S; i++) {
-                    Reg reg = availReg[i];
-                    seenDefs.set(reg2Int[reg]);
-                }
-            }
-
-            for (size_t i = 0; i < size; i++) {
-                mOperand *op = instRaw->getOperand(i);
-                PhyReg *phyreg = dynamic_cast<PhyReg *>(op);
-
-                if (phyreg == nullptr) continue;
-
-                Reg reg = phyreg->getReg();
-                if (reg2Int.count(reg) == 0) continue;
-
-                if (instRaw->isUse(i) && !seenDefs[reg2Int[reg]]) {
-                    puseMap[block].set(reg2Int[reg]);
-                }
-
-                if (instRaw->isDef(i)) seenDefs.set(reg2Int[reg]);
+            for (Reg defReg: pDefs) {
+                seenDefs.set(reg2Int[defReg]);
             }
         }
 
@@ -277,8 +246,12 @@ void RegAlloc::createITFGraph() {
             auto [vUses, vDefs, pUses, pDefs] = getDefUses(inst);
             
             for (VirtReg *defReg : vDefs) {
-                for (VirtReg *liveReg : liveNow)
+                addNode(defReg);
+
+                for (VirtReg *liveReg : liveNow) {
+                    addNode(liveReg);
                     addEdge(defReg, liveReg);
+                }
 
                 for (unsigned i = 0; i < NUM_REGS; i++) {
                     if (pliveNow[i]) {

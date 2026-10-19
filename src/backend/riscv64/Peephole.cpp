@@ -110,26 +110,16 @@ void Peephole::remMoves() {
             std::vector<mInst*> erasables;
 
             for (auto it = insts.begin(); it != insts.end(); ++it) {
-                auto nextIt = std::next(it);
-
-                if (nextIt == insts.end()) break;
-
                 mInst *curr = it->get();
-                mInst *next = nextIt->get();
-                
                 Code opc = curr->getOpCode();
-                Code opcNext = next->getOpCode();
 
-                if (opc != opcNext || opc != Code::MV) continue;
-                
+                if (opc != Code::MV) continue;
+
                 PhyReg *curr0 = dynamic_cast<PhyReg*>(curr->getOperand(0));
                 PhyReg *curr1 = dynamic_cast<PhyReg*>(curr->getOperand(1));
-
-                PhyReg *next0 = dynamic_cast<PhyReg*>(next->getOperand(0));
-                PhyReg *next1 = dynamic_cast<PhyReg*>(next->getOperand(1));
-                    
-                if (curr0->getReg() == next1->getReg() && curr1->getReg() == next0->getReg())
-                    erasables.push_back(next);
+                
+                if (curr0->getReg() == curr1->getReg())
+                    erasables.push_back(curr);
             }
 
             for (mInst *inst: erasables)

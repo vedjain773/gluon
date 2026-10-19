@@ -40,7 +40,7 @@ class RegAlloc {
     std::map<mBlock*, std::bitset<NUM_REGS>> pliveOutMap;
 
     std::vector<mBlock*> blockVec;
-    defUses getDefUses(mInst *minst);
+    defUses getDefUses(mInst *inst);
 
     std::set<VirtReg*> getDiff(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
     std::set<VirtReg*> getUnion(const std::set<VirtReg*> &s1, const std::set<VirtReg*> &s2);
@@ -48,6 +48,8 @@ class RegAlloc {
     std::unordered_map<VirtReg*, std::set<VirtReg*>> interference;
     std::unordered_map<VirtReg*, std::set<VirtReg*>> workingITG;
     std::unordered_map<VirtReg*, std::bitset<NUM_REGS>> conflicts;
+    
+    void addNode(VirtReg *vreg);
 
     unsigned getDegree(VirtReg *vreg);
     unsigned getConflicts(VirtReg *vreg);
