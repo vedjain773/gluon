@@ -19,6 +19,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 struct CIConfig {
     bool optimize = false;
@@ -39,6 +40,11 @@ int main(int argc, char **argv) {
     }
 
     std::string filename = argv[1];
+    
+    if (!std::filesystem::exists(filename)) {
+        std::cerr << std::format("error: '{}' no such file or directory\n", filename);
+        return 1;
+    }
 
     std::string destname = std::format("{}.s", filename.substr(0, filename.size() - 2));
 

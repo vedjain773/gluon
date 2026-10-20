@@ -85,6 +85,8 @@ void Peephole::remJump() {
 
         for (auto it = blocks.begin(); it != blocks.end() - 1;) {
             mBlock *block = (*it++).get();
+            if (block->getNumInsts() == 0) continue;
+
             mInst *inst = block->getTerminator();
 
             Code opc = inst->getOpCode();

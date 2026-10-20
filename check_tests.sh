@@ -1,88 +1,127 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Runs every tests/*.c through the gluon compiler (unoptimized and optimized),
+# assembles/links for RISC-V, runs the result and compares the exit code with
+# the "EXPECTED: <n>" comment found in the test file.
+#
+# Usage: ./check_tests.sh [-v] [-t SECONDS] [test_dir_or_files...]
+#   -v   verbose: show compiler/assembler/linker output on failure
+#   -t   per-test run timeout in seconds (default: 5)
+#
+# Exit status: 0 if all tests pass, 1 otherwise.
 
-total_files=0
-passed=0
+set -u
 
-echo -e "\033[K\e[34m[Testing Unoptimized IR]\e[0m:"
+GLUON=./gluon
+AS=riscv64-linux-gnu-as
+CC=riscv64-linux-gnu-gcc
+TIMEOUT=5
+VERBOSE=0
 
-for file in tests/*.c
-do
-    expected=$(grep "EXPECTED:" "$file" | cut -d':' -f2 | xargs)
-    
-    echo -ne "\r\033[K\e[34m[Testing]\e[0m: $file"
+while getopts "vt:" opt; do
+    case $opt in
+        v) VERBOSE=1 ;;
+        t) TIMEOUT=$OPTARG ;;
+        *) echo "Usage: $0 [-v] [-t SECONDS] [files...]" >&2; exit 2 ;;
+    esac
+done
+shift $((OPTIND - 1))
 
-    total_files=$((total_files+1))
-    for mode in normal 
-    do
-        
-        ./gluon "$file" -o out/prog.s 
-        label="[STD]"
+if [ $# -gt 0 ]; then
+    TESTS=("$@")
+else
+    TESTS=(tests/*.c)
+fi
 
-        riscv64-linux-gnu-as out/prog.s -o out/prog.o
-        riscv64-linux-gnu-gcc -static out/prog.o -o out/prog
+if [ -t 1 ]; then
+    BLUE=$'\033[34m'; RED=$'\033[31m'; GREEN=$'\033[32m'; RESET=$'\033[0m'; CLEAR=$'\r\033[K'
+else
+    BLUE=''; RED=''; GREEN=''; RESET=''; CLEAR=''
+fi
 
-        if [ $? -ne 0 ]; then
-            echo -e "\033[31m [FAIL] \033[0m $label $file linker error"
+for tool in "$GLUON" "$AS" "$CC"; do
+    if ! command -v "$tool" >/dev/null 2>&1 && [ ! -x "$tool" ]; then
+        echo "${RED}error:${RESET} required tool not found: $tool" >&2
+        exit 2
+    fi
+done
+if [ ! -e "${TESTS[0]}" ]; then
+    echo "${RED}error:${RESET} no test files found" >&2
+    exit 2
+fi
+
+RUNNER=()
+if [ "$(uname -m)" != "riscv64" ]; then
+    if command -v qemu-riscv64 >/dev/null 2>&1; then
+        RUNNER=(qemu-riscv64)
+    fi
+fi
+
+WORKDIR=$(mktemp -d)
+trap 'rm -rf "$WORKDIR"' EXIT
+
+quiet() {
+    if [ "$VERBOSE" -eq 1 ]; then "$@"; else "$@" >/dev/null 2>&1; fi
+}
+
+run_suite() {
+    local title=$1; shift
+    local flags=("$@")
+    SUITE_PASSED=0
+    SUITE_TOTAL=0
+
+    echo "${BLUE}[$title]${RESET}"
+
+    local file expected actual
+    for file in "${TESTS[@]}"; do
+        printf '%s%s[Testing]%s %s' "$CLEAR" "$BLUE" "$RESET" "$file"
+        SUITE_TOTAL=$((SUITE_TOTAL + 1))
+
+        expected=$(grep -m1 "EXPECTED:" "$file" | cut -d':' -f2 | xargs)
+        if ! [[ $expected =~ ^[0-9]+$ ]]; then
+            printf '%s%s[FAIL]%s %s: missing or invalid EXPECTED: line\n' "$CLEAR" "$RED" "$RESET" "$file"
             continue
         fi
 
-        ./out/prog
-        actual=$?
+        rm -f "$WORKDIR"/prog*
 
-        if [ "$actual" = "$expected" ]; then
-          passed=$((passed+1))
-        else
-          echo -e "\033[31m [FAIL] \033[0m $label $file expected=$expected got=$actual"
+        if ! quiet "$GLUON" "$file" "${flags[@]}" -o "$WORKDIR/prog.s"; then
+            printf '%s%s[FAIL]%s %s: compiler error\n' "$CLEAR" "$RED" "$RESET" "$file"
+            continue
         fi
-
-    done
-done
-
-rm -f out/prog*
-
-total_tests=$((total_files))
-echo -ne "\r\033[KTotal tests passed: $passed / $total_tests\n"
-
-echo -e "\033[K\e[34m[Testing Optimized IR]\e[0m:"
-
-total_files=0
-passed=0
-
-for file in tests/*.c
-do
-    expected=$(grep "EXPECTED:" "$file" | cut -d':' -f2 | xargs)
-    
-    echo -ne "\r\033[K\e[34m[Testing]\e[0m: $file"
-
-    total_files=$((total_files+1))
-    for mode in normal 
-    do
-        
-        ./gluon "$file" --optimize -o out/prog.s 
-        label="[STD]"
-
-        riscv64-linux-gnu-as out/prog.s -o out/prog.o
-        riscv64-linux-gnu-gcc -static out/prog.o -o out/prog
-
-        if [ $? -ne 0 ]; then
-            echo -e "\033[31m [FAIL] \033[0m $label $file linker error"
+        if ! quiet "$AS" "$WORKDIR/prog.s" -o "$WORKDIR/prog.o"; then
+            printf '%s%s[FAIL]%s %s: assembler error\n' "$CLEAR" "$RED" "$RESET" "$file"
+            continue
+        fi
+        if ! quiet "$CC" -static "$WORKDIR/prog.o" -o "$WORKDIR/prog"; then
+            printf '%s%s[FAIL]%s %s: linker error\n' "$CLEAR" "$RED" "$RESET" "$file"
             continue
         fi
 
-        ./out/prog
+        timeout "$TIMEOUT" "${RUNNER[@]}" "$WORKDIR/prog" >/dev/null 2>&1
         actual=$?
 
-        if [ "$actual" = "$expected" ]; then
-          passed=$((passed+1))
+        if [ "$actual" -eq 124 ]; then
+            printf '%s%s[FAIL]%s %s: timed out after %ss\n' "$CLEAR" "$RED" "$RESET" "$file" "$TIMEOUT"
+        elif [ "$actual" -eq "$expected" ]; then
+            SUITE_PASSED=$((SUITE_PASSED + 1))
         else
-          echo -e "\033[31m [FAIL] \033[0m $label $file expected=$expected got=$actual"
+            printf '%s%s[FAIL]%s %s: expected=%s got=%s\n' "$CLEAR" "$RED" "$RESET" "$file" "$expected" "$actual"
         fi
-
     done
-done
 
+    local color=$GREEN
+    [ "$SUITE_PASSED" -ne "$SUITE_TOTAL" ] && color=$RED
+    printf '%sTotal tests passed: %s%s / %s%s\n' "$CLEAR" "$color" "$SUITE_PASSED" "$SUITE_TOTAL" "$RESET"
+}
 
-rm -f out/prog*
+overall_ok=0
 
-total_tests=$((total_files))
-echo -ne "\r\033[KTotal tests passed: $passed / $total_tests\n"
+run_suite "Testing Unoptimized IR"
+[ "$SUITE_PASSED" -ne "$SUITE_TOTAL" ] && overall_ok=1
+
+echo
+run_suite "Testing Optimized IR" --optimize
+[ "$SUITE_PASSED" -ne "$SUITE_TOTAL" ] && overall_ok=1
+
+exit $overall_ok
