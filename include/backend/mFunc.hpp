@@ -10,6 +10,7 @@ namespace RISCV {
 
 class mBlock;
 class mModule;
+class VirtReg;
 
 class mFunc {
   private:
@@ -20,6 +21,8 @@ class mFunc {
 
     std::vector<StackSlot*> stackSlots;
     std::vector<Reg> calleeSavedRegs;
+
+    std::unordered_map<VirtReg *, unsigned> spills;
 
     int stackArgs = 0;
     int frameSize = 16;
@@ -32,7 +35,11 @@ class mFunc {
 
     unsigned getNextSlotId();
     std::vector<StackSlot*> &getStackSlots();
+    StackSlot *getStackSlot(unsigned id);
     void insertSlot(StackSlot *slot);
+
+    unsigned getSpillId(VirtReg *vreg);
+    void addSpill(VirtReg *vreg);
 
     void setFrameSize(unsigned size);
     void addCalleeSavedReg(Reg reg);

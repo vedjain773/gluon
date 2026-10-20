@@ -1,4 +1,5 @@
 #include "backend/mFunc.hpp"
+#include "backend/riscv64/mOperand.hpp"
 
 #include <algorithm>
 
@@ -25,8 +26,28 @@ std::vector<StackSlot *> &mFunc::getStackSlots() {
     return stackSlots;
 }
 
+StackSlot *mFunc::getStackSlot(unsigned id) {
+    for (StackSlot *ss: stackSlots) {
+        if (ss->getSlotId() == id) return ss;
+    }
+}
+
 void mFunc::insertSlot(StackSlot *slot) {
     stackSlots.push_back(slot);
+}
+
+unsigned mFunc::getSpillId(VirtReg *virtreg) {
+    return spills[virtreg];
+}
+
+void mFunc::addSpill(VirtReg *virtreg) {
+    TypeKind *type = virtreg->getType();
+    unsigned id = getNextSlotId();
+
+    StackSlot *slot = StackSlot::Create(id, type);
+    insertSlot(slot);
+
+    spills.insert({virtreg, id});
 }
 
 void mFunc::setFrameSize(unsigned size) {

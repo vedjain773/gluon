@@ -10,10 +10,11 @@
 #include "backend/mFunc.hpp"
 
 #include <unordered_map>
+#include <optional>
 #include <array>
 
-#define NUM_REGS 26
-#define CALLER_S 15
+#define NUM_REGS 25
+#define CALLER_S 14
 
 namespace RISCV {
 
@@ -68,11 +69,11 @@ class RegAlloc {
     void createITFGraph();
     void colour();
     
-    void addTempRegs(std::bitset<NUM_REGS> &adjRegs, VirtReg *vreg);
-    Reg getPhyReg(std::bitset<NUM_REGS> &regs);
+    std::optional<Reg> getPhyReg(std::bitset<NUM_REGS> &regs);
 
     void reset();
     void replace(mFunc *func);
+    void addSpills(mFunc *func);
     void run(mFunc *func);
 
   public:

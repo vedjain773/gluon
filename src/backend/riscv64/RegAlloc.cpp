@@ -121,18 +121,20 @@ std::set<VirtReg *> RegAlloc::getUnion(const std::set<VirtReg *> &s1,
     return result;
 }
 
-Reg RegAlloc::getPhyReg(std::bitset<NUM_REGS> &regs) {
+std::optional<Reg> RegAlloc::getPhyReg(std::bitset<NUM_REGS> &regs) {
     for (int i = 0; i < NUM_REGS; i++) {
         if (regs[i]) return availReg[i];
     }
+
+    return {};
 }
 
 RegAlloc::RegAlloc(mModule *module) :
     module(module) {
     availReg = {Reg::A0, Reg::A1, Reg::A2, Reg::A3, Reg::A4, Reg::A5, Reg::A6, Reg::A7,
-        Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, Reg::T6, 
+        Reg::T0, Reg::T1, Reg::T2, Reg::T3, Reg::T4, Reg::T5, 
         Reg::S1, Reg::S2, Reg::S3, Reg::S4, Reg::S5, Reg::S6, Reg::S7, Reg::S8,
-        Reg::S9, Reg::S10, Reg::S11};
+        Reg::S9, Reg::S10, Reg::S11};;
 
     for (int i = 0; i < NUM_REGS; i++)
         reg2Int.insert({availReg[i], i});
@@ -309,6 +311,13 @@ void RegAlloc::colour() {
         interference.erase(node);
     }
 
+    if (!interference.empty()) {
+        for (auto it = interference.begin(); it != interference.end();) {
+            auto &[vreg, _] = *(it++);
+            vregStack.push(vreg);
+        }
+    }
+
     std::bitset<NUM_REGS> availRegSet;
     availRegSet.flip();
 
@@ -329,16 +338,19 @@ void RegAlloc::colour() {
         if (conflicts.count(curr) != 0) adjRegs = adjRegs | conflicts[curr];;
         
         std::bitset<NUM_REGS> validRegs = availRegSet & ~adjRegs;
-        if (validRegs.none()) continue;
 
-        Reg reg = regMap[curr] = getPhyReg(validRegs);
-
-        if (isCalleeSaved(reg)) {
-            func->addCalleeSavedReg(reg); 
+        std::optional<Reg> optReg = getPhyReg(validRegs);
+        
+        if (optReg.has_value()) {
+            Reg reg = regMap[curr] = optReg.value();
+            if (isCalleeSaved(reg)) func->addCalleeSavedReg(reg);  
+        } else {
+            func->addSpill(curr);     
         }
     }
 
     replace(func);
+    addSpills(func);
 }
 
 void RegAlloc::reset() {
@@ -375,6 +387,97 @@ void RegAlloc::replace(mFunc *func) {
                 }
             }
         }
+    }
+}
+
+void RegAlloc::addSpills(mFunc *func) {
+    std::vector<mInst*> defs;
+    std::vector<std::pair<mInst*, unsigned>> uses;
+
+    auto getStore = [&](VirtReg *virtreg, mBlock *block) {
+        TypeKind *type = virtreg->getType();
+        std::size_t size = type == nullptr ? 8 : type->size;
+        Code opc;
+
+        switch (size) {
+            case 1: opc = Code::SB;
+            break;
+            case 2: opc = Code::SH;
+            break;
+            case 4: opc = Code::SW;
+            break;
+            default: opc = Code::SD;
+        }
+        
+        unsigned id = func->getSpillId(virtreg);
+        std::vector<mOperand*> operands = {PhyReg::Create(Reg::T6), func->getStackSlot(id)};
+
+        return std::make_unique<mInst>(opc, block, operands);
+    };
+
+    auto getLoad = [&](VirtReg *virtreg, mBlock *block) {
+        TypeKind *type = virtreg->getType();
+        std::size_t size = type == nullptr ? 8 : type->size;
+        Code opc;
+
+        switch (size) {
+            case 1: opc = Code::LB;
+            break;
+            case 2: opc = Code::LH;
+            break;
+            case 4: opc = Code::LW;
+            break;
+            default: opc = Code::LD;
+        }
+        
+        unsigned id = func->getSpillId(virtreg);
+        std::vector<mOperand*> operands = {PhyReg::Create(Reg::T6), func->getStackSlot(id)};
+
+        return std::make_unique<mInst>(opc, block, operands);
+    };
+
+    for (auto &block: func->getBlocks()) {
+        for (auto &inst: block->getInsts()) {
+            unsigned numOperands = inst->getNumOperands();
+
+            for (unsigned i = 0; i < numOperands; i++) {
+                VirtReg *vreg = dynamic_cast<VirtReg*>(inst->getOperand(i));
+                if (vreg != nullptr) {
+                    if (inst->isDef(i)) defs.push_back(inst.get()); 
+                    if (inst->isUse(i)) uses.push_back(std::make_pair(inst.get(), i));
+                }
+            }
+        }
+    }
+
+    for (auto &inst: defs) {
+        unsigned i, numOperands = inst->getNumOperands();
+
+        for (i = 0; i < numOperands; i++) {
+            if (inst->isDef(i)) break;            
+        }
+
+        mOperand *oper = inst->getOperand(i);
+        VirtReg *vreg = dynamic_cast<VirtReg*>(oper);
+        if (vreg == nullptr) continue;
+
+        inst->setOperand(i, PhyReg::Create(Reg::T6));
+        mBlock *mblock = inst->getParent();
+
+        auto sinst = getStore(vreg, mblock);
+        mblock->insertAfter(std::move(sinst), inst);
+    }
+
+    for (auto &[inst, i]: uses) {
+        mOperand *oper = inst->getOperand(i);
+        VirtReg *vreg = dynamic_cast<VirtReg*>(oper);
+        if (vreg == nullptr) continue;
+        
+        inst->setOperand(i, PhyReg::Create(Reg::T6));
+        mBlock *mblock = inst->getParent();
+
+        auto linst = getLoad(vreg, mblock);
+        mblock->insertBefore(std::move(linst), inst);
     }
 }
 

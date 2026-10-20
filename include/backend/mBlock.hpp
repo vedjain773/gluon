@@ -30,6 +30,9 @@ class mBlock {
 
     void appendInst(std::unique_ptr<mInst> inst);
     void appendAtTop(std::unique_ptr<mInst> inst);
+
+    void insertBefore(std::unique_ptr<mInst> inst, mInst *before);
+    void insertAfter(std::unique_ptr<mInst> inst, mInst *after);
     void insertPnel(std::unique_ptr<mInst> inst);
 
     void removeInst(mInst *inst);
