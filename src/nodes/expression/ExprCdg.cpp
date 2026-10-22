@@ -119,12 +119,6 @@ Value *EmptyExpr::codegen(CodegenVis &cdgvis) {
 
 Value *CallExpr::codegen(CodegenVis &cdgvis) {
     IRBuilder *Bldr = (cdgvis.builder).get();
-    Module *module = (cdgvis.module).get();
-    Func *calleefunc = module->getFunc(callee);
-
-    if (!calleefunc) return nullptr;
-
-    if (calleefunc->getArgs().size() != args.size()) return nullptr;
 
     std::vector<Value *> argVals;
 
@@ -133,5 +127,15 @@ Value *CallExpr::codegen(CodegenVis &cdgvis) {
         if (!argVals.back()) return nullptr;
     }
 
+    if (isBuiltIn) {
+        return Bldr->createBuiltIn(argVals, callee, "builtin");
+    }
+
+    Module *module = (cdgvis.module).get();
+    Func *calleefunc = module->getFunc(callee);
+
+    if (!calleefunc) return nullptr;
+    if (calleefunc->getArgs().size() != args.size()) return nullptr;
+ 
     return Bldr->createCall(calleefunc, argVals, "calltmp");
 }

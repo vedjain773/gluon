@@ -35,6 +35,8 @@ class IRBuilder {
     StoreInst *createStore(Value *value, Value *ptr);
 
     CallInst *createCall(Func *callee, std::vector<Value*> args, const std::string &name = "");
+    BuiltInInst *createBuiltIn(std::vector<Value*> args, const std::string &funcName, 
+                               const std::string &name);
 
     ReturnInst *createRet(Value *value);
     UnCondBrInst *createBr(BasicBlock *then);

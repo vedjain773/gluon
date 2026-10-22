@@ -184,9 +184,10 @@ class EmptyExpr : public Expression {
 class CallExpr : public Expression {
   public:
     std::string callee;
+    bool isBuiltIn;
     std::vector<std::unique_ptr<Expression>> args;
 
-    CallExpr(std::string callee_name, int tline, int tcol);
+    CallExpr(std::string callee_name, int tline, int tcol, bool isBuiltIn = false);
     void add(std::unique_ptr<Expression> arg);
     void accept(Visitor &visitor);
 

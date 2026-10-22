@@ -364,6 +364,14 @@ void SemanticVisitor::visitCastExpr(CastExpr &castexpr) {
 }
 
 void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
+    if (callexpr.isBuiltIn) {
+        for (auto &expr : callexpr.args) {
+            expr->accept(*this);
+        }
+
+        return;
+    }
+    
     bool flag = false;
 
     for (int i = scopeVec.size() - 1; i >= 0; i--) {

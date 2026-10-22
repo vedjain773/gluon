@@ -74,8 +74,10 @@ std::unique_ptr<Expression> Parser::ParsePostFixExpr() {
         switch (peekCurr().tokentype) {
             case TokenType::LEFT_ROUND: {
                 getNextToken();
+                bool isBuiltIn = name.starts_with("__builtin_");
 
-                auto Result = std::make_unique<CallExpr>(name, line, column);
+                auto Result = std::make_unique<CallExpr>(name, line, column, isBuiltIn);
+
                 while (peekCurr().tokentype != TokenType::RIGHT_ROUND) {
                     auto var = ParseExpr();
                     Result->add(std::move(var));

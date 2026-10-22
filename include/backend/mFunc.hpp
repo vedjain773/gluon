@@ -29,6 +29,7 @@ class mFunc {
 
   public:
     mFunc(Func &func, mModule *parent);
+    mFunc(const std::string &funcName, mModule *parent);
 
     std::string getName();
     mModule *getParent();

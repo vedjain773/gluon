@@ -192,8 +192,8 @@ void Scanner::scanToken() {
                 Error error(line, tokStartCol, "No matching \" found");
                 printErrorMsg(error);
             }
-        }
-
+        } break;
+        
         case ' ': {
             getNextChar();
         }

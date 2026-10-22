@@ -181,6 +181,19 @@ class CallInst: public Inst {
     void print(std::ostream &os);
 };
 
+class BuiltInInst: public Inst {
+  private:
+    std::string funcName;
+    BuiltInInst(std::vector<Value*> args, const std::string &funcName, const std::string &name);
+
+  public:
+    static BuiltInInst *Create(std::vector<Value*> args,
+                               const std::string &funcName, const std::string &name);
+    std::string &getName();
+
+    void print(std::ostream &os);
+};
+
 class CondBrInst: public Inst {
   private:
     BasicBlock *trueBB;

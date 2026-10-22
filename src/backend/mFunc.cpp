@@ -9,6 +9,10 @@ mFunc::mFunc(Func &func, mModule *parent) :
     name(func.getName()),
     parent(parent) {}
 
+mFunc::mFunc(const std::string &funcName, mModule *parent) :
+    name(funcName),
+    parent(parent) {}
+
 std::string mFunc::getName() {
     return name;
 }

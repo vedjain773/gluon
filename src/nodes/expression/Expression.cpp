@@ -114,6 +114,17 @@ void UnaryExpr::accept(Visitor &visitor) {
     visitor.visitUnaryExpr(*this);
 }
 
+BinaryExpr::BinaryExpr(Operators op, std::unique_ptr<Expression> lhs,
+                       std::unique_ptr<Expression> rhs, int tline, int tcol) :
+    Expression(tline, tcol),
+    Op(op),
+    LHS(std::move(lhs)),
+    RHS(std::move(rhs)) {}
+
+void BinaryExpr::accept(Visitor &visitor) {
+    visitor.visitBinaryExpr(*this);
+}
+
 AssignExpr::AssignExpr(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs, int tline,
                        int tcol) :
     Expression(tline, tcol),
@@ -128,9 +139,10 @@ void EmptyExpr::accept(Visitor &visitor) {
     visitor.visitEmptyExpr(*this);
 }
 
-CallExpr::CallExpr(std::string callee_name, int tline, int tcol) :
+CallExpr::CallExpr(std::string callee_name, int tline, int tcol, bool isBuiltIn) :
     Expression(tline, tcol),
-    callee(callee_name) {}
+    callee(callee_name),
+    isBuiltIn(isBuiltIn) {}
 
 void CallExpr::add(std::unique_ptr<Expression> arg) {
     args.push_back(std::move(arg));
@@ -138,15 +150,4 @@ void CallExpr::add(std::unique_ptr<Expression> arg) {
 
 void CallExpr::accept(Visitor &visitor) {
     visitor.visitCallExpr(*this);
-}
-
-BinaryExpr::BinaryExpr(Operators op, std::unique_ptr<Expression> lhs,
-                       std::unique_ptr<Expression> rhs, int tline, int tcol) :
-    Expression(tline, tcol),
-    Op(op),
-    LHS(std::move(lhs)),
-    RHS(std::move(rhs)) {}
-
-void BinaryExpr::accept(Visitor &visitor) {
-    visitor.visitBinaryExpr(*this);
 }

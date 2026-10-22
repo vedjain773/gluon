@@ -127,6 +127,16 @@ CallInst *IRBuilder::createCall(Func *callee, std::vector<Value *> args, const s
     return instRaw;
 }
 
+BuiltInInst *IRBuilder::createBuiltIn(std::vector<Value *> args, const std::string &funcName,
+    const std::string &name) {
+    std::unique_ptr<BuiltInInst> inst(BuiltInInst::Create(args, funcName, name));
+
+    auto *instRaw = inst.get();
+    currBasicBlock->appendInst(std::move(inst));
+
+    return instRaw;
+}
+
 ReturnInst *IRBuilder::createRet(Value *value) {
     std::unique_ptr<ReturnInst> inst(ReturnInst::Create(value));
 

@@ -1,13 +1,16 @@
 #include "backend/riscv64/Emitter.hpp"
 #include <fstream>
 
+#define NUM_CODES 33
+
 using namespace RISCV;
 
-constexpr std::array<std::string, 32> codeNames = {
+constexpr std::array<std::string, NUM_CODES> codeNames = {
     "neg",  "negw", "addi", "add",  "sub",  "mul", "div", "rem",
     "addw", "subw", "mulw", "sgt",  "slt", "seqz",
     "snez", "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
-    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","nop"};
+    "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","ecall",
+    "nop",};
 
 Emitter::Emitter(mModule *module, std::ostream &os) :
     module(module),
@@ -62,7 +65,7 @@ void Emitter::emitInst(mInst *inst) {
     Code opc = inst->getOpCode();
     
     unsigned opid = static_cast<unsigned>(opc);
-    if (opid > 31) return;
+    if (opid > NUM_CODES - 1) return;
 
     os << std::format("{} ", getInstStr(opc));
 

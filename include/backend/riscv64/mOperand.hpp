@@ -25,7 +25,7 @@ enum class Code: unsigned {
     LI, LB, LH, LA, LW, LD,
     SB, SH, SW, SD,
     BEQZ, BNEZ, RET, J,
-    CALL,
+    CALL, ECALL,
     NOP,
     P_LA, P_PHI
 };

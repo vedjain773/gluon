@@ -382,33 +382,19 @@ void LowerPass::handleRet(Inst *inst) {
 void LowerPass::handleCall(Inst *inst) {
     CallInst *callinst = dynamic_cast<CallInst*>(inst);
     std::vector<Value *> &args = inst->getOperands(); 
-    unsigned aId = 10;
 
-    for (auto &arg: args) {
-        TypeKind *argType = arg->getType();
-        unsigned argNo = aId - 10;
-        mOperand *oper;
+    std::string funcName;
 
-        if (isPointerType(argType)) oper = genAddr(arg);
-        else oper = handleValue(arg);
-
-        if (argNo < 8) {
-            Reg reg = static_cast<Reg>(aId);
-            Code opc = oper->getOpkind() == OpKind::VirtualReg ? Code::MV : Code::LI;
-
-            emit(opc, {getPhyReg(reg), oper});
-        } else {
-            mOperand *mat = materialize(oper);
-
-            MemOperand *mem = MemOperand::Create(argType, Reg::SP, (argNo - 8) * 8);
-            currFunc->addStackArg();
-            emit(Code::SD, {mat, mem});
-        }
-        
-        aId++;
+    if (callinst == nullptr) {
+        BuiltInInst *biInst = dynamic_cast<BuiltInInst*>(inst);
+        funcName = biInst->getName();
+        dispatch(funcName);
+    } else {
+        funcName = callinst->getCallee()->getName();
     }
-    
-    emitCall(callinst->getCallee()->getName(), args.size());
+
+    emitArgs(args);
+    emitCall(funcName, args.size());
     mOperand *result = insertReg(inst);
 
     emit(Code::MV, {result, getPhyReg(Reg::A0)});
@@ -463,6 +449,34 @@ void LowerPass::emitBr(const Code &code, mOperand *oper, mBlock *block) {
     currBlock->appendInst(std::move(inst));
 }
 
+void LowerPass::emitArgs(std::vector<Value*> args) {
+    unsigned aId = 10;
+
+    for (auto &arg: args) {
+        TypeKind *argType = arg->getType();
+        unsigned argNo = aId - 10;
+        mOperand *oper;
+
+        if (isPointerType(argType)) oper = genAddr(arg);
+        else oper = handleValue(arg);
+
+        if (argNo < 8) {
+            Reg reg = static_cast<Reg>(aId);
+            Code opc = oper->getOpkind() == OpKind::VirtualReg ? Code::MV : Code::LI;
+
+            emit(opc, {getPhyReg(reg), oper});
+        } else {
+            mOperand *mat = materialize(oper);
+
+            MemOperand *mem = MemOperand::Create(argType, Reg::SP, (argNo - 8) * 8);
+            currFunc->addStackArg();
+            emit(Code::SD, {mat, mem});
+        }
+        
+        aId++;
+    }
+}
+
 void LowerPass::emitCall(const std::string &name, unsigned numArgs) {
     auto inst = std::make_unique<mCallInst>(currBlock, name, numArgs);
     currBlock->appendInst(std::move(inst));
@@ -501,6 +515,50 @@ mOperand *LowerPass::genAddr(Value *value) {
     mOperand *addrHolder = newVirtReg(value->getType());
     emit(Code::P_LA, {addrHolder, addr});
     return addrHolder;
+}
+
+void LowerPass::dispatch(const std::string &name) {
+    if (name == "__builtin_write") {
+        genSys(64);
+    } else if (name == "__builtin_exit") {
+        genSys(93);
+    }
+}
+
+mFunc *LowerPass::genSys(int num) {
+    if (builtIns.count(num) != 0) return builtIns[num];
+
+    std::string funcName;
+    TypeKind *intType = getType("int"); 
+    
+    switch (num) {
+        case 64: funcName = "__builtin_write";
+        break;
+
+        case 93: funcName = "__builtin_exit";
+        break;
+
+        default: return nullptr;
+    }
+
+    auto func = std::make_unique<mFunc>(funcName, mmod);
+    mFunc *funcRaw = func.get();
+    builtIns.insert({num, funcRaw});
+
+    auto block = std::make_unique<mBlock>("entry", funcRaw);
+    
+    mBlock *curr = currBlock;
+    currBlock = block.get();
+
+    emit(Code::LI, {getPhyReg(Reg::A7), Immediate::Create(num, intType)});
+    emit(Code::ECALL, {});
+    emitRet();
+
+    func->appendBlock(std::move(block));
+    mmod->appendFunc(std::move(func));
+
+    currBlock = curr;
+    return funcRaw;
 }
 
 mBlock *LowerPass::getEpilogue() {

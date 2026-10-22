@@ -25,6 +25,8 @@ class LowerPass {
 
     unsigned currentRegNo;
 
+    std::unordered_map<int, mFunc*> builtIns;
+
     mOperand *insertReg(Value *value);
     mOperand *handleValue(Value *value);
     mOperand *handleAddr(Value *value);
@@ -51,12 +53,16 @@ class LowerPass {
 
     void emit(const Code &code, std::initializer_list<mOperand*> opers);
     void emitBr(const Code &code, mOperand *oper, mBlock *block);
+    void emitArgs(std::vector<Value*> args);
     void emitCall(const std::string &name, unsigned numArgs);
     void emitPhi(mOperand *inst, std::vector<std::pair<mOperand*, mBlock*>> pairs);
     void emitRet();
 
     mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);
     mOperand *genAddr(Value *value);
+
+    void dispatch(const std::string &name);
+    mFunc *genSys(int num);
 
     mBlock *getEpilogue();
     void reset();

@@ -333,6 +333,34 @@ void CallInst::print(std::ostream &os) {
 
 //---
 
+BuiltInInst::BuiltInInst(std::vector<Value *> args, const std::string &funcName,
+    const std::string &name) :
+    Inst(OpCode::CALL, getVoidTy(), args, name),
+    funcName(funcName) {}
+
+BuiltInInst *BuiltInInst::Create(std::vector<Value *> args, const std::string &funcName,
+    const std::string &name) {
+    return new BuiltInInst(args, funcName, name);
+}
+
+std::string &BuiltInInst::getName() {
+    return funcName;
+}
+
+void BuiltInInst::print(std::ostream &os) {
+    os << std::format("call {} @{} (", getType()->name, funcName);
+
+    for (auto &argVal : getOperands()) {
+        argVal->printAsOperand(os);
+
+        if (argVal != getOperands().back()) os << ", ";
+    }
+
+    os << ')';
+}
+
+//---
+
 CondBrInst::CondBrInst(Value *condn, BasicBlock *trueBB, BasicBlock *falseBB) :
     Inst(OpCode::BRC, nullptr, {condn}, ""),
     trueBB(trueBB),
