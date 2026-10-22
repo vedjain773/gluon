@@ -56,7 +56,16 @@ Value *SizeOfExpr::codegen(CodegenVis &cdgvis) {
 }
 
 Value *CastExpr::codegen(CodegenVis &cdgvis) {
-    // TBD
+    IRBuilder *Bldr = (cdgvis.builder).get();
+    Value *val = expr->codegen(cdgvis);
+
+    if (from->size < to->size) {
+        return Bldr->createZExt(val, to, "zext");
+    } else if (from->size > to->size) {
+        return Bldr->createTrunc(val, to, "trunc");
+    } else {
+        return nullptr;
+    }
 }
 
 Value *UnaryExpr::codegen(CodegenVis &cdgvis) {

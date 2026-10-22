@@ -6,10 +6,10 @@
 
 using namespace RISCV;
 
-constexpr std::array<std::string, 35> codeNames = {
+constexpr std::array<std::string, 38> codeNames = {
     "NEG",  "NEGW", "ADDI", "ADD",  "SUB",  "MUL", "DIV", "REM",
-    "ADDW", "SUBW", "MULW", "SGT",  "SLT",  "SEQZ",
-    "SNEZ", "MV",   "LI",   "LB",   "LH",   "LA",  "LW",  "LD",  "SB",  "SH",
+    "ADDW", "SUBW", "MULW", "SGT",  "SLT",  "SEQZ","SNEZ","ZEXT_B", "ZEXT_H", "ZEXT_W",
+    "MV",   "LI",   "LB",   "LH",   "LA",  "LW",  "LD",  "SB",  "SH",
     "SW",   "SD",   "BEQZ", "BNEZ", "RET",  "J",   "CALL","ECALL", 
     "NOP",  "P_LA", "P_PHI"};
 

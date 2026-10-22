@@ -20,7 +20,7 @@ enum class OpCode: unsigned {
     GEP,
 
     //Cast
-    ZEXT,
+    ZEXT, TRUNC,
 
     //Declaration
     ALLOCA,
@@ -130,6 +130,16 @@ class ZExtInst: public Inst {
 
   public:
     static ZExtInst *Create(Value *value, TypeKind *type, const std::string &name);
+    
+    void print(std::ostream &os);
+};
+
+class TruncInst: public Inst {
+  private:
+    TruncInst(Value *value, TypeKind *type, const std::string &name);
+
+  public:
+    static TruncInst *Create(Value *value, TypeKind *type, const std::string &name);
     
     void print(std::ostream &os);
 };

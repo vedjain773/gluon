@@ -25,6 +25,7 @@ class IRBuilder {
     Value *createNot(Value *value, const std::string &name = "");
 
     Value *createZExt(Value *value, TypeKind *target, const std::string &name = "");
+    Value *createTrunc(Value *value, TypeKind *target, const std::string &name = "");
     Value *createGEP(TypeKind *type, Value *ptr, std::vector<Value*> idx, 
             const std::string &name);
 

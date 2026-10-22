@@ -33,9 +33,11 @@ class LowerPass {
     mOperand *materialize(mOperand *oper);
 
     void handleUnaryOp(Inst *inst, const OpCode &code);
-
     void handleBinOp(Inst *inst, const OpCode &code);
     void handleCmpOp(Inst *inst, const OpCode &code);
+
+    void handleZext(Inst *inst);
+    void handleTrunc(Inst *inst);
 
     void handleAlloca(Inst *inst);
     void handleLoad(Inst *inst);

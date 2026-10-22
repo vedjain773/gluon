@@ -21,6 +21,7 @@ enum class Code: unsigned {
     ADDI, ADD, SUB, MUL, DIV, REM,
     ADDW, SUBW, MULW,
     SGT, SLT, SEQZ, SNEZ,
+    ZEXT_B, ZEXT_H, ZEXT_W,
     MV,
     LI, LB, LH, LA, LW, LD,
     SB, SH, SW, SD,

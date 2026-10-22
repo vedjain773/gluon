@@ -64,6 +64,16 @@ Value *IRBuilder::createZExt(Value *value, TypeKind *type, const std::string &na
     return instRaw;
 }
 
+Value *IRBuilder::createTrunc(Value *value, TypeKind *type, const std::string &name) {
+    std::string nname = currFunc->getUniqueName(name);
+    std::unique_ptr<ZExtInst> inst(ZExtInst::Create(value, type, nname));
+
+    auto *instRaw = inst.get();
+    currBasicBlock->appendInst(std::move(inst));
+
+    return instRaw;
+}
+
 Value *IRBuilder::createGEP(TypeKind *type, Value *ptr, std::vector<Value *> idx,
                             const std::string &name) {
     std::string nname = currFunc->getUniqueName(name);

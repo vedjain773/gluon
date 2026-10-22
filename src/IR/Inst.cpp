@@ -6,10 +6,10 @@
 
 //---
 
-constexpr std::array<std::string, 25> opcodeNames{
+constexpr std::array<std::string, 26> opcodeNames{
     "not", "neg",  "add", "sub", "mul",  "div",    "rem",  "gt",    "gte", "lt", "lte", "eq",
-    "neq", "land", "lor", "gep", "zext", "alloca", "load", "store", "ret", "br", "br",  "phi",
-    "call"};
+    "neq", "land", "lor", "gep", "zext", "trunc",  "alloca","load", "store", "ret", "br", "br",
+    "phi", "call"};
 
 std::string opcodeToStr(OpCode opcode) {
     return opcodeNames[static_cast<unsigned>(opcode)];
@@ -231,6 +231,7 @@ void GEPInst::print(std::ostream &os) {
 }
 
 //---
+
 ZExtInst::ZExtInst(Value *value, TypeKind *type, const std::string &name) :
     Inst(OpCode::ZEXT, type, {value}, name) {}
 
@@ -240,6 +241,20 @@ ZExtInst *ZExtInst::Create(Value *value, TypeKind *type, const std::string &name
 
 void ZExtInst::print(std::ostream &os) {
     os << std::format("{} = {} {} to {}", getName(), opcodeToStr(OpCode::ZEXT),
+                      getOperand(0)->getType()->name, getType()->name);
+}
+
+//---
+
+TruncInst::TruncInst(Value *value, TypeKind *type, const std::string &name) :
+    Inst(OpCode::ZEXT, type, {value}, name) {}
+
+TruncInst *TruncInst::Create(Value *value, TypeKind *type, const std::string &name) {
+    return new TruncInst(value, type, name);
+}
+
+void TruncInst::print(std::ostream &os) {
+    os << std::format("{} = {} {} to {}", getName(), opcodeToStr(OpCode::TRUNC),
                       getOperand(0)->getType()->name, getType()->name);
 }
 

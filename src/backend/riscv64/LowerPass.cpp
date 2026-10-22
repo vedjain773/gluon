@@ -84,6 +84,14 @@ void LowerPass::lowerInst(Inst *inst) {
             handleCmpOp(inst, inst->getOpCode());
             break;
 
+        case OpCode::ZEXT:
+            handleZext(inst);
+            break;
+
+        case OpCode::TRUNC:
+            handleTrunc(inst);
+            break;
+
         case OpCode::ALLOCA:
             handleAlloca(inst);
             break;
@@ -267,6 +275,43 @@ void LowerPass::handleCmpOp(Inst *inst, const OpCode &code) {
     if (isLG) return;
 
     emit(codes[1], {result, subResult});
+}
+
+//---
+
+void LowerPass::handleZext(Inst *inst) {
+    Value *val = inst->getOperand(0);
+    unsigned valTypeSize = val->getType()->size;
+
+    mOperand *res = insertReg(inst);
+    mOperand *src = materialize(handleValue(val));
+
+    Code opc;
+    switch (valTypeSize) {
+        case 1: opc = Code::ZEXT_B;
+        break;
+
+        case 2: opc = Code::ZEXT_H;
+        break;
+
+        case 4: opc = Code::ZEXT_W;
+        break;
+
+        default: opc = Code::MV;
+    }
+
+    emit(opc, {res, src});
+}
+
+//---
+
+void LowerPass::handleTrunc(Inst *inst) {
+    Value *val = inst->getOperand(0);
+
+    mOperand *res = insertReg(inst);
+    mOperand *src = materialize(handleValue(val));
+
+    emit(Code::MV, {res, src});
 }
 
 //---

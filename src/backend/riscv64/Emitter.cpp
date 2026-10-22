@@ -1,14 +1,14 @@
 #include "backend/riscv64/Emitter.hpp"
 #include <fstream>
 
-#define NUM_CODES 33
+#define NUM_CODES 36
 
 using namespace RISCV;
 
 constexpr std::array<std::string, NUM_CODES> codeNames = {
     "neg",  "negw", "addi", "add",  "sub",  "mul", "div", "rem",
-    "addw", "subw", "mulw", "sgt",  "slt", "seqz",
-    "snez", "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
+    "addw", "subw", "mulw", "sgt",  "slt", "seqz", "snez", "zext.b", "zext.h", "zext.w",
+    "mv",   "li",   "lb",   "lh",  "la",  "lw",  "ld",  "sb",  "sh",
     "sw",   "sd",   "beqz", "bnez", "ret", "j",   "call","ecall",
     "nop",};
 
