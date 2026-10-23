@@ -120,6 +120,10 @@ int main(int argc, char **argv) {
     lp.lower();
     RISCV::mModule *bdMod = lp.getModule();
 
+#ifdef PRINT_MIR
+    lp.print(std::cout);      
+#endif
+
     RISCV::Peephole peepOpt(bdMod);
     peepOpt.redInst();
 
@@ -129,10 +133,6 @@ int main(int argc, char **argv) {
     }
 
     peepOpt.remJump();
-
-#ifdef PRINT_MIR
-    lp.print(std::cout);      
-#endif
 
     RISCV::RegAlloc allocator(bdMod);
     allocator.allocate();

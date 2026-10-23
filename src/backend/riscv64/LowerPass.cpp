@@ -342,9 +342,24 @@ void LowerPass::handleGEP(Inst *inst) {
     // Calculate offset
     unsigned numIndices = gepInst->getNumIndices();
     TypeKind *currType = gepInst->getSrcType();
-    mOperand *offset = getPhyReg(Reg::ZERO);
 
-    for (int i = 0; i < numIndices; i++) {
+    unsigned coff = 0;
+    mOperand *offset = getPhyReg(Reg::ZERO);
+    
+    int i = 0;
+    for (; i < numIndices; i++) {
+        Value *index = indices[i];
+        ConstantInt *cidx = dynamic_cast<ConstantInt*>(index);
+
+        if (cidx == nullptr) break;
+        coff += cidx->getValue() * currType->size;
+
+        currType = currType->to;
+    }
+
+    if (i != 0) offset = materialize(Immediate::Create(coff, intType));
+
+    for (; i < numIndices; i++) {
         mOperand *index = materialize(handleValue(indices[i]));
         mOperand *sizeImm = materialize(Immediate::Create(currType->size, intType));
 
