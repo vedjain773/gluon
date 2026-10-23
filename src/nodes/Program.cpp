@@ -27,7 +27,7 @@ void Program::printAST() {
 int Program::semAnalyse() {
     SemanticVisitor semvisitor;
     this->accept(semvisitor);
-    return semvisitor.numOfErrors;
+    return semvisitor.getNumErrors();
 }
 
 void Program::codegen() {

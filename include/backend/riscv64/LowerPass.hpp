@@ -63,7 +63,7 @@ class LowerPass {
     mOperand *genOpInst(const Code &code, std::initializer_list<mOperand*> opers, TypeKind *type);
     mOperand *genAddr(Value *value);
 
-    void dispatch(const std::string &name);
+    void dispatch(const BuiltIn &kind);
     mFunc *genSys(int num);
 
     mBlock *getEpilogue();

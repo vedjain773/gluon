@@ -348,22 +348,22 @@ void CallInst::print(std::ostream &os) {
 
 //---
 
-BuiltInInst::BuiltInInst(std::vector<Value *> args, const std::string &funcName,
+BuiltInInst::BuiltInInst(std::vector<Value *> args, const BuiltIn &kind,
     const std::string &name) :
     Inst(OpCode::CALL, getVoidTy(), args, name),
-    funcName(funcName) {}
+    kind(kind) {}
 
-BuiltInInst *BuiltInInst::Create(std::vector<Value *> args, const std::string &funcName,
+BuiltInInst *BuiltInInst::Create(std::vector<Value *> args, const BuiltIn &kind,
     const std::string &name) {
-    return new BuiltInInst(args, funcName, name);
+    return new BuiltInInst(args, kind, name);
 }
 
-std::string &BuiltInInst::getName() {
-    return funcName;
+BuiltIn &BuiltInInst::getKind() {
+    return kind;
 }
 
 void BuiltInInst::print(std::ostream &os) {
-    os << std::format("call {} @{} (", getType()->name, funcName);
+    os << std::format("call {} @{} (", getType()->name, getBuiltInName(kind));
 
     for (auto &argVal : getOperands()) {
         argVal->printAsOperand(os);

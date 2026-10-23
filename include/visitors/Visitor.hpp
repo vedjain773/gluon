@@ -40,10 +40,8 @@ class FuncDef;
 class ExternalDecl;
 class Program;
 
-class Visitor {
+class Visitor { 
   public:
-    int depth = 0;
-
     virtual void visitIntExpr(IntExpr &intexpr) = 0;
     virtual void visitCharExpr(CharExpr &charexpr) = 0;
     virtual void visitVarExpr(VarExpr &varexpr) = 0;
@@ -73,6 +71,8 @@ class Visitor {
     virtual void visitFuncDef(FuncDef &funcdef) = 0;
 
     virtual void visitProgram(Program &program) = 0;
+
+    int depth = 0;
 };
 
 class PrintVisitor : public Visitor {
@@ -111,16 +111,21 @@ class PrintVisitor : public Visitor {
 };
 
 class SemanticVisitor : public Visitor {
-  public:
+  private:
     std::vector<Scope> scopeVec;
     TypeKind *currFuncRetType;
     int insideLoop = 0;
     int numOfErrors = 0;
 
-    Scope &getCurrScope();
     void reportError(Statement &stmt, std::string msg);
     void reportError(Expression &expr, std::string msg);
+    
+    Scope &getCurrScope();
+    void regBuiltIns();
 
+    void handlePointerArithmetic(BinaryExpr &binaryexpr);
+  
+  public:
     void visitIntExpr(IntExpr &intexpr);
     void visitCharExpr(CharExpr &charexpr);
     void visitVarExpr(VarExpr &varexpr);
@@ -131,9 +136,6 @@ class SemanticVisitor : public Visitor {
     void visitSizeOfExpr(SizeOfExpr &sizeofexpr);
     void visitUnaryExpr(UnaryExpr &unaryexpr);
     void visitBinaryExpr(BinaryExpr &binaryexpr);
-
-    void handlePointerArithmetic(BinaryExpr &binaryexpr);
-
     void visitAssignExpr(AssignExpr &assignexpr);
     void visitEmptyExpr(EmptyExpr &emptyexpr);
 
@@ -153,6 +155,8 @@ class SemanticVisitor : public Visitor {
     void visitFuncDef(FuncDef &funcdef);
 
     void visitProgram(Program &program);
+
+    int getNumErrors();
 };
 
 #endif

@@ -137,7 +137,9 @@ Value *CallExpr::codegen(CodegenVis &cdgvis) {
     }
 
     if (isBuiltIn) {
-        return Bldr->createBuiltIn(argVals, callee, "builtin");
+        std::optional<BuiltIn> biOpt = getBuiltIn(callee); 
+        if (biOpt.has_value()) return Bldr->createBuiltIn(argVals, *biOpt, "builtin");
+        else return nullptr;
     }
 
     Module *module = (cdgvis.module).get();

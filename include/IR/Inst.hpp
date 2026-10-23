@@ -193,13 +193,13 @@ class CallInst: public Inst {
 
 class BuiltInInst: public Inst {
   private:
-    std::string funcName;
-    BuiltInInst(std::vector<Value*> args, const std::string &funcName, const std::string &name);
+    BuiltIn kind;
+    BuiltInInst(std::vector<Value*> args, const BuiltIn &kind, const std::string &name);
 
   public:
-    static BuiltInInst *Create(std::vector<Value*> args,
-                               const std::string &funcName, const std::string &name);
-    std::string &getName();
+    static BuiltInInst *Create(std::vector<Value*> args, 
+                               const BuiltIn &kind, const std::string &name);
+    BuiltIn &getKind();
 
     void print(std::ostream &os);
 };

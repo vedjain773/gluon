@@ -2,6 +2,24 @@
 #include <format>
 #include <iostream>
 
+std::optional<BuiltIn> getBuiltIn(const std::string &name) {
+    if (name == "__builtin_write") {
+        return BuiltIn::WRITE;
+    } else if (name == "__builtin_exit") {
+        return BuiltIn::EXIT;
+    }
+
+    return {};
+}
+
+std::string getBuiltInName(const BuiltIn &kind) {
+    switch (kind) {
+        case BuiltIn::WRITE: return "__builtin_write";
+        case BuiltIn::EXIT: return "__builtin_exit";
+        default: return "";
+    }
+}
+
 std::unordered_map<std::string, std::unique_ptr<TypeKind>> typeTable = [] {
     std::unordered_map<std::string, std::unique_ptr<TypeKind>> m;
 
@@ -192,14 +210,6 @@ int getNumElements(TypeKind *typek) {
     return (arrSize / elementSize);
 }
 
-void Scope::addRow(std::string name, TokenType tokentype, SymbolKind symKind) {
-    Symbol symbol;
-    symbol.type = TokToType(tokentype);
-    symbol.kind = symKind;
-
-    symTable.insert({name, symbol});
-}
-
 void Scope::addRow(std::string name, TypeKind *type, SymbolKind symKind) {
     Symbol symbol;
     symbol.type = type;
@@ -215,6 +225,11 @@ bool Scope::search(std::string name) {
 void Scope::addParam(std::string name, TypeKind *type) {
     Symbol &sym = symTable[name];
     sym.params.push_back(type);
+}
+
+void Scope::addParams(std::string name, std::initializer_list<TypeKind*> types) {
+    Symbol &sym = symTable[name];
+    sym.params.insert(sym.params.begin(), types);
 }
 
 size_t Scope::getNumParams(std::string name) {

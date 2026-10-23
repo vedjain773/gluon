@@ -432,8 +432,10 @@ void LowerPass::handleCall(Inst *inst) {
 
     if (callinst == nullptr) {
         BuiltInInst *biInst = dynamic_cast<BuiltInInst*>(inst);
-        funcName = biInst->getName();
-        dispatch(funcName);
+        BuiltIn &biKind = biInst->getKind();
+        funcName = getBuiltInName(biKind);
+        
+        dispatch(biKind);
     } else {
         funcName = callinst->getCallee()->getName();
     }
@@ -562,11 +564,13 @@ mOperand *LowerPass::genAddr(Value *value) {
     return addrHolder;
 }
 
-void LowerPass::dispatch(const std::string &name) {
-    if (name == "__builtin_write") {
-        genSys(64);
-    } else if (name == "__builtin_exit") {
-        genSys(93);
+void LowerPass::dispatch(const BuiltIn &kind) {
+    switch (kind) {
+        case BuiltIn::WRITE: genSys(64);
+        break;
+
+        case BuiltIn::EXIT: genSys(93);
+        break;
     }
 }
 

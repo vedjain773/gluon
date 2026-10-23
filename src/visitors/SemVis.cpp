@@ -24,9 +24,23 @@ void SemanticVisitor::reportError(Expression &expr, std::string msg) {
     numOfErrors += 1;
 }
 
+void SemanticVisitor::regBuiltIns() {
+    Scope &global = getCurrScope();
+    
+    TypeKind *voidTy = getType("void");
+    TypeKind *intTy = getType("int");
+
+    global.addRow("__builtin_write", voidTy, SymbolKind::FUNCTION);
+    global.addRow("__builtin_exit", voidTy, SymbolKind::FUNCTION);
+
+    global.addParams("__builtin_write", {intTy, getPtrTo("char"), intTy});
+    global.addParam("__builtin_exit", intTy);
+}
+
 void SemanticVisitor::visitProgram(Program &program) {
     Scope globalScope;
     scopeVec.push_back(globalScope);
+    regBuiltIns();
 
     for (auto &edecl : program.root) {
         if (edecl == nullptr) continue;
@@ -222,7 +236,6 @@ void SemanticVisitor::visitAssignExpr(AssignExpr &assignexpr) {
     Expression *rExpr = (assignexpr.RHS).get();
 
     lExpr->accept(*this);
-
     rExpr->accept(*this);
 
     if (!lExpr->isLValue()) {
@@ -364,14 +377,6 @@ void SemanticVisitor::visitCastExpr(CastExpr &castexpr) {
 }
 
 void SemanticVisitor::visitCallExpr(CallExpr &callexpr) {
-    if (callexpr.isBuiltIn) {
-        for (auto &expr : callexpr.args) {
-            expr->accept(*this);
-        }
-
-        return;
-    }
-    
     bool flag = false;
 
     for (int i = scopeVec.size() - 1; i >= 0; i--) {
@@ -449,4 +454,8 @@ void SemanticVisitor::visitCharExpr(CharExpr &charexpr) {
 
 void SemanticVisitor::visitIntExpr(IntExpr &intexpr) {
     intexpr.infType = getType("int");
+}
+
+int SemanticVisitor::getNumErrors() { 
+    return numOfErrors;
 }
