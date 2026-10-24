@@ -98,8 +98,16 @@ std::unique_ptr<Statement> Parser::ParseDeclStmt() {
     if (peekCurr().tokentype == TokenType::EQUALS) {
         getNextToken();
 
-        if (peekCurr().tokentype == TokenType::LEFT_CURLY) expr = ParseInitList();
-        else expr = ParseExpr();
+        TokenType currType = peekCurr().tokentype;
+        switch (currType) {
+            case TokenType::LEFT_CURLY: expr = ParseInitList();
+            break;
+
+            case TokenType::STRING: expr = ParseStringLit();
+            break;
+
+            default: expr = ParseExpr();
+        }
 
         lastTokenLine = expr->line;
         lastTokenCol = expr->column;

@@ -1,7 +1,9 @@
 #include "frontend/scanner/Scanner.hpp"
 #include "utils/Error.hpp"
+
 #include <fstream>
 #include <iostream>
+#include <format>
 
 Scanner::Scanner(std::string source_arg) :
     source(source_arg) {}
@@ -16,6 +18,15 @@ void Scanner::scanFile() {
     }
 
     file.close();
+}
+
+std::string Scanner::getEscSeq(char ch) {
+    switch(ch) {
+        case 'n': return "\n";
+        case 't': return "\t";
+        case '0': return "\0";
+        default: return "";
+    }
 }
 
 void Scanner::scanToken() {
@@ -170,20 +181,28 @@ void Scanner::scanToken() {
             getNextChar();
 
             // Consume the actual char
+            bool isEsc = false;
+            if (peekCurr() == '\\') {
+                isEsc = true;
+                getNextChar();
+            }
+            
+            char ch = peekCurr();
             getNextChar();
 
             // consume '
-
             if (peekCurr() != '\'') {
                 Error error(line, tokStartCol, "No matching \' found");
                 printErrorMsg(error);
             }
 
             getNextChar();
-            addToken(TokenType::CHARACTER);
+            std::string lex = isEsc ? getEscSeq(ch) : std::string(1, ch);
+            addToken(TokenType::CHARACTER, std::format("'{}'", lex));
         } break;
 
         case '"': {
+            getNextChar();
             bool termInvComma = lookAhead('"');
 
             if (termInvComma) {
@@ -267,6 +286,11 @@ void Scanner::getNextLine() {
 void Scanner::addToken(const TokenType &tokenType) {
     std::string lex = sourceContent.substr(start, current - start);
     Token token = Token(tokenType, lex, line, tokStartCol);
+    tokenList.push_back(token);
+}
+
+void Scanner::addToken(const TokenType &tokenType, const std::string &lexeme) {
+    Token token = Token(tokenType, lexeme, line, tokStartCol);
     tokenList.push_back(token);
 }
 

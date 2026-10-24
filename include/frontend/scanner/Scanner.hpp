@@ -18,6 +18,8 @@ class Scanner {
     int column = 1;
     int tokStartCol = 1;
 
+    std::string getEscSeq(char ch);
+
     void scanToken();
 
     char peekCurr();
@@ -25,6 +27,7 @@ class Scanner {
     void getNextChar();
     void getNextLine();
     void addToken(const TokenType &tokenType);
+    void addToken(const TokenType &tokenType, const std::string &lexeme);
     void checkChar();
     bool lookAhead(char expEnd);
 

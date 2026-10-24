@@ -21,6 +21,24 @@ std::unique_ptr<Expression> Parser::ParseCharExpr() {
     return std::move(Result);
 }
 
+std::unique_ptr<Expression> Parser::ParseStringLit() {
+    int tline = peekCurr().line;
+    int tcol = peekCurr().column;
+    std::string lexeme = peekCurr().lexeme;
+
+    auto Result = std::make_unique<InitList>(tline, tcol);
+
+    for (size_t i = 1; i < lexeme.size(); i++) {
+        if (lexeme[i] == '"') break;
+
+        auto charExpr = std::make_unique<CharExpr>(lexeme[i], tline, tcol + i);
+        Result->addExpr(std::move(charExpr));
+    }
+
+    getNextToken();
+    return Result;
+}
+
 std::unique_ptr<Expression> Parser::ParseInitList() {
     //consume '{'
     int tline = peekCurr().line;
