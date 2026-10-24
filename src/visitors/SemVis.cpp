@@ -449,12 +449,22 @@ void SemanticVisitor::visitVarExpr(VarExpr &varexpr) {
 }
 
 void SemanticVisitor::visitInitList(InitList &initlist) {
-    for (size_t i = 0; i < initlist.exprs.size(); i++) {
+    unsigned numValues = initlist.exprs.size();
+    if (numValues == 0) return;
+
+    for (size_t i = 0; i < numValues; i++) {
         (initlist.exprs[i])->accept(*this);
     }
 
     TypeKind *type = initlist.exprs[0]->infType;
-    initlist.infType = getArrType(type->name, initlist.exprs.size());
+    std::string errMsg = "Elements in initializer lists must have identical types"; 
+
+    for (auto &expr: initlist.exprs) {
+        TypeKind *currType = expr->infType;
+        if (currType != type) reportError(*expr, errMsg);
+    }
+
+    initlist.infType = getArrType(type->name, numValues);
 }
 
 void SemanticVisitor::visitCharExpr(CharExpr &charexpr) {

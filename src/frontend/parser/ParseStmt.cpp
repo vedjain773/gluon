@@ -7,7 +7,8 @@ std::unique_ptr<Statement> Parser::ParseExprStmt() {
     std::unique_ptr<Expression> expr = ParseExpr();
 
     if (!expectAndConsume(TokenType::SEMICOLON, "Missing ';' after expression")) return nullptr;
-
+    if (expr == nullptr) return nullptr;
+    
     return std::make_unique<ExprStmt>(std::move(expr));
 }
 
@@ -96,7 +97,9 @@ std::unique_ptr<Statement> Parser::ParseDeclStmt() {
 
     if (peekCurr().tokentype == TokenType::EQUALS) {
         getNextToken();
-        expr = ParseExpr();
+
+        if (peekCurr().tokentype == TokenType::LEFT_CURLY) expr = ParseInitList();
+        else expr = ParseExpr();
 
         lastTokenLine = expr->line;
         lastTokenCol = expr->column;

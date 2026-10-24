@@ -29,7 +29,11 @@ std::unique_ptr<Expression> Parser::ParseInitList() {
     
     auto Result = std::make_unique<InitList>(tline, tcol);
     while (peekCurr().tokentype != TokenType::RIGHT_CURLY) {
-        auto expr = ParseExpr();
+        std::unique_ptr<Expression> expr;
+
+        if (peekCurr().tokentype == TokenType::LEFT_CURLY) expr = ParseInitList();
+        else expr = ParseExpr(); 
+
         Result->addExpr(std::move(expr));
 
         if (peekCurr().tokentype == TokenType::COMMA) {
@@ -76,10 +80,6 @@ std::unique_ptr<Expression> Parser::ParsePrimaryExpr() {
 
         case TokenType::LEFT_ROUND: {
             return ParseParenExpr();
-        } break;
-
-        case TokenType::LEFT_CURLY: {
-            return ParseInitList();
         } break;
 
         default: {

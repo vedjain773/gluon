@@ -2,7 +2,9 @@
 #include "nodes/Program.hpp"
 #include "utils/Error.hpp"
 #include "visitors/Visitor.hpp"
+
 #include <iostream>
+#include <stack>
 
 BinOpPrec getBinPrecedence(Operators Op) {
     switch (Op) {
@@ -74,6 +76,7 @@ std::tuple<TypeKind *, std::string> Parser::ParseTypePrefix() {
 
 TypeKind *Parser::ParseTypeSuffix(TypeKind *typek, std::string typeName) {
     TypeKind *suffixType = typek;
+    std::stack<int> dimensions;
 
     while (peekCurr().tokentype == TokenType::LEFT_SQUARE) {
         getNextToken();
@@ -86,8 +89,14 @@ TypeKind *Parser::ParseTypeSuffix(TypeKind *typek, std::string typeName) {
         }
 
         getNextToken();
-        suffixType = getArrType(typeName, intExpr->Val);
-        typeName = suffixType->name;
+        dimensions.push(intExpr->Val);
+    }
+
+    while (!dimensions.empty()) {
+        int top = dimensions.top();
+        dimensions.pop();
+
+        suffixType = getArrType(suffixType->name, top);
     }
 
     return suffixType;
