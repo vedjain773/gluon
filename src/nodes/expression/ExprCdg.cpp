@@ -8,6 +8,17 @@ Value *CharExpr::codegen(CodegenVis &cdgvis) {
     return ConstantInt::Create(infType, character);
 }
 
+Value *InitList::codegen(CodegenVis &cdgvis) {
+    ArrayLit *arrlit = ArrayLit::Create(infType);
+
+    for (auto &expr: exprs) {
+        Value *value = expr->codegen(cdgvis);
+        arrlit->addValue(value);
+    }
+
+    return arrlit;
+};
+
 Value *VarExpr::codegen(CodegenVis &cdgvis) {
     IRBuilder *Bldr = (cdgvis.builder).get();
     AllocaInst *alloca = cdgvis.lookup(Name);

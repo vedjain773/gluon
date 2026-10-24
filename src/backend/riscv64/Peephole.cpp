@@ -32,11 +32,15 @@ void Peephole::applyIdentity(mInst *inst) {
             mOperand *op2 = inst->getOperand(2);
 
             if (Immediate *imm = dynamic_cast<Immediate*>(op1)) {
-                if (imm->getImmValue() == 0) inst->remOperand(op1);
-                inst->setOpCode(Code::MV);
+                if (imm->getImmValue() == 0) {
+                    inst->remOperand(op1);
+                    inst->setOpCode(Code::MV);
+                }
             } else if (Immediate *imm = dynamic_cast<Immediate*>(op2)) {
-                if (imm->getImmValue() == 0) inst->remOperand(op2);
-                inst->setOpCode(Code::MV);
+                if (imm->getImmValue() == 0) {
+                    inst->remOperand(op2);
+                    inst->setOpCode(Code::MV);
+                }
             }
 
         } break;

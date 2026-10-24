@@ -448,6 +448,15 @@ void SemanticVisitor::visitVarExpr(VarExpr &varexpr) {
     }
 }
 
+void SemanticVisitor::visitInitList(InitList &initlist) {
+    for (size_t i = 0; i < initlist.exprs.size(); i++) {
+        (initlist.exprs[i])->accept(*this);
+    }
+
+    TypeKind *type = initlist.exprs[0]->infType;
+    initlist.infType = getArrType(type->name, initlist.exprs.size());
+}
+
 void SemanticVisitor::visitCharExpr(CharExpr &charexpr) {
     charexpr.infType = getType("char");
 }

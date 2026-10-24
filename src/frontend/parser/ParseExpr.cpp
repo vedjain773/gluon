@@ -21,6 +21,27 @@ std::unique_ptr<Expression> Parser::ParseCharExpr() {
     return std::move(Result);
 }
 
+std::unique_ptr<Expression> Parser::ParseInitList() {
+    //consume '{'
+    int tline = peekCurr().line;
+    int tcol = peekCurr().column;
+    getNextToken();
+    
+    auto Result = std::make_unique<InitList>(tline, tcol);
+    while (peekCurr().tokentype != TokenType::RIGHT_CURLY) {
+        auto expr = ParseExpr();
+        Result->addExpr(std::move(expr));
+
+        if (peekCurr().tokentype == TokenType::COMMA) {
+            getNextToken();
+        }
+    }
+
+    //consume '}'
+    getNextToken();
+    return Result; 
+}
+
 std::unique_ptr<Expression> Parser::ParseVarExpr() {
     std::string Var = peekCurr().lexeme;
 
@@ -55,6 +76,10 @@ std::unique_ptr<Expression> Parser::ParsePrimaryExpr() {
 
         case TokenType::LEFT_ROUND: {
             return ParseParenExpr();
+        } break;
+
+        case TokenType::LEFT_CURLY: {
+            return ParseInitList();
         } break;
 
         default: {

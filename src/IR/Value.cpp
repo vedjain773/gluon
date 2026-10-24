@@ -122,6 +122,35 @@ void ConstantInt::printAsOperand(std::ostream &os) {
 
 //---
 
+ArrayLit::ArrayLit(TypeKind *type, const std::string &name) :
+    Value(type, ValueKind::Aggregate, name) {}
+
+ArrayLit *ArrayLit::Create(TypeKind *type, const std::string &name) {
+    return new ArrayLit(type, name);
+}
+
+void ArrayLit::addValue(Value *value) {
+    values.push_back(value);
+}
+
+Value *ArrayLit::getValue(int idx) {
+    return values[idx];
+}
+
+void ArrayLit::printAsOperand(std::ostream &os) {
+    os << std::format("{} [", getType()->name);
+    
+    for (Value *value: values) {
+        value->print(os);
+
+        if (value != values.back()) os << ", "; 
+    }
+
+    os << "]";
+}
+
+//---
+
 Arg::Arg(TypeKind *type, const std::string &name, Func *F, unsigned argNo) :
     Value(type, ValueKind::Argument, name),
     func(F),

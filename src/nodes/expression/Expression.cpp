@@ -52,6 +52,18 @@ void CharExpr::accept(Visitor &visitor) {
     visitor.visitCharExpr(*this);
 }
 
+InitList::InitList(int tline, int tcol) :
+    Expression(tline, tcol) {}
+
+void InitList::addExpr(std::unique_ptr<Expression> expr) {
+    exprs.push_back(std::move(expr));    
+}
+
+void InitList::accept(Visitor &visitor) {
+    visitor.visitInitList(*this);
+}
+
+
 VarExpr::VarExpr(std::string name, int tline, int tcol) :
     Expression(tline, tcol),
     Name(name) {}

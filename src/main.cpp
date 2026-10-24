@@ -120,12 +120,12 @@ int main(int argc, char **argv) {
     lp.lower();
     RISCV::mModule *bdMod = lp.getModule();
 
+    RISCV::Peephole peepOpt(bdMod);
+    peepOpt.redInst();
+
 #ifdef PRINT_MIR
     lp.print(std::cout);      
 #endif
-
-    RISCV::Peephole peepOpt(bdMod);
-    peepOpt.redInst();
 
     if (config.optimize) {
         RISCV::PhiPass phipass(bdMod);
@@ -136,10 +136,6 @@ int main(int argc, char **argv) {
 
     RISCV::RegAlloc allocator(bdMod);
     allocator.allocate();
-
-#ifdef PRINT_ITG
-    allocator.printITFGraph(std::cout);      
-#endif
 
     RISCV::FramePass fp(bdMod);
     fp.run();

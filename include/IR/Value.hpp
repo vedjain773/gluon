@@ -13,6 +13,7 @@ class Value;
 
 enum class ValueKind {
     Constant,
+    Aggregate,
     Instruction,
     Argument
 };
@@ -80,6 +81,19 @@ class ConstantInt : public Value {
     static ConstantInt *Create(TypeKind *intType, uint64_t value, const std::string &name = "");
 
     uint64_t getValue();
+    void printAsOperand(std::ostream &os);
+};
+
+class ArrayLit : public Value {
+  private:
+    std::vector<Value*> values;
+
+  public:
+    ArrayLit(TypeKind *type, const std::string &name);
+    static ArrayLit *Create(TypeKind *type, const std::string &name = "");
+
+    void addValue(Value *value);
+    Value *getValue(int idx);
     void printAsOperand(std::ostream &os);
 };
 

@@ -11,6 +11,7 @@ class Statement;
 
 class IntExpr;
 class CharExpr;
+class InitList;
 class VarExpr;
 class CallExpr;
 class CastExpr;
@@ -44,6 +45,7 @@ class Visitor {
   public:
     virtual void visitIntExpr(IntExpr &intexpr) = 0;
     virtual void visitCharExpr(CharExpr &charexpr) = 0;
+    virtual void visitInitList(InitList &initlist) = 0;
     virtual void visitVarExpr(VarExpr &varexpr) = 0;
     virtual void visitCallExpr(CallExpr &callexpr) = 0;
     virtual void visitCastExpr(CastExpr &castexpr) = 0;
@@ -79,6 +81,7 @@ class PrintVisitor : public Visitor {
   public:
     void visitIntExpr(IntExpr &intexpr);
     void visitCharExpr(CharExpr &charexpr);
+    void visitInitList(InitList &initlist);
     void visitVarExpr(VarExpr &varexpr);
     void visitCallExpr(CallExpr &callexpr);
     void visitCastExpr(CastExpr &castexpr);
@@ -128,6 +131,7 @@ class SemanticVisitor : public Visitor {
   public:
     void visitIntExpr(IntExpr &intexpr);
     void visitCharExpr(CharExpr &charexpr);
+    void visitInitList(InitList &initlist);
     void visitVarExpr(VarExpr &varexpr);
     void visitCallExpr(CallExpr &callexpr);
     void visitCastExpr(CastExpr &castexpr);

@@ -19,10 +19,10 @@
 namespace RISCV {
 
 struct defUses {
-    std::vector<VirtReg *> vUses;
-    std::vector<VirtReg *> vDefs;
-    std::vector<Reg> pUses;
-    std::vector<Reg> pDefs;
+    std::set<VirtReg *> vUses;
+    std::set<VirtReg *> vDefs;
+    std::set<Reg> pUses;
+    std::set<Reg> pDefs;
 };
 
 class RegAlloc {

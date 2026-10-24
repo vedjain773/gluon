@@ -77,6 +77,17 @@ class CharExpr : public Expression {
     Value *codegen(CodegenVis &cdgvis); 
 };
 
+class InitList : public Expression {
+  public:
+    std::vector<std::unique_ptr<Expression>> exprs;
+    
+    InitList(int tline, int tcol);
+    void addExpr(std::unique_ptr<Expression> expr);
+    void accept(Visitor &visitor);
+
+    Value *codegen(CodegenVis &cdgvis);
+};
+
 class VarExpr : public Expression {
   public:
     std::string Name;

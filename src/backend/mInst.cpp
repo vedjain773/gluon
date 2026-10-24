@@ -61,6 +61,7 @@ void mInst::remOperand(mOperand *operand) {
 bool mInst::isDef(unsigned i) {
     switch (opcode) {
         case Code::ADD:
+        case Code::ADDI:
         case Code::SUB:
         case Code::MUL:
         case Code::ADDW:
@@ -105,6 +106,9 @@ bool mInst::isUse(unsigned i) {
         case Code::SGT:
         case Code::SLT:
             return i == 1 || i == 2;
+
+        case Code::ADDI:
+            return i == 1;
 
         case Code::NEG:
         case Code::NEGW:

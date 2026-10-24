@@ -68,15 +68,15 @@ defUses RegAlloc::getDefUses(mInst *inst) {
         mOperand *oper = inst->getOperand(i);
 
         if (VirtReg *virtReg = dynamic_cast<VirtReg *>(oper)) {
-            if (inst->isDef(i)) result.vDefs.push_back(virtReg);
-            if (inst->isUse(i)) result.vUses.push_back(virtReg);
+            if (inst->isDef(i)) result.vDefs.insert(virtReg);
+            if (inst->isUse(i)) result.vUses.insert(virtReg);
 
         } else if (PhyReg *phyReg = dynamic_cast<PhyReg *>(oper)) {
             Reg reg = phyReg->getReg();
             if (reg2Int.count(reg) == 0) continue;
 
-            if (inst->isDef(i)) result.pDefs.push_back(reg);
-            if (inst->isUse(i)) result.pUses.push_back(reg);
+            if (inst->isDef(i)) result.pDefs.insert(reg);
+            if (inst->isUse(i)) result.pUses.insert(reg);
         }
     }
 
@@ -85,17 +85,17 @@ defUses RegAlloc::getDefUses(mInst *inst) {
 
         for (i = 0; i < numArgs && i < 8; i++) {
             Reg reg = static_cast<Reg>(10 + i);
-            result.pUses.push_back(reg);
+            result.pUses.insert(reg);
         }
 
         for (i = 0; i < CALLER_S; i++) {
             Reg reg = availReg[i];
-            result.pDefs.push_back(reg);
+            result.pDefs.insert(reg);
         }
     }
 
     if (inst->getOpCode() == Code::RET) {
-        result.pUses.push_back(Reg::A0);
+        result.pUses.insert(Reg::A0);
     } 
 
     return result;
@@ -281,6 +281,10 @@ void RegAlloc::createITFGraph() {
                 liveNow.insert(useReg); 
         }
     }
+
+#ifdef DEBUG 
+    printITFGraph(std::cout);
+#endif
 }
 
 void RegAlloc::colour() {
@@ -512,7 +516,7 @@ void RegAlloc::printITFGraph(std::ostream &os) {
     graph.add_row({"Node", "Edges"});
 
     unsigned i = 1;
-    for (auto &[key, value] : workingITG) {
+    for (auto &[key, value] : interference) {
         std::string edges;
 
         for (auto &vreg : value) {

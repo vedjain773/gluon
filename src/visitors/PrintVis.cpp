@@ -18,6 +18,16 @@ void PrintVisitor::visitCharExpr(CharExpr &charexpr) {
     std::cout << getIndent() << "|-Char(" << charexpr.character << ")\n";
 }
 
+void PrintVisitor::visitInitList(InitList &initlist) {
+    std::cout << getIndent() << "|-InitList\n";
+    
+    depth += 1;
+    for (size_t i = 0; i < initlist.exprs.size(); i++) {
+        (initlist.exprs[i])->accept(*this);
+    }
+    depth -= 1;
+}
+
 void PrintVisitor::visitVarExpr(VarExpr &varexpr) {
     std::cout << getIndent() << "|-Var(" << varexpr.Name << ")\n";
 }

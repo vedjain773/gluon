@@ -50,6 +50,9 @@ class LowerPass {
     void handleCBr(Inst *inst);
     void handleRet(Inst *inst);
 
+    void flattenLit(std::vector<Value*> &flatArr, Value *lit);
+    void handleStoreAggr(Value *value, Value *dest);
+
     VirtReg *newVirtReg(TypeKind *type);
     PhyReg *getPhyReg(const Reg &reg);
 

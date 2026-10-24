@@ -346,7 +346,7 @@ void LowerPass::handleGEP(Inst *inst) {
     unsigned coff = 0;
     mOperand *offset = getPhyReg(Reg::ZERO);
     
-    int i = 0;
+    unsigned i = 0;
     for (; i < numIndices; i++) {
         Value *index = indices[i];
         ConstantInt *cidx = dynamic_cast<ConstantInt*>(index);
@@ -394,6 +394,11 @@ void LowerPass::handleStore(Inst *inst) {
     Value *value = storeInst->getValue();
     Value *dest = storeInst->getDest();
 
+    if (value->getValueKind() == ValueKind::Aggregate) {
+        handleStoreAggr(value, dest);
+        return;
+    } 
+
     mOperand *storeVal = nullptr;
 
     if (isPointerType(value->getType())) storeVal = genAddr(value);
@@ -403,6 +408,47 @@ void LowerPass::handleStore(Inst *inst) {
 
     Code opc = getStoreCode(storeVal);
     emit(opc, {storeVal, storeTo});
+}
+
+//---
+
+void LowerPass::flattenLit(std::vector<Value*> &flatArr, Value *lit) {
+    TypeKind *type = lit->getType();
+    unsigned numOfElements = getNumElements(type);
+
+    ArrayLit *arrlit = dynamic_cast<ArrayLit*>(lit);
+
+    if (!isArrayType(type->to)) {
+        for (unsigned i = 0; i < numOfElements; i++)
+            flatArr.push_back(arrlit->getValue(i));
+    } else {
+        for (unsigned i = 0; i < numOfElements; i++)
+            flattenLit(flatArr, arrlit->getValue(i));
+    }
+}
+
+void LowerPass::handleStoreAggr(Value *value, Value *dest) {
+    mOperand *val = genAddr(dest);
+    std::vector<Value *> flatArr;
+
+    flattenLit(flatArr, value);
+    TypeKind *base = flatArr.front()->getType();
+    unsigned offset = 0, baseSize = base->size;
+
+    TypeKind *ptrType = getType("int*");
+    TypeKind *intType = getType("int");
+
+    for (unsigned i = 0; i < flatArr.size(); i++) {
+        mOperand *res = newVirtReg(ptrType); 
+        Immediate *off = Immediate::Create(offset, intType);
+        emit(Code::ADDI, {res, val, off});
+        
+        mOperand *sVal = materialize(handleValue(flatArr[i])); 
+        Code opc = getStoreCode(sVal);
+        emit(opc, {sVal, res});
+
+        offset += baseSize;
+    }
 }
 
 //---
